@@ -17,7 +17,7 @@
           <span class="news-date">{{ n.date }}</span>
         </li>
       </ul>
-      <router-link to="/info" class="more">更多 <el-icon><CirclePlusFilled /></el-icon></router-link>
+      <router-link to="/experInformation" class="more">更多 <el-icon><CirclePlusFilled /></el-icon></router-link>
     </div>
 
     <!-- 右侧：待办工作 + 体验支撑 -->

@@ -52,7 +52,17 @@ const routes = [
         }
       ]),
 
-      ...['info', 'experiencer', 'monitor', 'voice', 'system', 'admin'].map((key) => ({
+      section('info', [
+        { path: 'journeyModify', component: () => import('@/views/info/JourneyPending.vue'), props: { mode: 'modify' }, meta: { group: '待办工作', title: '待修改' } },
+        { path: 'journeyExamine', component: () => import('@/views/info/JourneyPending.vue'), props: { mode: 'examine' }, meta: { group: '待办工作', title: '待审核' } },
+        { path: 'methodTraining', component: () => import('@/views/info/MethodTraining.vue'), meta: { title: '方法培训' } },
+        { path: 'excellentReport', component: () => import('@/views/info/ExcellentReport.vue'), meta: { title: '体验研究' } },
+        { path: 'experInformation', component: () => import('@/views/info/InfoManage.vue'), meta: { title: '数据管理' } },
+        { path: 'journeyList', component: () => import('@/views/common/Placeholder.vue'), meta: { group: '灵犀旅程', title: '灵犀旅程' } },
+        { path: 'qualityCheck', component: () => import('@/views/common/Placeholder.vue'), meta: { group: '体验质检', title: '体验质检' } }
+      ]),
+
+      ...['experiencer', 'monitor', 'voice', 'system', 'admin'].map((key) => ({
         path: key,
         component: () => import('@/views/common/Placeholder.vue'),
         meta: { section: key }

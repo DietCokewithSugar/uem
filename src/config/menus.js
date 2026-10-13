@@ -1,11 +1,12 @@
 // 顶部主导航 + 各板块左侧菜单配置
+// 分组无 children 而有 path 时，作为一级菜单直接跳转（如「方法培训」）
 // countKey 对应 mock/index.js 中 todoCounts 的字段，用于显示待办数量
 
 export const topNav = [
   { key: 'home', title: '首页', path: '/mainIndex' },
   { key: 'experience', title: '体验问题', path: '/optimPending', query: { type: '', suggestStatus: '2' } },
   { key: 'activity', title: '体验活动', path: '/activityPending' },
-  { key: 'info', title: '体验资讯', path: '/info' },
+  { key: 'info', title: '体验资讯', path: '/journeyModify' },
   { key: 'experiencer', title: '体验员', path: '/experiencer' },
   { key: 'monitor', title: '体验监测', path: '/monitor' },
   { key: 'voice', title: '用户声音', path: '/voice' },
@@ -63,6 +64,21 @@ export const sideMenus = {
         { title: '我的体验任务', path: '/myExperTask' }
       ]
     }
+  ],
+  info: [
+    {
+      title: '待办工作',
+      children: [
+        { title: '待修改旅程', path: '/journeyModify', countKey: 'journeyModify' },
+        { title: '待审核旅程', path: '/journeyExamine', countKey: 'journeyExamine' }
+      ]
+    },
+    { title: '方法培训', path: '/methodTraining' },
+    { title: '体验研究', path: '/excellentReport' },
+    { title: '数据管理', path: '/experInformation' },
+    // 以下两组截图中未展开，子菜单待补充
+    { title: '灵犀旅程', inferred: true, children: [{ title: '（待补充）', path: '/journeyList' }] },
+    { title: '体验质检', inferred: true, children: [{ title: '（待补充）', path: '/qualityCheck' }] }
   ]
 }
 

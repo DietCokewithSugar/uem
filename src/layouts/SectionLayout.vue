@@ -3,11 +3,14 @@
   <div class="section">
     <aside class="side">
       <div v-for="group in menus" :key="group.title" class="group">
-        <div class="group-title" @click="toggle(group.title)">
+        <router-link v-if="!group.children" :to="group.path" class="group-title leaf" :class="{ active: isActive(group) }">
+          {{ group.title }}
+        </router-link>
+        <div v-else class="group-title" @click="toggle(group.title)">
           <span>{{ group.title }}</span>
           <el-icon><component :is="isOpen(group.title) ? 'ArrowUp' : 'ArrowDown'" /></el-icon>
         </div>
-        <el-collapse-transition>
+        <el-collapse-transition v-if="group.children">
           <div v-show="isOpen(group.title)">
             <router-link
               v-for="item in group.children"
@@ -51,7 +54,7 @@ const opened = ref(new Set())
 
 // 子页面（如新增）通过 meta.parent 指定所属列表
 const parentPath = computed(() => route.meta.parent?.(route))
-const allItems = computed(() => menus.value.flatMap((g) => g.children))
+const allItems = computed(() => menus.value.flatMap((g) => g.children || [g]))
 
 const isActive = (item) => {
   if (parentPath.value) return item.path === parentPath.value
@@ -68,7 +71,7 @@ watch(
   () => {
     const s = new Set(opened.value)
     s.add('待办工作')
-    menus.value.forEach((g) => g.children.some(isActive) && s.add(g.title))
+    menus.value.forEach((g) => g.children?.some(isActive) && s.add(g.title))
     opened.value = s
   },
   { immediate: true }
@@ -103,6 +106,8 @@ const crumbs = computed(() => {
   padding: 12px 20px; color: #555; cursor: pointer; font-size: 14px;
 }
 .group-title .el-icon { color: #999; font-size: 12px; }
+.group-title.leaf:hover { color: var(--uem-red); }
+.group-title.leaf.active { background: linear-gradient(90deg, #e5575e, #f08a8f); color: #fff; }
 .side-item { display: block; padding: 11px 20px 11px 44px; color: #666; font-size: 13px; }
 .side-item:hover { color: var(--uem-red); }
 .side-item.active { background: linear-gradient(90deg, #e5575e, #f08a8f); color: #fff; }
