@@ -101,6 +101,7 @@ const toggle = (t) => {
 
 const pageTitle = computed(() => {
   if (route.path === '/optimPending') return pendingStatus[route.query.suggestStatus] || '待处理'
+  if (route.meta.dynamicEditTitle) return route.query.id ? '修改' : '新增'
   if (route.meta.dynamicTitle) return allItems.value.find((i) => isActive(i))?.title || route.meta.title
   return route.meta.title || ''
 })

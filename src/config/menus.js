@@ -14,7 +14,7 @@ export const topNav = [
   { key: 'experiencer', title: '体验员', path: '/headInsideExperManage' },
   { key: 'monitor', title: '体验监测', path: '/experEvaluationIndex' },
   { key: 'voice', title: '用户声音', path: '/empAspirrations' },
-  { key: 'system', title: '系统管理', path: '/system' },
+  { key: 'system', title: '系统管理', path: '/personMaintenance' },
   { key: 'admin', title: '后台管理', path: '/admin' }
 ]
 
@@ -155,6 +155,17 @@ export const sideMenus = {
         { title: '实时监测收件人管理', path: '/emailManage' }
       ]
     }
+  ],
+  system: [
+    { title: '人员维护', path: '/personMaintenance' },
+    { title: '产品维护', path: '/productMaintenance' },
+    { title: '首页维护', children: [{ title: '轮播图维护', path: '/carouseMaintenanceList' }] },
+    { title: '运营数据', path: '/sysOperation' },
+    // 以下页面待截图补充；路由为推测
+    { title: '要客数据', path: '/vipData' },
+    { title: '体验监测维护', path: '/monitorMaintenance' },
+    { title: '菜单维护', path: '/menuMaintenance' },
+    { title: '体验问题维护', path: '/problemMaintenance' }
   ]
 }
 

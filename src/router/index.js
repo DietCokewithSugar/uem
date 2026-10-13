@@ -121,7 +121,22 @@ const routes = [
         ].map(([path, comp, title]) => ({ path, component: () => import(`@/views/voice/data/${comp}.vue`), meta: { group: '数据管理', title } }))
       ]),
 
-      ...['system', 'admin'].map((key) => ({
+      section('system', [
+        { path: 'personMaintenance', component: () => import('@/views/system/PersonList.vue'), meta: { title: '人员维护' } },
+        {
+          path: 'personMaintenanceAdd',
+          component: () => import('@/views/system/PersonEdit.vue'),
+          meta: { title: '新增', crumbsWithSection: true, parent: () => '/personMaintenance', dynamicEditTitle: true }
+        },
+        { path: 'productMaintenance', component: () => import('@/views/system/ProductMaintain.vue'), meta: { title: '产品维护' } },
+        { path: 'carouseMaintenanceList', component: () => import('@/views/system/CarouselList.vue'), meta: { group: '首页维护', title: '轮播图维护' } },
+        { path: 'sysOperation', component: () => import('@/views/system/SysOperation.vue'), meta: { title: '运营数据' } },
+        ...[['vipData', '要客数据'], ['monitorMaintenance', '体验监测维护'], ['menuMaintenance', '菜单维护'], ['problemMaintenance', '体验问题维护']].map(
+          ([path, title]) => ({ path, component: () => import('@/views/common/Placeholder.vue'), meta: { title } })
+        )
+      ]),
+
+      ...['admin'].map((key) => ({
         path: key,
         component: () => import('@/views/common/Placeholder.vue'),
         meta: { section: key }

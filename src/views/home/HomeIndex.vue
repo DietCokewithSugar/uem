@@ -2,9 +2,11 @@
 <template>
   <div class="home">
     <!-- 横幅 -->
+    <!-- 横幅：展示「系统管理 · 轮播图维护」中状态为「展示中」的轮播图 -->
     <div class="banner">
-      <div class="banner-line l1">倾听用户声音</div>
-      <div class="banner-line l2">提升产品体验</div>
+      <el-carousel v-if="slides.length" height="100%" :autoplay="slides.length > 1" :interval="5000" :indicator-position="slides.length > 1 ? '' : 'none'" arrow="hover" class="carousel">
+        <el-carousel-item v-for="c in slides" :key="c.id"><CarouselSlide :item="c" /></el-carousel-item>
+      </el-carousel>
     </div>
 
     <!-- 体验动态 -->
@@ -99,7 +101,10 @@ import { computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import EChart from '@/components/EChart.vue'
 import { homeData, todoCounts } from '@/mock'
+import { carousels } from '@/mock/system'
+import CarouselSlide from '@/components/CarouselSlide.vue'
 
+const slides = computed(() => carousels.filter((c) => c.status === '展示中').sort((a, b) => (a.sort || 99) - (b.sort || 99)))
 const ps = homeData.problemStats
 const solvedRate = Number(((ps.solved / ps.total) * 100).toFixed(2))
 const suggestionTodo = computed(() =>
@@ -167,35 +172,8 @@ const gaugeOption = {
 }
 
 /* 横幅 */
-.banner {
-  grid-area: banner;
-  min-height: 400px;
-  border-radius: 4px;
-  position: relative;
-  overflow: hidden;
-  padding: 80px 48px;
-  background:
-    radial-gradient(ellipse 120% 60% at 80% 120%, rgba(255, 255, 255, 0.85), transparent 55%),
-    radial-gradient(ellipse 90% 40% at 20% 85%, rgba(230, 60, 70, 0.35), transparent 60%),
-    linear-gradient(135deg, #fbd3d6, #f6a5ab 45%, #fde4e6);
-}
-.banner::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-radial-gradient(ellipse at 110% 130%, transparent 0 26px, rgba(255, 255, 255, 0.25) 26px 28px);
-}
-.banner-line {
-  position: relative;
-  z-index: 1;
-  font-size: 64px;
-  font-weight: 900;
-  letter-spacing: 12px;
-  color: #d0101b;
-  text-shadow: 3px 4px 0 rgba(140, 0, 8, 0.18);
-  font-style: italic;
-}
-.banner-line.l2 { text-align: right; margin-top: 56px; }
+.banner { grid-area: banner; min-height: 400px; border-radius: 4px; overflow: hidden; background: #fbe3e4; font-size: 16px; }
+.carousel, .carousel :deep(.el-carousel__container) { height: 100%; }
 
 /* 体验动态 */
 .news { grid-area: news; position: relative; }
