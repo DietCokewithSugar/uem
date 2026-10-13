@@ -80,9 +80,15 @@ const routes = [
             parent: (r) => (r.query.status === 'view' ? '/userJourneyManagementNew' : '/myJourney')
           }
         },
-        ...[['qcAgent', '体验质检智能体'], ['qcAgentRole', '质检智能体角色管理'], ['qcAgentPrompt', '质检智能体提示词管理'], ['qcAgentStats', '质检智能体统计']].map(
-          ([path, title]) => ({ path, component: () => import('@/views/common/Placeholder.vue'), meta: { group: '体验质检', title } })
-        )
+        { path: 'agentFirst', component: () => import('@/views/info/qc/AgentList.vue'), meta: { group: '体验质检', title: '体验质检智能体' } },
+        {
+          path: 'agentDetail',
+          component: () => import('@/views/info/qc/AgentDetail.vue'),
+          meta: { group: '体验质检', title: '体验质检智能体', crumbsWithSection: true, parent: () => '/agentFirst' }
+        },
+        { path: 'roleManagement', component: () => import('@/views/info/qc/RoleManage.vue'), meta: { group: '体验质检', title: '质检智能体角色管理' } },
+        { path: 'agentTips', component: () => import('@/views/info/qc/PromptManage.vue'), meta: { group: '体验质检', title: '质检智能体提示词管理' } },
+        { path: 'agentStatistic', component: () => import('@/views/info/qc/AgentStats.vue'), meta: { group: '体验质检', title: '质检智能体统计' } }
       ]),
 
       ...['experiencer', 'monitor', 'voice', 'system', 'admin'].map((key) => ({

@@ -85,13 +85,12 @@ export const sideMenus = {
       ]
     },
     {
-      // 子菜单名称来自截图，页面内容待补充；路由为推测
       title: '体验质检',
       children: [
-        { title: '体验质检智能体', path: '/qcAgent' },
-        { title: '质检智能体角色管理', path: '/qcAgentRole' },
-        { title: '质检智能体提示词管理', path: '/qcAgentPrompt' },
-        { title: '质检智能体统计', path: '/qcAgentStats' }
+        { title: '体验质检智能体', path: '/agentFirst' },
+        { title: '质检智能体角色管理', path: '/roleManagement' },
+        { title: '质检智能体提示词管理', path: '/agentTips' },
+        { title: '质检智能体统计', path: '/agentStatistic' }
       ]
     }
   ]

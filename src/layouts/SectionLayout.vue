@@ -106,7 +106,7 @@ const crumbs = computed(() => {
   if (parentPath.value) {
     const parent = allItems.value.find((i) => i.path === parentPath.value)
     const head = route.meta.crumbsWithSection ? [topNav.find((n) => n.key === props.section)?.title] : []
-    return [...head, route.meta.group, parent?.title, pageTitle.value].filter(Boolean)
+    return [...head, route.meta.group, parent?.title, pageTitle.value].filter((c, i, arr) => c && c !== arr[i - 1])
   }
   const sectionTitle = topNav.find((n) => n.key === props.section)?.title
   return [sectionTitle, route.meta.group, pageTitle.value].filter(Boolean)
