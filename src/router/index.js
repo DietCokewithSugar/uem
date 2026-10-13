@@ -116,9 +116,9 @@ const routes = [
         { path: 'jouranalyManage', component: () => import('@/views/voice/JourneyStructure.vue'), meta: { group: '数据管理', title: '旅程结构管理' } },
         { path: 'tipsManage', component: () => import('@/views/voice/VoicePromptManage.vue'), meta: { group: '数据管理', title: '模型提示词管理' } },
         ...[
-          ['voiceBoardData', '数据管理', '看板图表数据管理'], ['voiceReport', '数据管理', '统计报表'], ['voiceUpload', '数据管理', '用户声音上传'],
-          ['voiceProductDomain', '数据管理', '产品领域管理'], ['voiceAlertReceiver', '数据管理', '实时监测收件人管理']
-        ].map(([path, group, title]) => ({ path, component: () => import('@/views/common/Placeholder.vue'), meta: { group, title } }))
+          ['boardManage', 'BoardChartData', '看板图表数据管理'], ['statisticsManage', 'StatReport', '统计报表'], ['customerSoundUpload', 'VoiceUpload', '用户声音上传'],
+          ['productField', 'ProductDomain', '产品领域管理'], ['emailManage', 'AlertReceivers', '实时监测收件人管理']
+        ].map(([path, comp, title]) => ({ path, component: () => import(`@/views/voice/data/${comp}.vue`), meta: { group: '数据管理', title } }))
       ]),
 
       ...['system', 'admin'].map((key) => ({

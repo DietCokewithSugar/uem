@@ -144,16 +144,15 @@ export const sideMenus = {
       ]
     },
     {
-      // 看板图表数据管理及以下页面待截图补充；路由为推测
       title: '数据管理',
       children: [
         { title: '旅程结构管理', path: '/jouranalyManage' },
         { title: '模型提示词管理', path: '/tipsManage' },
-        { title: '看板图表数据管理', path: '/voiceBoardData' },
-        { title: '统计报表', path: '/voiceReport' },
-        { title: '用户声音上传', path: '/voiceUpload' },
-        { title: '产品领域管理', path: '/voiceProductDomain' },
-        { title: '实时监测收件人管理', path: '/voiceAlertReceiver' }
+        { title: '看板图表数据管理', path: '/boardManage' },
+        { title: '统计报表', path: '/statisticsManage' },
+        { title: '用户声音上传', path: '/customerSoundUpload' },
+        { title: '产品领域管理', path: '/productField' },
+        { title: '实时监测收件人管理', path: '/emailManage' }
       ]
     }
   ]
