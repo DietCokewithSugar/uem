@@ -25,7 +25,7 @@
       </div>
       <nav class="nav">
         <router-link
-          v-for="item in topNav"
+          v-for="item in visibleNav"
           :key="item.key"
           :to="{ path: item.path, query: item.query }"
           class="nav-item"
@@ -48,7 +48,7 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { topNav } from '@/config/menus'
+import { visibleNav } from '@/config/menus'
 import { currentUser } from '@/config/user'
 import Watermark from '@/components/Watermark.vue'
 

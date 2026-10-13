@@ -210,9 +210,9 @@ export const productDomains = reactive([
 
 // ===== 实时监测收件人 =====
 export const alertReceivers = reactive([
-  { id: 'demo0106', name: '孙若曦', org: '业务研发中心用户体验部' },
-  { id: 'demo0107', name: '何晨阳', org: '业务研发中心用户体验部' },
-  { id: 'demo0102', name: '周可欣', org: '业务研发中心用户体验部' },
-  { id: 'demo0001', name: '系统管理员', org: '业务研发中心用户体验部' },
-  { id: 'demo0109', name: '冯浩然', org: '业务研发中心用户体验部' }
+  { id: '001700106', name: '孙若曦', org: '业务研发中心用户体验部' },
+  { id: '001700107', name: '何晨阳', org: '业务研发中心用户体验部' },
+  { id: '001700102', name: '周可欣', org: '业务研发中心用户体验部' },
+  { id: '001700001', name: '系统管理员', org: '业务研发中心用户体验部' },
+  { id: '001700109', name: '冯浩然', org: '业务研发中心用户体验部' }
 ])

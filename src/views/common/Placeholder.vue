@@ -1,6 +1,6 @@
 <!-- 尚未拿到截图的页面占位 -->
 <template>
-  <div class="placeholder" :class="{ standalone: !route.meta.group }">
+  <div class="placeholder" :class="{ standalone: route.path === '/' + route.meta.section }">
     <el-empty :description="desc">
       <p class="tip">请上传该页签截图后补充构建</p>
     </el-empty>

@@ -1,6 +1,9 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 import SectionLayout from '@/layouts/SectionLayout.vue'
+import { persons } from '@/mock/system'
+import { recordVisit } from '@/mock/vipVisits'
+import { currentUser } from '@/config/user'
 
 const section = (key, children) => ({
   path: '',
@@ -121,7 +124,35 @@ const routes = [
         ].map(([path, comp, title]) => ({ path, component: () => import(`@/views/voice/data/${comp}.vue`), meta: { group: '数据管理', title } }))
       ]),
 
-      ...['system', 'admin'].map((key) => ({
+      section('system', [
+        { path: 'personMaintenance', component: () => import('@/views/system/PersonList.vue'), meta: { title: '人员维护' } },
+        {
+          path: 'personMaintenanceAdd',
+          component: () => import('@/views/system/PersonEdit.vue'),
+          meta: { title: '新增', crumbsWithSection: true, parent: () => '/personMaintenance', dynamicEditTitle: true }
+        },
+        { path: 'productMaintenance', component: () => import('@/views/system/ProductMaintain.vue'), meta: { title: '产品维护' } },
+        { path: 'carouseMaintenanceList', component: () => import('@/views/system/CarouselList.vue'), meta: { group: '首页维护', title: '轮播图维护' } },
+        { path: 'sysOperation', component: () => import('@/views/system/SysOperation.vue'), meta: { title: '运营数据' } },
+        { path: 'majorClient', component: () => import('@/views/system/VipData.vue'), meta: { title: '要客数据' } },
+        {
+          path: 'experEvaluationMaintenance',
+          component: () => import('@/views/system/MonitorMaintain.vue'),
+          meta: { title: '体验监测维护', titleTabs: [{ key: 'channel', label: '重点渠道' }, { key: 'product', label: '精品产品' }] }
+        },
+        { path: 'menuMaintenance', component: () => import('@/views/system/MenuMaintain.vue'), meta: { title: '菜单维护' } },
+        { path: 'experienceProblemsMaintenance', component: () => import('@/views/system/ProblemMaintain.vue'), meta: { title: '体验问题维护' } }
+      ]),
+
+      section('admin', [
+        { path: 'scheduleJobList', component: () => import('@/views/admin/ScheduleJobs.vue'), meta: { title: '定时任务' } },
+        ...[['dictMaintenance', '字典维护'], ['emailRecord', '邮件记录'], ['holiday', '节假日'], ['apiPermission', '接口权限'], ['logManage', '日志管理']].map(
+          ([path, title]) => ({ path, component: () => import('@/views/common/Placeholder.vue'), meta: { title } })
+        )
+      ]),
+
+      // 「平台工具」一级菜单当前为冻结状态（菜单维护中可激活），截图未提供页面
+      ...['tools'].map((key) => ({
         path: key,
         component: () => import('@/views/common/Placeholder.vue'),
         meta: { section: key }
@@ -131,8 +162,16 @@ const routes = [
   { path: '/:pathMatch(.*)*', redirect: '/mainIndex' }
 ]
 
-export default createRouter({
+const router = createRouter({
   history: createWebHashHistory(),
   routes,
   scrollBehavior: () => ({ top: 0 })
 })
+
+// 要客访问记录：当前用户在「人员维护」中被标记为要客时记录访问
+router.afterEach((to) => {
+  const me = persons.find((p) => p.id === currentUser.id)
+  if (me?.vip) recordVisit(me, to)
+})
+
+export default router

@@ -5,7 +5,7 @@
     <div class="uem-card">
       <div class="uem-toolbar"><el-button type="primary" @click="exportEts">ETS评价数据导出</el-button></div>
       <el-table :data="rows">
-        <el-table-column prop="id" label="序号" width="70" />
+        <el-table-column type="index" label="序号" width="70" :index="(i) => (page - 1) * pageSize + i + 1" />
         <el-table-column prop="column" label="栏目" min-width="140" />
         <el-table-column label="产品名称" min-width="180">
           <template #default="{ row }"><span class="uem-link" @click="detail = row">{{ row.product }}</span></template>
@@ -48,6 +48,7 @@ import SearchForm from '@/components/SearchForm.vue'
 import { useTableQuery, match } from '@/components/useTableQuery'
 import { exportCsv } from '@/components/exportCsv'
 import { evalUploads, premiumProducts, brandData, months } from '@/mock/monitor'
+import { isUploadVisible } from '@/mock/monitorMaint'
 import { currentUser } from '@/config/user'
 
 const fields = [
@@ -55,7 +56,8 @@ const fields = [
   { prop: 'product', label: '所属精品产品', type: 'select', options: premiumProducts }
 ]
 const { form, page, pageSize, filtered, rows, search, reset } = useTableQuery(
-  () => evalUploads,
+  // 「体验监测维护」中冻结的重点渠道 / 精品产品不展示
+  () => evalUploads.filter(isUploadVisible),
   { time: [], product: '' },
   (r, q) => (!q.time?.length || (r.updateTime && match.inRange(r.updateTime, q.time))) && match.equals(r.product, q.product)
 )

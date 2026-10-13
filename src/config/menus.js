@@ -2,21 +2,25 @@
 // 分组无 children 而有 path 时，作为一级菜单直接跳转（如「方法培训」）
 // countKey 对应 mock/index.js 中 todoCounts 的字段，用于显示待办数量
 
+import { reactive, computed } from 'vue'
 import { voiceProducts } from '@/mock/voice'
 
 const voiceProductMenus = voiceProducts.map((p) => ({ title: p.name, path: '/cusSupreme', query: { productId: p.id } }))
 
-export const topNav = [
-  { key: 'home', title: '首页', path: '/mainIndex' },
-  { key: 'experience', title: '体验问题', path: '/optimPending', query: { type: '', suggestStatus: '2' } },
-  { key: 'activity', title: '体验活动', path: '/activityPending' },
-  { key: 'info', title: '体验资讯', path: '/journeyModify' },
-  { key: 'experiencer', title: '体验员', path: '/headInsideExperManage' },
-  { key: 'monitor', title: '体验监测', path: '/experEvaluationIndex' },
-  { key: 'voice', title: '用户声音', path: '/empAspirrations' },
-  { key: 'system', title: '系统管理', path: '/system' },
-  { key: 'admin', title: '后台管理', path: '/admin' }
-]
+// 一级菜单：sort 为排序，frozen 为冻结（不在顶部导航显示）；由「系统管理 · 菜单维护」维护
+export const topNav = reactive([
+  { key: 'home', title: '首页', path: '/mainIndex', sort: 0 },
+  { key: 'experience', title: '体验问题', path: '/optimPending', query: { type: '', suggestStatus: '2' }, sort: 1 },
+  { key: 'activity', title: '体验活动', path: '/activityPending', sort: 2 },
+  { key: 'info', title: '体验资讯', path: '/journeyModify', sort: 3 },
+  { key: 'experiencer', title: '体验员', path: '/headInsideExperManage', sort: 4 },
+  { key: 'tools', title: '平台工具', path: '/tools', sort: 5, frozen: true },
+  { key: 'monitor', title: '体验监测', path: '/experEvaluationIndex', sort: 6 },
+  { key: 'voice', title: '用户声音', path: '/empAspirrations', sort: 7 },
+  { key: 'system', title: '系统管理', path: '/personMaintenance', sort: 8 },
+  { key: 'admin', title: '后台管理', path: '/scheduleJobList', sort: 9 }
+])
+export const visibleNav = computed(() => topNav.filter((n) => !n.frozen).sort((a, b) => a.sort - b.sort))
 
 export const sideMenus = {
   experience: [
@@ -155,6 +159,25 @@ export const sideMenus = {
         { title: '实时监测收件人管理', path: '/emailManage' }
       ]
     }
+  ],
+  system: [
+    { title: '人员维护', path: '/personMaintenance' },
+    { title: '产品维护', path: '/productMaintenance' },
+    { title: '首页维护', children: [{ title: '轮播图维护', path: '/carouseMaintenanceList' }] },
+    { title: '运营数据', path: '/sysOperation' },
+    { title: '要客数据', path: '/majorClient' },
+    { title: '体验监测维护', path: '/experEvaluationMaintenance' },
+    { title: '菜单维护', path: '/menuMaintenance' },
+    { title: '体验问题维护', path: '/experienceProblemsMaintenance' }
+  ],
+  admin: [
+    { title: '定时任务', path: '/scheduleJobList' },
+    // 以下页面待截图补充；路由为推测
+    { title: '字典维护', path: '/dictMaintenance' },
+    { title: '邮件记录', path: '/emailRecord' },
+    { title: '节假日', path: '/holiday' },
+    { title: '接口权限', path: '/apiPermission' },
+    { title: '日志管理', path: '/logManage' }
   ]
 }
 
