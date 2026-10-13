@@ -2,5 +2,6 @@
 export const currentUser = {
   name: '系统管理员',
   id: 'demo0001',
+  dept: '业务研发中心用户体验部',
   role: 'admin'
 }

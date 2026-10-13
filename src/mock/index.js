@@ -1,6 +1,7 @@
 // 行外演示数据：全部为虚构数据，人员姓名随机生成，不含任何真实客户/员工信息
 // 使用固定随机种子，保证每次刷新数据一致
 import { reactive } from 'vue'
+import { journeys } from './journey'
 
 function seeded(seed) {
   let s = seed
@@ -20,7 +21,7 @@ const fakeName = () => pick(surnames) + pick(givenChars) + (rand() > 0.4 ? pick(
 export const products = [
   '云网点', '柜面服务', '项目贷款', '科技金融', '企业手机银行基础业务', '个人手机银行基础业务',
   '全球信贷与代理投资', '商户之家', '个人信用卡', 'e企邮', '工银e办公', '融e行基础业务',
-  '数字人民币', '个人养老金', '工银e生活', '企业网上银行', '个人贷款', '薪酬通', '其他'
+  '数字人民币', '个人养老金', '工银e生活', '企业网上银行', '个人贷款', '薪酬通', '实物贵金属', '柜面通', '工银问卷', '其他'
 ]
 
 export const orgs = [
@@ -254,7 +255,5 @@ export const infos = reactive(
   }))
 )
 
-// ===== 灵犀旅程（用户旅程） =====
-// 截图中「待修改旅程 / 待审核旅程」均为空；新增旅程等功能待「灵犀旅程」截图补充
-export const journeyStatuses = ['草稿', '待审核', '待修改', '已发布']
-export const journeys = reactive([])
+// ===== 灵犀旅程：见 mock/journey.js =====
+export { journeys, journeyStatuses, journeyTypes, journeyScenes, staff } from './journey'

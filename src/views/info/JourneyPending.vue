@@ -8,11 +8,15 @@
         <el-table-column prop="name" label="旅程名称" min-width="130" show-overflow-tooltip />
         <el-table-column prop="product" label="所属产品" min-width="120" />
         <el-table-column prop="scene" label="场景/功能" min-width="100" />
-        <el-table-column prop="members" label="旅程群组人员" min-width="110" show-overflow-tooltip />
+        <el-table-column label="旅程群组人员" min-width="130" show-overflow-tooltip>
+          <template #default="{ row }">{{ memberText(row) }}</template>
+        </el-table-column>
         <el-table-column prop="adminDept" label="旅程管理员部门" min-width="120" show-overflow-tooltip />
         <el-table-column prop="status" label="当前状态" width="90" />
         <el-table-column prop="createTime" label="创建时间" width="110" />
-        <el-table-column prop="creator" label="旅程创建人" width="100" />
+        <el-table-column label="旅程创建人" width="100">
+          <template #default="{ row }">{{ creatorName(row) }}</template>
+        </el-table-column>
         <template v-if="mode === 'modify'">
           <el-table-column prop="updateTime" label="更新时间" width="110" />
           <el-table-column prop="reviewer" label="审核人" width="90" />
@@ -33,11 +37,27 @@
         :total="filtered.length"
       />
     </div>
+
+    <el-dialog v-model="reviewing" :title="`审核旅程：${current?.name}`" width="90%" top="4vh">
+      <template v-if="current">
+        <JourneyMap :map="current.map" readonly />
+        <el-input v-model="comment" type="textarea" :rows="3" placeholder="请输入审核意见（退回修改时必填）" class="comment" />
+      </template>
+      <template #footer>
+        <el-button @click="reviewing = false">返回</el-button>
+        <el-button @click="review(false)">退回修改</el-button>
+        <el-button type="primary" @click="review(true)">审核通过</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import JourneyMap from '@/components/journey/JourneyMap.vue'
+import { memberText, creatorName } from '@/mock/journey'
 import SearchForm from '@/components/SearchForm.vue'
 import { useTableQuery, match } from '@/components/useTableQuery'
 import { journeys, products, applyDepts } from '@/mock'
@@ -62,15 +82,38 @@ const { form, page, pageSize, filtered, rows, search, reset } = useTableQuery(
     j.status === (props.mode === 'modify' ? '待修改' : '待审核') &&
     match.contains(j.name, q.name) &&
     match.equals(j.product, q.product) &&
-    (!q.creator || j.creator === q.creator || j.creatorId === q.creator) &&
+    (!q.creator || creatorName(j).includes(q.creator) || j.creatorId === q.creator) &&
     match.equals(j.adminDept, q.adminDept) &&
     match.inRange(j.createTime, q.createTime) &&
     match.inRange(j.updateTime, q.updateTime)
 )
 
-const act = () => ElMessage.info('演示环境：旅程编辑/审核页待「灵犀旅程」截图补充')
+const router = useRouter()
+const reviewing = ref(false)
+const current = ref(null)
+const comment = ref('')
+
+function act(row) {
+  if (props.mode === 'modify') return router.push({ path: '/myjourneyAdd', query: { id: row.id, status: 'edit' } })
+  current.value = row
+  comment.value = ''
+  reviewing.value = true
+}
+
+function review(pass) {
+  if (!pass && !comment.value.trim()) return ElMessage.warning('退回修改时请填写审核意见')
+  Object.assign(current.value, {
+    status: pass ? '已发布旅程结构' : '待修改',
+    reviewer: currentUser.name,
+    reviewComment: comment.value,
+    updateTime: new Date().toISOString().slice(0, 10)
+  })
+  reviewing.value = false
+  ElMessage.success(pass ? '审核通过，旅程已发布' : '已退回维护员修改')
+}
 </script>
 
 <style scoped>
 .pager { margin-top: 16px; justify-content: flex-end; }
+.comment { margin-top: 16px; }
 </style>

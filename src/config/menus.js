@@ -76,9 +76,24 @@ export const sideMenus = {
     { title: '方法培训', path: '/methodTraining' },
     { title: '体验研究', path: '/excellentReport' },
     { title: '数据管理', path: '/experInformation' },
-    // 以下两组截图中未展开，子菜单待补充
-    { title: '灵犀旅程', inferred: true, children: [{ title: '（待补充）', path: '/journeyList' }] },
-    { title: '体验质检', inferred: true, children: [{ title: '（待补充）', path: '/qualityCheck' }] }
+    {
+      title: '灵犀旅程',
+      children: [
+        { title: '灵犀旅程管理', path: '/userJourneyManagementNew' },
+        { title: '灵犀旅程维护', path: '/myJourney' },
+        { title: '灵犀旅程看板', path: '/journeysBoardConfig' }
+      ]
+    },
+    {
+      // 子菜单名称来自截图，页面内容待补充；路由为推测
+      title: '体验质检',
+      children: [
+        { title: '体验质检智能体', path: '/qcAgent' },
+        { title: '质检智能体角色管理', path: '/qcAgentRole' },
+        { title: '质检智能体提示词管理', path: '/qcAgentPrompt' },
+        { title: '质检智能体统计', path: '/qcAgentStats' }
+      ]
+    }
   ]
 }
 

@@ -28,10 +28,25 @@
 
     <section class="content">
       <div class="page-head">
-        <div class="crumbs">
-          <span v-for="(c, i) in crumbs" :key="i" class="crumb" :class="{ last: i === crumbs.length - 1 }">{{ c }}</span>
+        <div class="crumbs-row">
+          <div class="crumbs">
+            <span v-for="(c, i) in crumbs" :key="i" class="crumb" :class="{ last: i === crumbs.length - 1 }">{{ c }}</span>
+          </div>
+          <!-- 页面可通过 <Teleport defer to="#page-head-extra"> 放置右上角工具栏 -->
+          <div id="page-head-extra" />
         </div>
-        <h2 class="page-title">{{ pageTitle }}</h2>
+        <div v-if="route.meta.titleTabs" class="title-tabs">
+          <router-link
+            v-for="t in route.meta.titleTabs"
+            :key="t.key"
+            :to="{ path: route.path, query: { tab: t.key } }"
+            class="title-tab"
+            :class="{ active: (route.query.tab || route.meta.titleTabs[0].key) === t.key }"
+          >
+            {{ t.label }}
+          </router-link>
+        </div>
+        <h2 v-else-if="!route.meta.hideTitle" class="page-title">{{ pageTitle }}</h2>
       </div>
       <div class="page-body">
         <router-view :key="route.fullPath" />
@@ -90,7 +105,8 @@ const pageTitle = computed(() => {
 const crumbs = computed(() => {
   if (parentPath.value) {
     const parent = allItems.value.find((i) => i.path === parentPath.value)
-    return [route.meta.group, parent?.title, pageTitle.value].filter(Boolean)
+    const head = route.meta.crumbsWithSection ? [topNav.find((n) => n.key === props.section)?.title] : []
+    return [...head, route.meta.group, parent?.title, pageTitle.value].filter(Boolean)
   }
   const sectionTitle = topNav.find((n) => n.key === props.section)?.title
   return [sectionTitle, route.meta.group, pageTitle.value].filter(Boolean)
@@ -120,7 +136,11 @@ const crumbs = computed(() => {
     radial-gradient(ellipse at 90% -60%, rgba(199, 0, 11, 0.18), transparent 60%),
     linear-gradient(180deg, #fff, #fbeff0);
 }
-.crumbs { display: flex; margin-bottom: 14px; }
+.crumbs-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; }
+.crumbs { display: flex; }
+.title-tabs { display: flex; gap: 32px; }
+.title-tab { font-size: 20px; font-weight: 600; color: #333; }
+.title-tab.active { color: var(--uem-red); }
 .crumb {
   position: relative;
   padding: 7px 22px;
