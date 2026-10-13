@@ -68,7 +68,7 @@
 
     <!-- 体验监测 -->
     <div class="uem-card stat-card monitor area-m">
-      <router-link to="/monitor" class="card-head head-blue">体验监测</router-link>
+      <router-link to="/experEvaluationIndex" class="card-head head-blue">体验监测</router-link>
       <div class="monitor-body">
         <div class="nps">
           <EChart class="gauge" :option="gaugeOption" />

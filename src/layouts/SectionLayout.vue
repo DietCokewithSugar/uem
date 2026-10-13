@@ -27,7 +27,7 @@
     </aside>
 
     <section class="content">
-      <div class="page-head">
+      <div v-if="!route.meta.bare" class="page-head">
         <div class="crumbs-row">
           <div class="crumbs">
             <span v-for="(c, i) in crumbs" :key="i" class="crumb" :class="{ last: i === crumbs.length - 1 }">{{ c }}</span>
@@ -48,7 +48,7 @@
         </div>
         <h2 v-else-if="!route.meta.hideTitle" class="page-title">{{ pageTitle }}</h2>
       </div>
-      <div class="page-body">
+      <div :class="route.meta.bare ? 'page-bare' : 'page-body'">
         <router-view :key="route.fullPath" />
       </div>
     </section>
@@ -77,6 +77,7 @@ const isActive = (item) => {
   if (item.query?.suggestStatus !== undefined && route.query.suggestStatus !== undefined) {
     return item.query.suggestStatus === route.query.suggestStatus
   }
+  if (item.query?.productId) return item.query.productId === (route.query.productId || '10117')
   return true
 }
 
@@ -100,6 +101,7 @@ const toggle = (t) => {
 
 const pageTitle = computed(() => {
   if (route.path === '/optimPending') return pendingStatus[route.query.suggestStatus] || '待处理'
+  if (route.meta.dynamicTitle) return allItems.value.find((i) => isActive(i))?.title || route.meta.title
   return route.meta.title || ''
 })
 const crumbs = computed(() => {

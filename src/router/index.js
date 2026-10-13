@@ -99,7 +99,29 @@ const routes = [
         { path: 'nonStoredExperManage', component: () => import('@/views/experiencer/NonStored.vue'), meta: { title: '非在库人员管理' } }
       ]),
 
-      ...['monitor', 'voice', 'system', 'admin'].map((key) => ({
+      section('monitor', [
+        { path: 'experEvaluationIndex', component: () => import('@/views/monitor/BrandIndex.vue'), meta: { group: '品牌印象', title: '工行品牌', bare: true } },
+        { path: 'experEvalDataUpLoad', component: () => import('@/views/monitor/EvalUpload.vue'), meta: { group: '数据管理', title: '评价数据上传' } },
+        { path: 'experEvalDesignUpLoad', component: () => import('@/views/monitor/DesignUpload.vue'), meta: { group: '数据管理', title: '设计工作情况上传' } },
+        { path: 'experEvalDataAudit', component: () => import('@/views/monitor/EvalAudit.vue'), meta: { group: '数据管理', title: '评价数据审核' } },
+        { path: 'productMeasureImg', component: () => import('@/views/monitor/MeasureImages.vue'), meta: { group: '数据管理', title: '体验度量图片' } }
+      ]),
+
+      section('voice', [
+        { path: 'empAspirrations', component: () => import('@/views/voice/EmpVoice.vue'), meta: { title: '员工心声', bare: true } },
+        { path: 'cusAllVoice', component: () => import('@/views/voice/CusAllVoice.vue'), meta: { group: '客户声音', title: '全部声音' } },
+        { path: 'cusSupreme', component: () => import('@/views/voice/CusProduct.vue'), meta: { group: '客户声音', title: '产品声音', dynamicTitle: true } },
+        { path: 'journeyVoiceAnalyze', component: () => import('@/views/voice/VoiceBoard.vue'), meta: { group: '智能分析', title: '声音看板', bare: true } },
+        { path: 'analyticsTools', component: () => import('@/views/voice/AnalyticsTools.vue'), meta: { group: '智能分析', title: '分析工具' } },
+        { path: 'jouranalyManage', component: () => import('@/views/voice/JourneyStructure.vue'), meta: { group: '数据管理', title: '旅程结构管理' } },
+        { path: 'tipsManage', component: () => import('@/views/voice/VoicePromptManage.vue'), meta: { group: '数据管理', title: '模型提示词管理' } },
+        ...[
+          ['boardManage', 'BoardChartData', '看板图表数据管理'], ['statisticsManage', 'StatReport', '统计报表'], ['customerSoundUpload', 'VoiceUpload', '用户声音上传'],
+          ['productField', 'ProductDomain', '产品领域管理'], ['emailManage', 'AlertReceivers', '实时监测收件人管理']
+        ].map(([path, comp, title]) => ({ path, component: () => import(`@/views/voice/data/${comp}.vue`), meta: { group: '数据管理', title } }))
+      ]),
+
+      ...['system', 'admin'].map((key) => ({
         path: key,
         component: () => import('@/views/common/Placeholder.vue'),
         meta: { section: key }

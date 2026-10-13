@@ -2,14 +2,18 @@
 // 分组无 children 而有 path 时，作为一级菜单直接跳转（如「方法培训」）
 // countKey 对应 mock/index.js 中 todoCounts 的字段，用于显示待办数量
 
+import { voiceProducts } from '@/mock/voice'
+
+const voiceProductMenus = voiceProducts.map((p) => ({ title: p.name, path: '/cusSupreme', query: { productId: p.id } }))
+
 export const topNav = [
   { key: 'home', title: '首页', path: '/mainIndex' },
   { key: 'experience', title: '体验问题', path: '/optimPending', query: { type: '', suggestStatus: '2' } },
   { key: 'activity', title: '体验活动', path: '/activityPending' },
   { key: 'info', title: '体验资讯', path: '/journeyModify' },
   { key: 'experiencer', title: '体验员', path: '/headInsideExperManage' },
-  { key: 'monitor', title: '体验监测', path: '/monitor' },
-  { key: 'voice', title: '用户声音', path: '/voice' },
+  { key: 'monitor', title: '体验监测', path: '/experEvaluationIndex' },
+  { key: 'voice', title: '用户声音', path: '/empAspirrations' },
   { key: 'system', title: '系统管理', path: '/system' },
   { key: 'admin', title: '后台管理', path: '/admin' }
 ]
@@ -110,6 +114,47 @@ export const sideMenus = {
       ]
     },
     { title: '非在库人员管理', path: '/nonStoredExperManage' }
+  ],
+  monitor: [
+    { title: '品牌印象', children: [{ title: '工行品牌', path: '/experEvaluationIndex' }] },
+    {
+      title: '数据管理',
+      children: [
+        { title: '评价数据上传', path: '/experEvalDataUpLoad' },
+        { title: '设计工作情况上传', path: '/experEvalDesignUpLoad' },
+        { title: '评价数据审核', path: '/experEvalDataAudit' },
+        { title: '体验度量图片', path: '/productMeasureImg' }
+      ]
+    }
+  ],
+  voice: [
+    { title: '员工心声', path: '/empAspirrations' },
+    {
+      title: '客户声音',
+      children: [
+        { title: '全部声音', path: '/cusAllVoice' },
+        ...voiceProductMenus
+      ]
+    },
+    {
+      title: '智能分析',
+      children: [
+        { title: '声音看板', path: '/journeyVoiceAnalyze' },
+        { title: '分析工具', path: '/analyticsTools' }
+      ]
+    },
+    {
+      title: '数据管理',
+      children: [
+        { title: '旅程结构管理', path: '/jouranalyManage' },
+        { title: '模型提示词管理', path: '/tipsManage' },
+        { title: '看板图表数据管理', path: '/boardManage' },
+        { title: '统计报表', path: '/statisticsManage' },
+        { title: '用户声音上传', path: '/customerSoundUpload' },
+        { title: '产品领域管理', path: '/productField' },
+        { title: '实时监测收件人管理', path: '/emailManage' }
+      ]
+    }
   ]
 }
 
