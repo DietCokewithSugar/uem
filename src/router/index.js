@@ -99,7 +99,15 @@ const routes = [
         { path: 'nonStoredExperManage', component: () => import('@/views/experiencer/NonStored.vue'), meta: { title: '非在库人员管理' } }
       ]),
 
-      ...['monitor', 'voice', 'system', 'admin'].map((key) => ({
+      section('monitor', [
+        { path: 'experEvaluationIndex', component: () => import('@/views/monitor/BrandIndex.vue'), meta: { group: '品牌印象', title: '工行品牌', bare: true } },
+        { path: 'experEvalDataUpLoad', component: () => import('@/views/monitor/EvalUpload.vue'), meta: { group: '数据管理', title: '评价数据上传' } },
+        { path: 'experEvalDesignUpLoad', component: () => import('@/views/monitor/DesignUpload.vue'), meta: { group: '数据管理', title: '设计工作情况上传' } },
+        { path: 'experEvalDataAudit', component: () => import('@/views/monitor/EvalAudit.vue'), meta: { group: '数据管理', title: '评价数据审核' } },
+        { path: 'productMeasureImg', component: () => import('@/views/monitor/MeasureImages.vue'), meta: { group: '数据管理', title: '体验度量图片' } }
+      ]),
+
+      ...['voice', 'system', 'admin'].map((key) => ({
         path: key,
         component: () => import('@/views/common/Placeholder.vue'),
         meta: { section: key }

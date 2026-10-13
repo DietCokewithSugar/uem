@@ -8,7 +8,7 @@ export const topNav = [
   { key: 'activity', title: '体验活动', path: '/activityPending' },
   { key: 'info', title: '体验资讯', path: '/journeyModify' },
   { key: 'experiencer', title: '体验员', path: '/headInsideExperManage' },
-  { key: 'monitor', title: '体验监测', path: '/monitor' },
+  { key: 'monitor', title: '体验监测', path: '/experEvaluationIndex' },
   { key: 'voice', title: '用户声音', path: '/voice' },
   { key: 'system', title: '系统管理', path: '/system' },
   { key: 'admin', title: '后台管理', path: '/admin' }
@@ -110,6 +110,18 @@ export const sideMenus = {
       ]
     },
     { title: '非在库人员管理', path: '/nonStoredExperManage' }
+  ],
+  monitor: [
+    { title: '品牌印象', children: [{ title: '工行品牌', path: '/experEvaluationIndex' }] },
+    {
+      title: '数据管理',
+      children: [
+        { title: '评价数据上传', path: '/experEvalDataUpLoad' },
+        { title: '设计工作情况上传', path: '/experEvalDesignUpLoad' },
+        { title: '评价数据审核', path: '/experEvalDataAudit' },
+        { title: '体验度量图片', path: '/productMeasureImg' }
+      ]
+    }
   ]
 }
 

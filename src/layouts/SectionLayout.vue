@@ -27,7 +27,7 @@
     </aside>
 
     <section class="content">
-      <div class="page-head">
+      <div v-if="!route.meta.bare" class="page-head">
         <div class="crumbs-row">
           <div class="crumbs">
             <span v-for="(c, i) in crumbs" :key="i" class="crumb" :class="{ last: i === crumbs.length - 1 }">{{ c }}</span>
@@ -48,7 +48,7 @@
         </div>
         <h2 v-else-if="!route.meta.hideTitle" class="page-title">{{ pageTitle }}</h2>
       </div>
-      <div class="page-body">
+      <div :class="route.meta.bare ? 'page-bare' : 'page-body'">
         <router-view :key="route.fullPath" />
       </div>
     </section>
