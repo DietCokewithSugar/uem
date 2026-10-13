@@ -7,7 +7,7 @@ export const topNav = [
   { key: 'experience', title: '体验问题', path: '/optimPending', query: { type: '', suggestStatus: '2' } },
   { key: 'activity', title: '体验活动', path: '/activityPending' },
   { key: 'info', title: '体验资讯', path: '/journeyModify' },
-  { key: 'experiencer', title: '体验员', path: '/experiencer' },
+  { key: 'experiencer', title: '体验员', path: '/headInsideExperManage' },
   { key: 'monitor', title: '体验监测', path: '/monitor' },
   { key: 'voice', title: '用户声音', path: '/voice' },
   { key: 'system', title: '系统管理', path: '/system' },
@@ -93,6 +93,23 @@ export const sideMenus = {
         { title: '质检智能体统计', path: '/agentStatistic' }
       ]
     }
+  ],
+  experiencer: [
+    {
+      title: '总行体验员管理',
+      children: [
+        { title: '行内体验员管理', path: '/headInsideExperManage' },
+        { title: '行外体验员管理', path: '/headOfficeExperManage' }
+      ]
+    },
+    {
+      title: '分行体验员管理',
+      children: [
+        { title: '行内体验员管理', path: '/branchInsideExperManage' },
+        { title: '行外体验员管理', path: '/branchExperManage' }
+      ]
+    },
+    { title: '非在库人员管理', path: '/nonStoredExperManage' }
   ]
 }
 
