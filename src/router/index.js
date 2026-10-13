@@ -91,7 +91,15 @@ const routes = [
         { path: 'agentStatistic', component: () => import('@/views/info/qc/AgentStats.vue'), meta: { group: '体验质检', title: '质检智能体统计' } }
       ]),
 
-      ...['experiencer', 'monitor', 'voice', 'system', 'admin'].map((key) => ({
+      section('experiencer', [
+        { path: 'headInsideExperManage', component: () => import('@/views/experiencer/ExperiencerList.vue'), props: { kind: 'inside', level: 'head' }, meta: { group: '总行体验员管理', title: '行内体验员管理' } },
+        { path: 'headOfficeExperManage', component: () => import('@/views/experiencer/ExperiencerList.vue'), props: { kind: 'outside', level: 'head' }, meta: { group: '总行体验员管理', title: '行外体验员管理' } },
+        { path: 'branchInsideExperManage', component: () => import('@/views/experiencer/ExperiencerList.vue'), props: { kind: 'inside', level: 'branch' }, meta: { group: '分行体验员管理', title: '行内体验员管理' } },
+        { path: 'branchExperManage', component: () => import('@/views/experiencer/ExperiencerList.vue'), props: { kind: 'outside', level: 'branch' }, meta: { group: '分行体验员管理', title: '行外体验员管理' } },
+        { path: 'nonStoredExperManage', component: () => import('@/views/experiencer/NonStored.vue'), meta: { title: '非在库人员管理' } }
+      ]),
+
+      ...['monitor', 'voice', 'system', 'admin'].map((key) => ({
         path: key,
         component: () => import('@/views/common/Placeholder.vue'),
         meta: { section: key }

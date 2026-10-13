@@ -25,5 +25,11 @@ export function useTableQuery(source, initial, matcher) {
 export const match = {
   contains: (v, q) => !q || String(v ?? '').includes(q),
   equals: (v, q) => !q || q === '全部' || v === q,
-  inRange: (v, r) => !r || !r.length || (v >= r[0] && v <= r[1])
+  inRange: (v, r) => !r || !r.length || (v >= r[0] && v <= r[1]),
+  // 年龄段 [min, max]，空值不限
+  numRange: (v, r) => !r || ((r[0] === '' || r[0] == null || v >= Number(r[0])) && (r[1] === '' || r[1] == null || v <= Number(r[1]))),
+  // 级联：值数组前缀匹配
+  chain: (v = [], q = []) => q.every((x, i) => v[i] === x),
+  // 多选：任一命中
+  anyOf: (v = [], q = []) => !q.length || q.some((x) => v.includes(x))
 }
