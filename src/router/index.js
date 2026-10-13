@@ -52,7 +52,46 @@ const routes = [
         }
       ]),
 
-      ...['info', 'experiencer', 'monitor', 'voice', 'system', 'admin'].map((key) => ({
+      section('info', [
+        { path: 'journeyModify', component: () => import('@/views/info/JourneyPending.vue'), props: { mode: 'modify' }, meta: { group: '待办工作', title: '待修改' } },
+        { path: 'journeyExamine', component: () => import('@/views/info/JourneyPending.vue'), props: { mode: 'examine' }, meta: { group: '待办工作', title: '待审核' } },
+        { path: 'methodTraining', component: () => import('@/views/info/MethodTraining.vue'), meta: { title: '方法培训' } },
+        { path: 'excellentReport', component: () => import('@/views/info/ExcellentReport.vue'), meta: { title: '体验研究' } },
+        { path: 'experInformation', component: () => import('@/views/info/InfoManage.vue'), meta: { title: '数据管理' } },
+        {
+          path: 'userJourneyManagementNew',
+          component: () => import('@/views/info/journey/JourneyManage.vue'),
+          meta: {
+            group: '灵犀旅程',
+            title: '灵犀旅程管理',
+            titleTabs: [{ key: 'basic', label: '旅程基本情况管理' }, { key: 'problems', label: '典型问题管理' }]
+          }
+        },
+        { path: 'myJourney', component: () => import('@/views/info/journey/MyJourney.vue'), meta: { group: '灵犀旅程', title: '灵犀旅程维护' } },
+        { path: 'journeysBoardConfig', component: () => import('@/views/info/journey/JourneyBoard.vue'), meta: { group: '灵犀旅程', title: '灵犀旅程看板', hideTitle: true } },
+        {
+          path: 'myjourneyAdd',
+          component: () => import('@/views/info/journey/JourneyEditor.vue'),
+          meta: {
+            group: '灵犀旅程',
+            title: '编辑',
+            hideTitle: true,
+            crumbsWithSection: true,
+            parent: (r) => (r.query.status === 'view' ? '/userJourneyManagementNew' : '/myJourney')
+          }
+        },
+        { path: 'agentFirst', component: () => import('@/views/info/qc/AgentList.vue'), meta: { group: '体验质检', title: '体验质检智能体' } },
+        {
+          path: 'agentDetail',
+          component: () => import('@/views/info/qc/AgentDetail.vue'),
+          meta: { group: '体验质检', title: '体验质检智能体', crumbsWithSection: true, parent: () => '/agentFirst' }
+        },
+        { path: 'roleManagement', component: () => import('@/views/info/qc/RoleManage.vue'), meta: { group: '体验质检', title: '质检智能体角色管理' } },
+        { path: 'agentTips', component: () => import('@/views/info/qc/PromptManage.vue'), meta: { group: '体验质检', title: '质检智能体提示词管理' } },
+        { path: 'agentStatistic', component: () => import('@/views/info/qc/AgentStats.vue'), meta: { group: '体验质检', title: '质检智能体统计' } }
+      ]),
+
+      ...['experiencer', 'monitor', 'voice', 'system', 'admin'].map((key) => ({
         path: key,
         component: () => import('@/views/common/Placeholder.vue'),
         meta: { section: key }

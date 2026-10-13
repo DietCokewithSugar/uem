@@ -3,11 +3,14 @@
   <div class="section">
     <aside class="side">
       <div v-for="group in menus" :key="group.title" class="group">
-        <div class="group-title" @click="toggle(group.title)">
+        <router-link v-if="!group.children" :to="group.path" class="group-title leaf" :class="{ active: isActive(group) }">
+          {{ group.title }}
+        </router-link>
+        <div v-else class="group-title" @click="toggle(group.title)">
           <span>{{ group.title }}</span>
           <el-icon><component :is="isOpen(group.title) ? 'ArrowUp' : 'ArrowDown'" /></el-icon>
         </div>
-        <el-collapse-transition>
+        <el-collapse-transition v-if="group.children">
           <div v-show="isOpen(group.title)">
             <router-link
               v-for="item in group.children"
@@ -25,10 +28,25 @@
 
     <section class="content">
       <div class="page-head">
-        <div class="crumbs">
-          <span v-for="(c, i) in crumbs" :key="i" class="crumb" :class="{ last: i === crumbs.length - 1 }">{{ c }}</span>
+        <div class="crumbs-row">
+          <div class="crumbs">
+            <span v-for="(c, i) in crumbs" :key="i" class="crumb" :class="{ last: i === crumbs.length - 1 }">{{ c }}</span>
+          </div>
+          <!-- 页面可通过 <Teleport defer to="#page-head-extra"> 放置右上角工具栏 -->
+          <div id="page-head-extra" />
         </div>
-        <h2 class="page-title">{{ pageTitle }}</h2>
+        <div v-if="route.meta.titleTabs" class="title-tabs">
+          <router-link
+            v-for="t in route.meta.titleTabs"
+            :key="t.key"
+            :to="{ path: route.path, query: { tab: t.key } }"
+            class="title-tab"
+            :class="{ active: (route.query.tab || route.meta.titleTabs[0].key) === t.key }"
+          >
+            {{ t.label }}
+          </router-link>
+        </div>
+        <h2 v-else-if="!route.meta.hideTitle" class="page-title">{{ pageTitle }}</h2>
       </div>
       <div class="page-body">
         <router-view :key="route.fullPath" />
@@ -51,7 +69,7 @@ const opened = ref(new Set())
 
 // 子页面（如新增）通过 meta.parent 指定所属列表
 const parentPath = computed(() => route.meta.parent?.(route))
-const allItems = computed(() => menus.value.flatMap((g) => g.children))
+const allItems = computed(() => menus.value.flatMap((g) => g.children || [g]))
 
 const isActive = (item) => {
   if (parentPath.value) return item.path === parentPath.value
@@ -68,7 +86,7 @@ watch(
   () => {
     const s = new Set(opened.value)
     s.add('待办工作')
-    menus.value.forEach((g) => g.children.some(isActive) && s.add(g.title))
+    menus.value.forEach((g) => g.children?.some(isActive) && s.add(g.title))
     opened.value = s
   },
   { immediate: true }
@@ -87,7 +105,8 @@ const pageTitle = computed(() => {
 const crumbs = computed(() => {
   if (parentPath.value) {
     const parent = allItems.value.find((i) => i.path === parentPath.value)
-    return [route.meta.group, parent?.title, pageTitle.value].filter(Boolean)
+    const head = route.meta.crumbsWithSection ? [topNav.find((n) => n.key === props.section)?.title] : []
+    return [...head, route.meta.group, parent?.title, pageTitle.value].filter((c, i, arr) => c && c !== arr[i - 1])
   }
   const sectionTitle = topNav.find((n) => n.key === props.section)?.title
   return [sectionTitle, route.meta.group, pageTitle.value].filter(Boolean)
@@ -103,6 +122,8 @@ const crumbs = computed(() => {
   padding: 12px 20px; color: #555; cursor: pointer; font-size: 14px;
 }
 .group-title .el-icon { color: #999; font-size: 12px; }
+.group-title.leaf:hover { color: var(--uem-red); }
+.group-title.leaf.active { background: linear-gradient(90deg, #e5575e, #f08a8f); color: #fff; }
 .side-item { display: block; padding: 11px 20px 11px 44px; color: #666; font-size: 13px; }
 .side-item:hover { color: var(--uem-red); }
 .side-item.active { background: linear-gradient(90deg, #e5575e, #f08a8f); color: #fff; }
@@ -115,7 +136,11 @@ const crumbs = computed(() => {
     radial-gradient(ellipse at 90% -60%, rgba(199, 0, 11, 0.18), transparent 60%),
     linear-gradient(180deg, #fff, #fbeff0);
 }
-.crumbs { display: flex; margin-bottom: 14px; }
+.crumbs-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; }
+.crumbs { display: flex; }
+.title-tabs { display: flex; gap: 32px; }
+.title-tab { font-size: 20px; font-weight: 600; color: #333; }
+.title-tab.active { color: var(--uem-red); }
 .crumb {
   position: relative;
   padding: 7px 22px;

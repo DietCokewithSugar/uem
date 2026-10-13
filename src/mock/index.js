@@ -1,6 +1,7 @@
 // 行外演示数据：全部为虚构数据，人员姓名随机生成，不含任何真实客户/员工信息
 // 使用固定随机种子，保证每次刷新数据一致
 import { reactive } from 'vue'
+import { journeys } from './journey'
 
 function seeded(seed) {
   let s = seed
@@ -20,7 +21,7 @@ const fakeName = () => pick(surnames) + pick(givenChars) + (rand() > 0.4 ? pick(
 export const products = [
   '云网点', '柜面服务', '项目贷款', '科技金融', '企业手机银行基础业务', '个人手机银行基础业务',
   '全球信贷与代理投资', '商户之家', '个人信用卡', 'e企邮', '工银e办公', '融e行基础业务',
-  '数字人民币', '个人养老金', '工银e生活', '企业网上银行', '个人贷款', '薪酬通', '其他'
+  '数字人民币', '个人养老金', '工银e生活', '企业网上银行', '个人贷款', '薪酬通', '实物贵金属', '柜面通', '工银问卷', '其他'
 ]
 
 export const orgs = [
@@ -114,7 +115,9 @@ export const todoCounts = reactive({
   get toReply() { return countBy('待答复') },
   get toFollow() { return countBy('待跟进') },
   get activity() { return activities.filter((a) => a.pendingForMe).length },
-  get task() { return tasks.filter((t) => t.pendingForMe).length }
+  get task() { return tasks.filter((t) => t.pendingForMe).length },
+  get journeyModify() { return journeys.filter((j) => j.status === '待修改').length },
+  get journeyExamine() { return journeys.filter((j) => j.status === '待审核').length }
 })
 
 // 首页数据
@@ -207,3 +210,50 @@ export const activities = reactive(
 
 // 体验任务：截图中列表为空，新增后写入
 export const tasks = reactive([])
+
+// ===== 体验资讯 =====
+export const infoTypes = ['方法培训', '体验研究', '体验动态']
+export const infoOrgs = ['业务研发中心', '软件开发中心', '数据中心', '总行个人金融部', '总行网络金融部']
+export const trainingBoards = ['用户体验', '视觉设计', '交互设计', '用户研究', '前端开发']
+export const trainingForms = ['网络', '线下', '直播']
+export const fileTypes = ['PDF', 'PPT', 'Word', '视频']
+export const reportLevels = ['总行级', '分行级', '部门级']
+export const reportTypes = ['用户研究报告', '竞品分析报告', '体验评估报告', '行业洞察报告']
+export const sortOptions = ['按发布时间', '按浏览量', '按下载量']
+
+const trainingSeed = [
+  ['前端组件库使用与管理工作指引', '视觉设计', '2026-05-27', 15, 4],
+  ['业务研发用户体验设计标准化执行动作实践指南', '用户体验', '2024-12-31', 142, 78],
+  ['视觉设计方法拓展资料', '视觉设计', '2024-12-09', 45, 16],
+  ['交互设计方法拓展资料', '交互设计', '2024-12-09', 28, 7],
+  ['页面原型图设计（结构图、流程图、线框图）方法拓展资料', '交互设计', '2024-12-09', 33, 12],
+  ['可用性评估（用户&专家）方法拓展资料', '用户研究', '2024-12-05', 51, 20],
+  ['优化建议分析方法拓展资料', '用户体验', '2024-12-05', 38, 9],
+  ['可用性评估（自查）方法拓展资料', '用户研究', '2024-12-05', 26, 6],
+  ['用户访谈方法拓展资料', '用户研究', '2024-11-20', 64, 22],
+  ['问卷设计与发放方法拓展资料', '用户研究', '2024-11-20', 47, 18],
+  ['用户旅程地图绘制方法拓展资料', '用户体验', '2024-11-12', 59, 25],
+  ['适老化与无障碍设计指引', '交互设计', '2024-10-30', 72, 31]
+]
+
+export const infos = reactive(
+  trainingSeed.map(([name, board, publishTime, views, downloads], i) => ({
+    id: `INFO${pad(i + 1, 4)}`,
+    name,
+    type: '方法培训',
+    board,
+    org: '业务研发中心',
+    author: '',
+    publishTime,
+    status: '发布',
+    form: '网络',
+    fileType: i % 3 === 0 ? 'PPT' : 'PDF',
+    views,
+    downloads,
+    cover: i % 4,
+    intro: `${name}，面向全行产品经理、设计师与研发人员，介绍相关方法的适用场景、执行步骤与注意事项。`
+  }))
+)
+
+// ===== 灵犀旅程：见 mock/journey.js =====
+export { journeys, journeyStatuses, journeyTypes, journeyScenes, staff } from './journey'
