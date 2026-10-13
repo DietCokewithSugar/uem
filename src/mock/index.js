@@ -113,8 +113,8 @@ export const todoCounts = reactive({
   get toSort() { return countBy('待分拣') },
   get toReply() { return countBy('待答复') },
   get toFollow() { return countBy('待跟进') },
-  activity: 0,
-  task: 0
+  get activity() { return activities.filter((a) => a.pendingForMe).length },
+  get task() { return tasks.filter((t) => t.pendingForMe).length }
 })
 
 // 首页数据
@@ -159,3 +159,51 @@ export const homeData = {
     ]
   }
 }
+
+// ===== 体验活动 / 体验任务 =====
+export const bizDomains = ['个人业务', '对公业务', '其他']
+export const expChannels = ['其他线上渠道', '其他线下渠道', '众测', '实地调研', '手机银行', '网上银行', '网点']
+export const expMethods = ['问卷调查', '用户访谈', '可用性评估', '众测', '实地调研', '其他']
+export const activityStatuses = ['草稿', '待审核', '进行中', '已完成', '已中止']
+export const applyDepts = ['业务研发中心用户体验部', '业务研发中心业务研发一部', '业务研发中心业务研发二部', '业务研发中心业务研发三部']
+// 所属板块：截图中为下拉框，选项为推测
+export const taskBoards = ['体验问题', '体验活动', '体验监测', '用户声音', '体验资讯', '体验员']
+export const taskStatuses = ['未开始', '进行中', '已完成', '已关闭']
+
+const activityNames = [
+  ['法人理财改版用户调研', '法人理财', '对公业务', '其他线上渠道', '问卷调查', 300],
+  ['星火计划-供应链金融管理体验走查活动', '供应链金融服务平台', '对公业务', '其他线下渠道', '用户访谈', 5],
+  ['工银e办公需求编写用户需求验证-2026年9月', '工银e办公', '其他', '其他线下渠道', '用户访谈/可用性评估', 5],
+  ['9月版用户体验评估活动', '', '', '其他线上渠道/其他线下渠道', '可用性评估', 20],
+  ['星火计划-手机银行智能助手专项众测体验活动二期', '个人手机银行基础业务', '个人业务', '众测', '用户访谈/其他', 3000],
+  ['工银e办公需求编写用户需求验证-2026年8月', '工银e办公', '其他', '其他线下渠道', '用户访谈/可用性评估', 5],
+  ['企业手机银行经营入口用户调研', '', '', '其他线上渠道/实地调研', '用户访谈/可用性评估', 8],
+  ['星火计划-对公营销通体验活动', '', '', '其他线上渠道/实地调研', '用户访谈', 10],
+  ['机器人系统岗位工程UI设计与交互规范验证', '机器人流程自动化', '对公业务', '用户体验室', '可用性评估', 6],
+  ['个人养老金开户流程可用性测试', '个人养老金', '个人业务', '手机银行', '可用性评估', 12],
+  ['数字人民币钱包体验众测', '数字人民币', '个人业务', '众测', '众测', 500],
+  ['网点智能柜台适老化体验调研', '柜面服务', '个人业务', '网点', '实地调研', 30]
+]
+const actDates = ['2026-09-29', '2026-09-29', '2026-09-23', '2026-09-09', '2026-09-07', '2026-09-02', '2026-08-31', '2026-08-21', '2026-08-15', '2026-07-30', '2026-07-12', '2026-06-28']
+
+export const activities = reactive(
+  activityNames.map(([name, product, domain, channel, method, people], i) => ({
+    id: `ACT${pad(i + 1, 4)}`,
+    level: i % 5 === 4 ? '分行' : '总行',
+    name,
+    product,
+    domain,
+    channel,
+    channelType: channel.includes('线上') ? '线上' : '线下',
+    method,
+    dept: pick(applyDepts),
+    people,
+    submitTime: actDates[i],
+    status: [5, 6, 9, 11].includes(i) ? '已完成' : '进行中',
+    creator: fakeName(),
+    pendingForMe: false
+  }))
+)
+
+// 体验任务：截图中列表为空，新增后写入
+export const tasks = reactive([])

@@ -1,6 +1,5 @@
 // 顶部主导航 + 各板块左侧菜单配置
 // countKey 对应 mock/index.js 中 todoCounts 的字段，用于显示待办数量
-// inferred: true 表示截图中仅看到分组标题、子菜单为推测，待后续截图确认
 
 export const topNav = [
   { key: 'home', title: '首页', path: '/mainIndex' },
@@ -51,16 +50,18 @@ export const sideMenus = {
     },
     {
       title: '体验活动',
-      inferred: true,
       children: [
-        { title: '活动申请', path: '/activityApply' },
-        { title: '活动列表', path: '/activityList' }
+        { title: '总行体验活动', path: '/headOfficeAllActivity' },
+        { title: '分行体验活动', path: '/branchAllActivity' },
+        { title: '我的体验活动', path: '/myAllActivity' }
       ]
     },
     {
       title: '体验任务',
-      inferred: true,
-      children: [{ title: '任务列表', path: '/taskList' }]
+      children: [
+        { title: '体验管理任务', path: '/experTaskManage' },
+        { title: '我的体验任务', path: '/myExperTask' }
+      ]
     }
   ]
 }

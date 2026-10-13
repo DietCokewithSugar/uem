@@ -28,11 +28,28 @@ const routes = [
       ]),
 
       section('activity', [
-        { path: 'activityPending', component: () => import('@/views/activity/ActivityTable.vue'), props: { kind: 'activity' }, meta: { group: '待办工作', title: '体验活动' } },
-        { path: 'taskPending', component: () => import('@/views/activity/ActivityTable.vue'), props: { kind: 'task' }, meta: { group: '待办工作', title: '体验任务' } },
-        { path: 'activityApply', component: () => import('@/views/common/Placeholder.vue'), meta: { group: '体验活动', title: '活动申请' } },
-        { path: 'activityList', component: () => import('@/views/activity/ActivityTable.vue'), props: { kind: 'activity' }, meta: { group: '体验活动', title: '活动列表' } },
-        { path: 'taskList', component: () => import('@/views/activity/ActivityTable.vue'), props: { kind: 'task' }, meta: { group: '体验任务', title: '任务列表' } }
+        { path: 'activityPending', component: () => import('@/views/activity/ActivityList.vue'), props: { scope: 'pending' }, meta: { group: '待办工作', title: '体验活动' } },
+        { path: 'taskPending', component: () => import('@/views/activity/TaskList.vue'), props: { scope: 'pending' }, meta: { group: '待办工作', title: '体验任务' } },
+        { path: 'headOfficeAllActivity', component: () => import('@/views/activity/ActivityList.vue'), props: { scope: 'head' }, meta: { group: '体验活动', title: '总行体验活动' } },
+        { path: 'branchAllActivity', component: () => import('@/views/activity/ActivityList.vue'), props: { scope: 'branch' }, meta: { group: '体验活动', title: '分行体验活动' } },
+        { path: 'myAllActivity', component: () => import('@/views/activity/ActivityList.vue'), props: { scope: 'mine' }, meta: { group: '体验活动', title: '我的体验活动' } },
+        { path: 'experTaskManage', component: () => import('@/views/activity/TaskList.vue'), props: { scope: 'manage' }, meta: { group: '体验任务', title: '体验管理任务' } },
+        { path: 'myExperTask', component: () => import('@/views/activity/TaskList.vue'), props: { scope: 'mine' }, meta: { group: '体验任务', title: '我的体验任务' } },
+        {
+          path: 'taskAdd',
+          component: () => import('@/views/activity/TaskAdd.vue'),
+          // 子页面：面包屑为「分组 / 来源列表 / 新增」，左侧高亮来源列表
+          meta: {
+            group: '体验任务',
+            title: '新增',
+            parent: (r) => (r.query.taskListType === '1' ? '/experTaskManage' : '/myExperTask')
+          }
+        },
+        {
+          path: 'activityAdd',
+          component: () => import('@/views/activity/ActivityAdd.vue'),
+          meta: { group: '体验活动', title: '新增', parent: (r) => r.query.from || '/myAllActivity' }
+        }
       ]),
 
       ...['info', 'experiencer', 'monitor', 'voice', 'system', 'admin'].map((key) => ({

@@ -8,7 +8,7 @@
         <el-button type="primary" @click="openCreate">新增</el-button>
         <el-button @click="notReady('下载模板')">下载模板</el-button>
         <el-button @click="notReady('批量导入')">批量导入</el-button>
-        <el-button @click="exportCsv">批量导出</el-button>
+        <el-button @click="doExport">批量导出</el-button>
         <el-button @click="notReady('查看结果')">查看结果</el-button>
       </div>
       <el-table :data="rows">
@@ -65,6 +65,7 @@ import SuggestionDetail from '@/components/SuggestionDetail.vue'
 import { useTableQuery, match } from '@/components/useTableQuery'
 import { suggestions, products, orgs, sources, bizDepts, productLines, adoptResults } from '@/mock'
 import { currentUser } from '@/config/user'
+import { exportCsv } from '@/components/exportCsv'
 
 const props = defineProps({ mode: { type: String, default: 'all' } })
 
@@ -130,17 +131,12 @@ const { form, page, pageSize, filtered, rows, search, reset } = useTableQuery(
 const detail = ref(null)
 const notReady = (name) => ElMessage.info(`演示环境：「${name}」功能待接入`)
 
-function exportCsv() {
-  const head = ['优化建议编号', '产品名称', '描述及解决建议', '提出机构', '提出人', '提交时间', '采纳结果', '状态']
-  const keys = ['id', 'product', 'desc', 'org', 'proposer', 'submitTime', 'adoptResult', 'status']
-  const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
-  const csv = [head, ...filtered.value.map((r) => keys.map((k) => r[k]))].map((l) => l.map(esc).join(',')).join('\n')
-  const a = document.createElement('a')
-  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' }))
-  a.download = `优化建议_${fmt(new Date())}.csv`
-  a.click()
-  URL.revokeObjectURL(a.href)
-}
+const exportColumns = [
+  { prop: 'id', label: '优化建议编号' }, { prop: 'product', label: '产品名称' }, { prop: 'desc', label: '描述及解决建议' },
+  { prop: 'org', label: '提出机构' }, { prop: 'proposer', label: '提出人' }, { prop: 'submitTime', label: '提交时间' },
+  { prop: 'adoptResult', label: '采纳结果' }, { prop: 'status', label: '状态' }
+]
+const doExport = () => exportCsv('优化建议', exportColumns, filtered.value)
 
 // 新增
 const createDialog = ref(false)

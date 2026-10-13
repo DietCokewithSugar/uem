@@ -49,7 +49,12 @@ const route = useRoute()
 const menus = computed(() => sideMenus[props.section] || [])
 const opened = ref(new Set())
 
+// 子页面（如新增）通过 meta.parent 指定所属列表
+const parentPath = computed(() => route.meta.parent?.(route))
+const allItems = computed(() => menus.value.flatMap((g) => g.children))
+
 const isActive = (item) => {
+  if (parentPath.value) return item.path === parentPath.value
   if (item.path !== route.path) return false
   if (item.query?.suggestStatus !== undefined && route.query.suggestStatus !== undefined) {
     return item.query.suggestStatus === route.query.suggestStatus
@@ -80,6 +85,10 @@ const pageTitle = computed(() => {
   return route.meta.title || ''
 })
 const crumbs = computed(() => {
+  if (parentPath.value) {
+    const parent = allItems.value.find((i) => i.path === parentPath.value)
+    return [route.meta.group, parent?.title, pageTitle.value].filter(Boolean)
+  }
   const sectionTitle = topNav.find((n) => n.key === props.section)?.title
   return [sectionTitle, route.meta.group, pageTitle.value].filter(Boolean)
 })

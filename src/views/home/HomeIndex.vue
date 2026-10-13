@@ -30,7 +30,7 @@
             <el-icon class="todo-bg"><Search /></el-icon>
           </router-link>
           <router-link to="/activityPending" class="todo-item">
-            <span>体验活动</span><b>{{ homeData.todo.activity }}</b>
+            <span>体验活动</span><b>{{ todoCounts.activity }}</b>
             <el-icon class="todo-bg"><Files /></el-icon>
           </router-link>
         </div>
