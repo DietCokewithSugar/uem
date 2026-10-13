@@ -4,7 +4,7 @@
     <el-form ref="formRef" :model="d" :rules="rules" label-width="110px" class="form">
       <el-form-item label="统一认证号" prop="id">
         <div class="row">
-          <el-input v-model="d.id" :disabled="!!editing" placeholder="请输入统一认证号" />
+          <el-input v-model="d.id" :disabled="!!editing" maxlength="9" placeholder="请输入 9 位统一认证号" />
           <el-button v-if="!editing" type="primary" @click="lookup">查询</el-button>
         </div>
       </el-form-item>
@@ -52,6 +52,7 @@ import { persons, roleCatalog, scopeLabels, headDepts, channels, rdDepts, rdLine
 import { staff } from '@/mock'
 import { productDomains } from '@/mock/voiceTools'
 import { qcRoles } from '@/mock/qc'
+import { isStaffId, staffIdRule } from '@/config/validators'
 
 const route = useRoute()
 const router = useRouter()
@@ -70,13 +71,14 @@ const scopeOf = (role) => (d.scopes[role] ||= {})
 const toggleRole = (name, on) => (on ? d.roles.push(name) : d.roles.splice(d.roles.indexOf(name), 1))
 
 const rules = {
-  id: [{ required: true, message: '请输入统一认证号并查询' }],
+  id: [{ required: true, message: '请输入统一认证号并查询' }, staffIdRule],
   roles: [{ type: 'array', required: true, min: 1, message: '请至少选择一个角色', trigger: 'change' }]
 }
 
 // 按统一认证号从人员目录带出姓名、机构（演示：目录外的号码生成虚构人员）
 function lookup() {
   if (!d.id.trim()) return ElMessage.warning('请输入统一认证号')
+  if (!isStaffId(d.id)) return ElMessage.warning('统一认证号应为 9 位数字')
   if (persons.some((p) => p.id === d.id.trim())) return ElMessage.warning('该人员已存在，请在列表中修改')
   const s = staff.find((x) => x.id === d.id.trim())
   Object.assign(d, s ? { name: s.name, org: s.dept } : { name: `演示人员${d.id.slice(-3)}`, org: '业务研发中心' })

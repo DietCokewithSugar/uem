@@ -3,7 +3,7 @@
   <el-dialog :model-value="modelValue" :title="row ? '修改体验员' : '新增体验员'" width="760px" @update:model-value="$emit('update:modelValue', $event)">
     <el-form ref="formRef" :model="d" :rules="rules" label-width="150px" class="form">
       <template v-if="kind === 'inside'">
-        <el-form-item label="统一认证号" prop="id"><el-input v-model="d.id" :disabled="!!row" /></el-form-item>
+        <el-form-item label="统一认证号" prop="id"><el-input v-model="d.id" :disabled="!!row" maxlength="9" placeholder="9 位数字" /></el-form-item>
         <el-form-item label="姓名" prop="name"><el-input v-model="d.name" /></el-form-item>
         <el-form-item label="性别" prop="gender"><el-radio-group v-model="d.gender"><el-radio v-for="g in E.genders" :key="g" :value="g">{{ g }}</el-radio></el-radio-group></el-form-item>
         <el-form-item label="年龄" prop="age"><el-input-number v-model="d.age" :min="18" :max="70" /></el-form-item>
@@ -41,6 +41,7 @@
 import { ref, reactive, watch } from 'vue'
 import ChainSelect from '@/components/ChainSelect.vue'
 import * as E from '@/mock/experiencer'
+import { staffIdRule } from '@/config/validators'
 
 const props = defineProps({ modelValue: Boolean, kind: String, row: Object })
 const emit = defineEmits(['update:modelValue', 'save'])
@@ -49,7 +50,7 @@ const formRef = ref()
 const d = reactive({})
 const req = (message) => [{ required: true, message, trigger: ['blur', 'change'] }]
 const rules = {
-  id: req('请输入统一认证号'),
+  id: [staffIdRule],
   name: req('请输入姓名'),
   gender: req('请选择性别'),
   age: req('请输入年龄'),

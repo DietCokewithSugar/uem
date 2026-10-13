@@ -57,7 +57,7 @@ export const persons = reactive([
   },
   ...staff.slice(1).map((s) => ({ id: s.id, name: s.name, org: s.dept, vip: false, status: '激活', roles: ['灵犀旅程管理岗', '质检智能体使用岗'], scopes: {} })),
   ...Array.from({ length: 30 }, (_, i) => ({
-    id: `demo${String(2001 + i).padStart(4, '0')}`,
+    id: `0017${String(2001 + i).padStart(5, '0')}`,
     name: nameA[i % nameA.length] + nameB[(i * 7) % nameB.length],
     org: orgPool[i % orgPool.length],
     vip: i % 11 === 5,
