@@ -5,8 +5,12 @@
       <div class="tabs">
         <span v-for="t in tabs" :key="t.key" class="tab" :class="{ active: tab === t.key }" @click="tab = t.key">{{ t.label }}<el-icon><component :is="t.icon" /></el-icon></span>
       </div>
-      <div class="selects">
-        <el-select v-model="product" size="small" class="red"><el-option v-for="p in productOpts" :key="p" :label="p" :value="p" /></el-select>
+      <div v-if="tab !== 'realtime'" class="selects">
+        <el-select v-if="tab === 'overview'" v-model="product" size="small" class="red"><el-option v-for="p in productOpts" :key="p" :label="p" :value="p" /></el-select>
+        <template v-else>
+          <el-select v-model="funcProduct" size="small" class="red"><el-option v-for="p in [funcMonitor.product]" :key="p" :label="p" :value="p" /></el-select>
+          <el-select v-model="funcColumn" size="small" class="red"><el-option v-for="c in funcMonitor.columns" :key="c" :label="c" :value="c" /></el-select>
+        </template>
         <el-select v-model="month" size="small" class="red month"><el-option v-for="m in boardMonths" :key="m" :label="m" :value="m" /></el-select>
       </div>
     </div>
@@ -14,14 +18,7 @@
 
     <!-- 用户声音总览 -->
     <template v-if="tab === 'overview'">
-      <div class="kpis">
-        <div class="kpi k1"><div class="k-lbl">有效用户声音总数</div><div class="k-val">{{ d.valid }}<small>条</small></div><div class="k-sub">较上期 {{ d.diff }} 条　全量声音 {{ d.all }} 条</div></div>
-        <div class="kpi k2">
-          <div class="k-lbl">用户声音压力指数等级 <el-tooltip content="综合负面声音占比、情绪强度与声音增速计算，共五级"><el-icon><InfoFilled /></el-icon></el-tooltip></div>
-          <div class="k-val txt">{{ d.pressure }}</div><div class="k-sub">上期用户声音压力指数等级：{{ d.lastPressure }}</div>
-        </div>
-        <div class="kpi k3"><div class="k-lbl">用户声音集中维度</div><div class="k-val txt">{{ d.focusDim }}</div></div>
-      </div>
+      <KpiRow :items="overviewKpis" />
 
       <div class="problems">
         <div class="p-title"><el-icon><MagicStick /></el-icon>重要典型问题</div>
@@ -43,31 +40,16 @@
         <Panel title="各产品用户声音情绪指数"><EChart class="h260" :option="emoProductOpt" /></Panel>
       </div>
 
-      <Panel ref="detailRef" title="用户声音明细" class="detail"><VoiceTable :key="detailKey" /></Panel>
+      <Panel ref="detailRef" title="用户声音明细"><BoardVoiceDetail :key="product" :product="product === '全部产品' ? '' : product" /></Panel>
     </template>
 
-    <!-- 功能监测（截图未覆盖，按总览口径推测） -->
-    <Panel v-else-if="tab === 'func'" title="功能监测" sub="按功能栏目统计负面声音与压力">
-      <el-table :data="funcStats" size="small">
-        <el-table-column prop="product" label="产品" min-width="140" />
-        <el-table-column prop="column" label="功能栏目" min-width="120" />
-        <el-table-column prop="total" label="声音数" width="90" sortable />
-        <el-table-column prop="neg" label="负面声音" width="100" sortable />
-        <el-table-column label="负面占比" width="180">
-          <template #default="{ row }"><el-progress :percentage="row.ratio" :color="row.ratio > 60 ? '#c7000b' : '#f2a33a'" /></template>
-        </el-table-column>
-        <el-table-column prop="level" label="压力等级" width="110" />
-      </el-table>
-    </Panel>
+    <!-- 功能监测：当前仅「个人手机银行基础业务 · 信用卡」有示例数据 -->
+    <template v-else-if="tab === 'func'">
+      <el-alert v-if="funcColumn !== funcMonitor.column" type="info" show-icon :closable="false" class="note" :title="`演示环境仅提供「${funcMonitor.column}」栏目的示例数据，以下为该栏目内容`" />
+      <FuncMonitor />
+    </template>
 
-    <!-- 实时监测（截图未覆盖，推测） -->
-    <Panel v-else title="实时监测" sub="高度负面声音实时预警，推送给「实时监测收件人」">
-      <el-timeline>
-        <el-timeline-item v-for="v in alerts" :key="v.id" :timestamp="v.time" :type="v.emotion === '高度负面' ? 'danger' : 'warning'">
-          <b>{{ v.product }} · {{ v.column }}</b>　{{ v.desc }} <el-tag size="small" type="danger" effect="plain">{{ v.emotion }}</el-tag>
-        </el-timeline-item>
-      </el-timeline>
-    </Panel>
+    <RealtimeMonitor v-else />
   </div>
 </template>
 
@@ -75,21 +57,29 @@
 import { ref, computed, nextTick } from 'vue'
 import EChart from '@/components/EChart.vue'
 import Panel from '@/components/Panel.vue'
-import VoiceTable from './VoiceTable.vue'
-import { boardData as d, boardMonths, pressureLevels, voices, voiceProducts } from '@/mock/voice'
+import KpiRow from './board/KpiRow.vue'
+import BoardVoiceDetail from './board/BoardVoiceDetail.vue'
+import FuncMonitor from './board/FuncMonitor.vue'
+import RealtimeMonitor from './board/RealtimeMonitor.vue'
+import { boardData as d, boardMonths, pressureLevels, voiceProducts, funcMonitor } from '@/mock/voice'
 
 const tabs = [{ key: 'overview', label: '用户声音总览', icon: 'DataAnalysis' }, { key: 'func', label: '功能监测', icon: 'Aim' }, { key: 'realtime', label: '实时监测', icon: 'Monitor' }]
 const tab = ref('overview')
 const productOpts = ['全部产品', ...voiceProducts.map((p) => p.name)]
 const product = ref('全部产品')
 const month = ref(boardMonths.at(-1))
+const funcProduct = ref(funcMonitor.product)
+const funcColumn = ref(funcMonitor.column)
 const emoLevels = ['高度负面', '中度负面', '轻度负面', '中性', '正面']
+const overviewKpis = [
+  { label: '有效用户声音总数', value: d.valid, unit: '条', sub: `较上期 ${d.diff} 条　全量声音 ${d.all} 条` },
+  { label: '用户声音压力指数等级', value: d.pressure, text: true, tip: '综合负面声音占比、情绪强度与声音增速计算，共五级', sub: `上期用户声音压力指数等级：${d.lastPressure}` },
+  { label: '用户声音集中维度', value: d.focusDim, text: true }
+]
 
 const problemPages = computed(() => [d.problems.slice(0, 12), d.problems.slice(12)])
 const detailRef = ref()
-const detailKey = ref(0)
 const filterByProblem = async () => {
-  detailKey.value++
   await nextTick()
   detailRef.value?.$el.scrollIntoView({ behavior: 'smooth' })
 }
@@ -136,19 +126,6 @@ const emoProductOpt = {
   }]
 }
 
-// 功能监测：由声音明细实时统计
-const levelOf = (r) => pressureLevels[Math.min(4, Math.floor(r / 20))]
-const funcStats = computed(() => {
-  const m = {}
-  voices.filter((v) => product.value === '全部产品' || v.product === product.value).forEach((v) => {
-    const k = `${v.product}|${v.column}`
-    const x = (m[k] ||= { product: v.product, column: v.column, total: 0, neg: 0 })
-    x.total++
-    if (v.emotion.includes('负面')) x.neg++
-  })
-  return Object.values(m).map((x) => ({ ...x, ratio: Math.round((x.neg / x.total) * 100), level: levelOf((x.neg / x.total) * 100) })).sort((a, b) => b.neg - a.neg)
-})
-const alerts = computed(() => voices.filter((v) => /中度|高度/.test(v.emotion) && (product.value === '全部产品' || v.product === product.value)).slice(0, 15))
 </script>
 
 <style scoped>
@@ -163,16 +140,6 @@ const alerts = computed(() => voices.filter((v) => /中度|高度/.test(v.emotio
 .red :deep(.el-select__wrapper) { background: var(--uem-red); box-shadow: none; }
 .red :deep(.el-select__placeholder), .red :deep(.el-select__caret) { color: #fff; }
 .ai-note { text-align: right; font-size: 11px; color: #999; margin: 8px 0; }
-.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.kpi { border-radius: 6px; padding: 18px 24px; min-height: 120px; }
-.k1 { background: linear-gradient(120deg, #fff 40%, #fde3e3); }
-.k2 { background: linear-gradient(120deg, #fff 40%, #dff5ea); }
-.k3 { background: linear-gradient(120deg, #fff 40%, #dceafb); }
-.k-lbl { font-size: 15px; color: #333; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-.k-val { font-size: 26px; font-family: Georgia, serif; margin: 10px 0 6px; color: #222; }
-.k-val small { font-size: 12px; margin-left: 2px; }
-.k-val.txt { font-family: inherit; font-weight: 700; }
-.k-sub { font-size: 12px; color: #888; }
 .problems { margin-top: 16px; border-radius: 6px; padding: 14px 18px 4px; background: linear-gradient(120deg, #eef4fd, #e3edfb); }
 .p-title { display: flex; align-items: center; gap: 6px; color: #2f5fbf; font-weight: 600; font-size: 15px; margin-bottom: 10px; }
 .p-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -180,5 +147,5 @@ const alerts = computed(() => voices.filter((v) => /中度|高度/.test(v.emotio
 .p-item:hover { background: #fff; }
 .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
 .h260 { height: 260px; }
-.detail :deep(.search-form), .detail :deep(.uem-card) { padding: 0; }
+.note { margin-bottom: 12px; }
 </style>
