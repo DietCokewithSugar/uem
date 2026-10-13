@@ -107,7 +107,19 @@ const routes = [
         { path: 'productMeasureImg', component: () => import('@/views/monitor/MeasureImages.vue'), meta: { group: '数据管理', title: '体验度量图片' } }
       ]),
 
-      ...['voice', 'system', 'admin'].map((key) => ({
+      section('voice', [
+        { path: 'empAspirrations', component: () => import('@/views/voice/EmpVoice.vue'), meta: { title: '员工心声', bare: true } },
+        { path: 'cusAllVoice', component: () => import('@/views/voice/CusAllVoice.vue'), meta: { group: '客户声音', title: '全部声音' } },
+        { path: 'cusSupreme', component: () => import('@/views/voice/CusProduct.vue'), meta: { group: '客户声音', title: '产品声音', dynamicTitle: true } },
+        { path: 'journeyVoiceAnalyze', component: () => import('@/views/voice/VoiceBoard.vue'), meta: { group: '智能分析', title: '声音看板', bare: true } },
+        ...[
+          ['voiceAnalyzeTool', '智能分析', '分析工具'], ['voiceJourneyStructure', '数据管理', '旅程结构管理'], ['voiceModelPrompt', '数据管理', '模型提示词管理'],
+          ['voiceBoardData', '数据管理', '看板图表数据管理'], ['voiceReport', '数据管理', '统计报表'], ['voiceUpload', '数据管理', '用户声音上传'],
+          ['voiceProductDomain', '数据管理', '产品领域管理'], ['voiceAlertReceiver', '数据管理', '实时监测收件人管理']
+        ].map(([path, group, title]) => ({ path, component: () => import('@/views/common/Placeholder.vue'), meta: { group, title } }))
+      ]),
+
+      ...['system', 'admin'].map((key) => ({
         path: key,
         component: () => import('@/views/common/Placeholder.vue'),
         meta: { section: key }

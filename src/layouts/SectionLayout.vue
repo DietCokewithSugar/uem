@@ -77,6 +77,7 @@ const isActive = (item) => {
   if (item.query?.suggestStatus !== undefined && route.query.suggestStatus !== undefined) {
     return item.query.suggestStatus === route.query.suggestStatus
   }
+  if (item.query?.productId) return item.query.productId === (route.query.productId || '10117')
   return true
 }
 
@@ -100,6 +101,7 @@ const toggle = (t) => {
 
 const pageTitle = computed(() => {
   if (route.path === '/optimPending') return pendingStatus[route.query.suggestStatus] || '待处理'
+  if (route.meta.dynamicTitle) return allItems.value.find((i) => isActive(i))?.title || route.meta.title
   return route.meta.title || ''
 })
 const crumbs = computed(() => {
