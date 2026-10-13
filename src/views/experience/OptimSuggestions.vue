@@ -53,6 +53,29 @@
         <el-button type="primary" @click="submitCreate">提交</el-button>
       </template>
     </el-dialog>
+
+    <!-- 相似度检测（系统管理 · 体验问题维护 中开启且在应用范围内时生效） -->
+    <el-dialog v-model="similarDialog" title="发现相似优化建议" width="760px" append-to-body>
+      <el-alert type="warning" :closable="false" show-icon title="以下已有优化建议与本次描述相似，请确认是否重复提交。" class="similar-tip" />
+      <el-table :data="similar" size="small">
+        <el-table-column label="优化建议编号" width="210">
+          <template #default="{ row }"><span class="uem-link" @click="detail = row.item">{{ row.item.id }}</span></template>
+        </el-table-column>
+        <el-table-column label="产品名称" width="140" show-overflow-tooltip>
+          <template #default="{ row }">{{ row.item.product }}</template>
+        </el-table-column>
+        <el-table-column label="描述及解决建议" min-width="240">
+          <template #default="{ row }"><div class="clamp2" :title="row.item.desc">{{ excerpt(row.item.desc) }}</div></template>
+        </el-table-column>
+        <el-table-column label="相似度" width="80" align="center">
+          <template #default="{ row }"><span class="score">{{ Math.round(row.score * 100) }}%</span></template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <el-button @click="similarDialog = false">返回修改</el-button>
+        <el-button type="primary" @click="similarDialog = false; doCreate()">继续提交</el-button>
+      </template>
+    </el-dialog>
     <SuggestionDetail :row="detail" @close="detail = null" />
   </div>
 </template>
@@ -66,6 +89,7 @@ import { useTableQuery, match } from '@/components/useTableQuery'
 import { suggestions, products, orgs, sources, bizDepts, productLines, adoptResults } from '@/mock'
 import { currentUser } from '@/config/user'
 import { exportCsv } from '@/components/exportCsv'
+import { featureActive, findSimilar } from '@/mock/problemFeatures'
 
 const props = defineProps({ mode: { type: String, default: 'all' } })
 
@@ -152,8 +176,19 @@ function openCreate() {
   Object.assign(draft, { product: '', column: '', org: '', proposer: currentUser.name, desc: '' })
   createDialog.value = true
 }
+// 相似度：功能开启且当前用户在应用范围内时，提交前检索相似建议
+const similarDialog = ref(false)
+const similar = ref([])
+const excerpt = (t, n = 60) => (t.length > n ? `${t.slice(0, n)}…` : t)
 async function submitCreate() {
   await createRef.value.validate()
+  if (featureActive('相似度')) {
+    similar.value = findSimilar(draft.desc, suggestions, { product: draft.product })
+    if (similar.value.length) return (similarDialog.value = true)
+  }
+  doCreate()
+}
+function doCreate() {
   const d = fmt(new Date())
   suggestions.unshift({
     ...draft,
@@ -179,4 +214,6 @@ async function submitCreate() {
 <style scoped>
 .pager { margin-top: 16px; justify-content: flex-end; }
 .clamp2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.similar-tip { margin-bottom: 12px; }
+.score { color: var(--uem-red); font-weight: 600; }
 </style>
