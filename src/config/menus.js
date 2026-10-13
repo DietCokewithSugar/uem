@@ -140,15 +140,15 @@ export const sideMenus = {
       title: '智能分析',
       children: [
         { title: '声音看板', path: '/journeyVoiceAnalyze' },
-        { title: '分析工具', path: '/voiceAnalyzeTool' }
+        { title: '分析工具', path: '/analyticsTools' }
       ]
     },
     {
-      // 截图中仅见菜单名称，页面待补充；路由为推测
+      // 看板图表数据管理及以下页面待截图补充；路由为推测
       title: '数据管理',
       children: [
-        { title: '旅程结构管理', path: '/voiceJourneyStructure' },
-        { title: '模型提示词管理', path: '/voiceModelPrompt' },
+        { title: '旅程结构管理', path: '/jouranalyManage' },
+        { title: '模型提示词管理', path: '/tipsManage' },
         { title: '看板图表数据管理', path: '/voiceBoardData' },
         { title: '统计报表', path: '/voiceReport' },
         { title: '用户声音上传', path: '/voiceUpload' },

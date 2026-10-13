@@ -112,8 +112,10 @@ const routes = [
         { path: 'cusAllVoice', component: () => import('@/views/voice/CusAllVoice.vue'), meta: { group: '客户声音', title: '全部声音' } },
         { path: 'cusSupreme', component: () => import('@/views/voice/CusProduct.vue'), meta: { group: '客户声音', title: '产品声音', dynamicTitle: true } },
         { path: 'journeyVoiceAnalyze', component: () => import('@/views/voice/VoiceBoard.vue'), meta: { group: '智能分析', title: '声音看板', bare: true } },
+        { path: 'analyticsTools', component: () => import('@/views/voice/AnalyticsTools.vue'), meta: { group: '智能分析', title: '分析工具' } },
+        { path: 'jouranalyManage', component: () => import('@/views/voice/JourneyStructure.vue'), meta: { group: '数据管理', title: '旅程结构管理' } },
+        { path: 'tipsManage', component: () => import('@/views/voice/VoicePromptManage.vue'), meta: { group: '数据管理', title: '模型提示词管理' } },
         ...[
-          ['voiceAnalyzeTool', '智能分析', '分析工具'], ['voiceJourneyStructure', '数据管理', '旅程结构管理'], ['voiceModelPrompt', '数据管理', '模型提示词管理'],
           ['voiceBoardData', '数据管理', '看板图表数据管理'], ['voiceReport', '数据管理', '统计报表'], ['voiceUpload', '数据管理', '用户声音上传'],
           ['voiceProductDomain', '数据管理', '产品领域管理'], ['voiceAlertReceiver', '数据管理', '实时监测收件人管理']
         ].map(([path, group, title]) => ({ path, component: () => import('@/views/common/Placeholder.vue'), meta: { group, title } }))
