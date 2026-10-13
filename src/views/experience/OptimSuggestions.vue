@@ -55,7 +55,7 @@
     </el-dialog>
 
     <!-- 相似度检测（系统管理 · 体验问题维护 中开启且在应用范围内时生效） -->
-    <el-dialog v-model="similarDialog" title="发现相似优化建议" width="760px" append-to-body>
+    <el-dialog v-model="similarDialog" title="发现相似优化建议" width="760px" append-to-body :close-on-click-modal="false">
       <el-alert type="warning" :closable="false" show-icon title="以下已有优化建议与本次描述相似，请确认是否重复提交。" class="similar-tip" />
       <el-table :data="similar" size="small">
         <el-table-column label="优化建议编号" width="210">
@@ -181,7 +181,7 @@ const similarDialog = ref(false)
 const similar = ref([])
 const excerpt = (t, n = 60) => (t.length > n ? `${t.slice(0, n)}…` : t)
 async function submitCreate() {
-  await createRef.value.validate()
+  if (!(await createRef.value.validate().catch(() => false))) return
   if (featureActive('相似度')) {
     similar.value = findSimilar(draft.desc, suggestions, { product: draft.product })
     if (similar.value.length) return (similarDialog.value = true)

@@ -45,7 +45,7 @@
       <el-form ref="formRef" :model="d" :rules="rules" label-width="90px">
         <el-form-item label="菜单名称" prop="title"><el-input v-model="d.title" maxlength="6" show-word-limit placeholder="请输入菜单名称" /></el-form-item>
         <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="d.sort" :min="0" :max="99" :step="1" step-strictly :precision="0" />
+          <el-input-number v-model="d.sort" :min="0" :step="1" step-strictly :precision="0" />
           <span class="hint">数值越小越靠前</span>
         </el-form-item>
       </el-form>

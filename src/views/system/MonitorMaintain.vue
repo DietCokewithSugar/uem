@@ -47,7 +47,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import SearchForm from '@/components/SearchForm.vue'
 import { useTableQuery, match } from '@/components/useTableQuery'
@@ -57,6 +57,8 @@ import { maintTabs, monitorItems, sortedItems, addItem, updateItem, toggleItem, 
 // 切换页签会改变 fullPath，页面随之重建，因此只需读取一次
 const route = useRoute()
 const tab = route.query.tab === 'product' ? 'product' : 'channel'
+// 无效的页签参数规范为重点渠道，保证标题页签高亮与内容一致
+if (route.query.tab && route.query.tab !== tab) useRouter().replace({ query: { ...route.query, tab } })
 const label = maintTabs[tab].label
 
 const fields = computed(() => [

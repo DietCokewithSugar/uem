@@ -1,5 +1,5 @@
 // 体验问题维护：体验问题模块功能开关及应用范围；「相似度」供优化建议新增时检测相似建议
-import { reactive } from 'vue'
+import { reactive, computed } from 'vue'
 import { currentUser } from '@/config/user'
 import { persons } from './system'
 import { orgs } from './index'
@@ -26,8 +26,8 @@ export const problemFeatures = reactive([
 // 白名单用户列表：该功能暂未启用，保持为空
 export const whitelistUsers = reactive([])
 
-// 机构下拉：人员所属机构 + 提出机构
-export const scopeOrgs = [...new Set([...persons.map((p) => p.org), ...orgs])]
+// 机构下拉：人员所属机构 + 提出机构（随人员维护新增实时更新）
+export const scopeOrgs = computed(() => [...new Set([...persons.map((p) => p.org), ...orgs])])
 
 export const getFeature = (name) => problemFeatures.find((f) => f.name === name)
 

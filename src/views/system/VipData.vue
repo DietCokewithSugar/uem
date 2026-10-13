@@ -76,21 +76,31 @@ import { topNav, sideMenus } from '@/config/menus'
 const expanded = ref(true)
 
 // 访问模块级联：一级=顶部板块，二级=左侧分组，三级=分组下的页面；任一级均可选
-const leaf = (title) => ({ value: title, label: title })
-const groupNode = (g) => {
-  const kids = [...new Set((g.children || []).map((c) => c.title))]
-  return kids.length ? { ...leaf(g.title), children: kids.map(leaf) } : leaf(g.title)
+// 按标题路径插入节点，同级同名合并
+const insert = (tree, [title, ...rest]) => {
+  if (!title) return
+  let node = tree.find((n) => n.value === title)
+  if (!node) tree.push((node = { value: title, label: title }))
+  if (rest[0]) insert((node.children ||= []), rest)
 }
-const moduleOptions = computed(() =>
+const moduleOptions = computed(() => {
+  const tree = []
   topNav
     // 冻结的板块仅在已有访问记录时保留
     .filter((n) => !n.frozen || vipVisits.some((v) => v.l1 === n.title))
     .sort((a, b) => a.sort - b.sort)
-    .map((n) => {
+    .forEach((n) => {
+      insert(tree, [n.title])
       const groups = n.key === 'home' ? [] : sideMenus[n.key] || []
-      return groups.length ? { ...leaf(n.title), children: groups.map(groupNode) } : leaf(n.title)
+      groups.forEach((g) => {
+        insert(tree, [n.title, g.title])
+        g.children?.forEach((c) => insert(tree, [n.title, g.title, c.title]))
+      })
     })
-)
+  // 并入记录中实际出现的路径（菜单改名前的旧名称、子页面等），保证每条记录都能按模块筛到
+  vipVisits.forEach((v) => insert(tree, [v.l1, v.l2, v.l3]))
+  return tree
+})
 
 const { form, page, pageSize, filtered, rows, search, reset } = useTableQuery(
   () => [...vipVisits].sort((a, b) => b.time.localeCompare(a.time)),

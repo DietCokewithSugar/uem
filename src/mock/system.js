@@ -53,7 +53,7 @@ export const persons = reactive([
   {
     id: currentUser.id, name: currentUser.name, org: currentUser.dept, vip: false, status: '激活',
     roles: ['系统管理员', '后台管理员', '产品线分拣岗', '产品线处理岗', '优化建议批量导出权限', '优化建议数据看板', '体验任务审核岗', '体验任务录入岗', '体验评价维护岗', '体验资讯审批岗', '体验资讯录入岗', '智能分析关键维护岗', '质检智能体管理岗', '灵犀旅程管理岗'],
-    scopes: {}
+    scopes: { 产品线分拣岗: { productLine: '个人手机银行' }, 产品线处理岗: { productLine: '个人手机银行' } }
   },
   ...staff.slice(1).map((s) => ({ id: s.id, name: s.name, org: s.dept, vip: false, status: '激活', roles: ['灵犀旅程管理岗', '质检智能体使用岗'], scopes: {} })),
   ...Array.from({ length: 30 }, (_, i) => ({

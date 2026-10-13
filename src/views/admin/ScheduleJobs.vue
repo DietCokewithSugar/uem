@@ -8,18 +8,18 @@
       <el-button type="primary" @click="search">查询</el-button>
       <el-button @click="reset">重置</el-button>
     </div>
-    <div class="uem-card">
+    <div ref="cardRef" class="uem-card">
       <div class="uem-toolbar"><el-button type="primary" @click="open()">新增</el-button></div>
       <el-table :data="rows" class="jobs">
-        <el-table-column type="index" label="序列" width="56" :index="(i) => (page - 1) * pageSize + i + 1" />
-        <el-table-column label="服务类" min-width="200">
+        <el-table-column type="index" label="序列" width="48" :index="(i) => (page - 1) * pageSize + i + 1" />
+        <el-table-column label="服务类" min-width="150">
           <template #default="{ row }"><template v-for="(seg, k) in camel(row.beanName)" :key="k">{{ seg }}<wbr /></template></template>
         </el-table-column>
-        <el-table-column label="方法名" min-width="150">
+        <el-table-column label="方法名" min-width="120">
           <template #default="{ row }"><template v-for="(seg, k) in camel(row.methodName)" :key="k">{{ seg }}<wbr /></template></template>
         </el-table-column>
-        <el-table-column prop="params" label="方法参数" width="84" />
-        <el-table-column label="cron表达式" width="180">
+        <el-table-column prop="params" label="方法参数" width="92" />
+        <el-table-column label="cron表达式" width="168">
           <template #default="{ row }">
             <el-tooltip placement="top" :show-after="200">
               <template #content>
@@ -34,21 +34,23 @@
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column prop="remark" label="描述" min-width="250" />
-        <el-table-column label="状态" width="76">
+        <el-table-column prop="remark" label="描述" min-width="170" />
+        <el-table-column label="状态" width="62">
           <template #default="{ row }"><span :class="row.status === '已启动' ? 'on' : 'off'">{{ row.status }}</span></template>
         </el-table-column>
-        <el-table-column label="操作" width="256" fixed="right">
+        <el-table-column label="操作" :width="wideOps ? 244 : 128" fixed="right">
           <template #default="{ row }">
-            <template v-if="row.status === '已暂停'">
-              <el-button link type="primary" @click="toggle(row)">启动</el-button>
-            </template>
-            <template v-else>
-              <el-button link type="primary" @click="toggle(row)">暂停</el-button>
-              <el-button link type="primary" :loading="running.has(row.id)" @click="runNow(row)">立刻执行</el-button>
-              <el-button link type="primary" @click="open(row)">修改</el-button>
-            </template>
-            <el-button link type="primary" @click="showLogs(row)">查看日志</el-button>
+            <div class="ops">
+              <template v-if="row.status === '已暂停'">
+                <el-button link type="primary" @click="toggle(row)">启动</el-button>
+              </template>
+              <template v-else>
+                <el-button link type="primary" @click="toggle(row)">暂停</el-button>
+                <el-button link type="primary" :loading="running.has(row.id)" @click="runNow(row)">立刻执行</el-button>
+                <el-button link type="primary" @click="open(row)">修改</el-button>
+              </template>
+              <el-button link type="primary" @click="showLogs(row)">查看日志</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -61,7 +63,7 @@
         <el-form-item label="方法名" prop="methodName"><el-input v-model="d.methodName" placeholder="无参或单个 String 参数的 public 方法" /></el-form-item>
         <el-form-item label="方法参数"><el-input v-model="d.params" placeholder="可选，以字符串形式传入方法" /></el-form-item>
         <el-form-item label="cron表达式" prop="cron" :show-message="false">
-          <el-input v-model="d.cron" class="mono" placeholder="秒 分 时 日 月 周 [年]，如 0 30 2 * * ?" />
+          <el-input v-model="d.cron" class="mono" placeholder="秒 分 时 日 月 周 [年]，如 0 30 2 * * ?" @input="touched = true" />
           <div class="presets">
             <span class="muted">常用：</span>
             <span v-for="p in presets" :key="p.v" class="uem-link" @click="d.cron = p.v">{{ p.l }}</span>
@@ -106,7 +108,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useTableQuery } from '@/components/useTableQuery'
 import { validateCron, nextFireTimes } from '@/components/cron'
@@ -125,20 +127,35 @@ const { form, page, pageSize, filtered, rows, search, reset } = useTableQuery(
   }
 )
 
-// 每 30 秒刷新一次「下次触发时间」
+// 每到整秒刷新「下次触发时间」，避免显示已过去的时间
 const now = ref(new Date())
-const timer = setInterval(() => (now.value = new Date()), 30000)
-onUnmounted(() => clearInterval(timer))
-const fires = (cron, n) => nextFireTimes(cron, now.value, n)
-const nextText = (cron) => {
-  const [t] = fires(cron, 1)
+let timer
+const tick = () => {
+  now.value = new Date()
+  timer = setTimeout(tick, 1000 - (Date.now() % 1000))
+}
+tick()
+onUnmounted(() => clearTimeout(timer))
+const fires = (cron, n, from = now.value) => nextFireTimes(cron, from, n)
+const nextText = (cron, from) => {
+  const [t] = fires(cron, 1, from)
   return t ? nowText(t) : '不再触发'
 }
+
+// 笔记本等窄屏下操作列按两行排列，让出宽度给其他列
+const cardRef = ref()
+const wideOps = ref(true)
+let ro
+onMounted(() => {
+  ro = new ResizeObserver(([e]) => (wideOps.value = e.contentRect.width >= 1150))
+  ro.observe(cardRef.value)
+})
+onUnmounted(() => ro?.disconnect())
 
 function toggle(row) {
   const start = row.status === '已暂停'
   Object.assign(row, { status: start ? '已启动' : '已暂停', pausedAt: start ? '' : nowText() })
-  ElMessage.success(start ? `已启动，下次执行时间 ${nextText(row.cron)}` : '已暂停，暂停期间不再定时执行')
+  ElMessage.success(start ? `已启动，下次执行时间 ${nextText(row.cron, new Date())}` : '已暂停，暂停期间不再定时执行')
 }
 
 const running = reactive(new Set())
@@ -174,33 +191,35 @@ const presets = [
 const dialog = ref(false)
 const editing = ref(null)
 const formRef = ref()
-const tried = ref(false)
+// cron 输入过或点过保存后才提示错误（含清空）
+const touched = ref(false)
 const d = reactive({})
 // 语法错误或未来不会触发时返回提示
-const cronProblem = (v) => validateCron(v) || (nextFireTimes(v, new Date(), 1).length ? '' : '该表达式在未来不会触发，请调整')
-const cronMsg = computed(() => (String(d.cron || '').trim() || tried.value ? cronProblem(d.cron) : ''))
+const cronProblem = (v) => validateCron(v) || (nextFireTimes(v, now.value, 1).length ? '' : '该表达式在未来不会触发，请调整')
+const cronMsg = computed(() => (String(d.cron || '').trim() || touched.value ? cronProblem(d.cron) : ''))
 const preview = computed(() => (cronMsg.value ? [] : nextFireTimes(d.cron, now.value, 3)))
-const check = (fn) => ({ validator: (_, v, cb) => { const e = fn(v); e ? cb(new Error(e)) : cb() }, trigger: 'blur' })
+// 校验与保存一致，均按去除首尾空格后的值
+const check = (fn) => ({ validator: (_, v, cb) => { const e = fn(String(v ?? '').trim()); e ? cb(new Error(e)) : cb() }, trigger: 'blur' })
 const rules = {
   beanName: [{ required: true, message: '请输入服务类' }, check((v) => (/^[a-z][A-Za-z0-9]*$/.test(v) ? '' : '服务类应为小驼峰的 Spring Bean 名称'))],
   methodName: [
     { required: true, message: '请输入方法名' },
     check((v) =>
       !/^[a-zA-Z_$][\w$]*$/.test(v) ? '方法名格式不正确'
-        : scheduleJobs.some((j) => j !== editing.value && j.beanName === d.beanName && j.methodName === v && j.params === (d.params || '')) ? '已存在相同服务类、方法和参数的任务' : ''
+        : scheduleJobs.some((j) => j !== editing.value && j.beanName === d.beanName.trim() && j.methodName === v && j.params === (d.params || '').trim()) ? '已存在相同服务类、方法和参数的任务' : ''
     )
   ],
   cron: [{ required: true, validator: (_, v, cb) => { const e = cronProblem(v); e ? cb(new Error(e)) : cb() }, trigger: 'change' }]
 }
 function open(row) {
   editing.value = row || null
-  tried.value = false
+  touched.value = false
   Object.assign(d, { beanName: '', methodName: '', params: '', cron: '', remark: '' }, row ? { beanName: row.beanName, methodName: row.methodName, params: row.params, cron: row.cron, remark: row.remark } : {})
   dialog.value = true
   setTimeout(() => formRef.value?.clearValidate())
 }
 async function save() {
-  tried.value = true
+  touched.value = true
   if (!(await formRef.value.validate().catch(() => false))) return
   const data = { ...d, beanName: d.beanName.trim(), methodName: d.methodName.trim(), params: (d.params || '').trim(), cron: d.cron.trim().replace(/\s+/g, ' ') }
   if (editing.value) Object.assign(editing.value, data)
@@ -214,11 +233,13 @@ async function save() {
 .filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: #555; }
 .filter .el-button + .el-button { margin-left: 0; }
 .gap { flex: 1; }
-.jobs :deep(.cell) { word-break: normal; overflow-wrap: anywhere; }
+.jobs :deep(.cell) { padding: 0 8px; word-break: normal; overflow-wrap: anywhere; }
+.ops { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.ops .el-button + .el-button { margin-left: 0; }
 .cron-cell { cursor: default; line-height: 1.5; }
 .cron-cell code, .mono :deep(input) { font-family: Menlo, Consolas, 'Courier New', monospace; }
 .cron-cell code { font-size: 13px; color: #333; }
-.next { font-size: 12px; color: #3c9a5f; }
+.next { font-size: 12px; color: #3c9a5f; white-space: nowrap; }
 .tip-title { color: #ccc; margin-bottom: 4px; }
 .on { color: #3c9a5f; }
 .off, .muted { color: #999; }
