@@ -1,9 +1,12 @@
 // 后台管理 · 定时任务演示数据：前 10 条与截图一致，其余为平台其他模块的同类任务
 // 执行日志按 cron 反推最近几次定时触发；暂停的任务在暂停时间之后不再有定时记录
+// 发邮件的任务与「邮件记录」联动：执行说明中的发送数量取自邮件记录，立刻执行会追加一批邮件
 import { reactive } from 'vue'
 import { nextFireTimes } from '@/components/cron'
 import { nowText } from './qc'
 import { currentUser } from '@/config/user'
+import { isWorkday } from './holidays'
+import { emailsAt, sendDealSuggestion, sendActivityEmail, sendUvsiWarning } from './emailHistory'
 
 function seeded(seed) {
   let s = seed
@@ -33,7 +36,7 @@ const seed = [
   ['qcAgentReportServiceImpl', 'cleanExpiredReport', '90', '0 30 0 * * ?', '质检智能体报告超期清理（参数为报告保留天数）', '已启动', '', [800, 3500], '清理超期质检报告 {n} 份', [0, 9]],
   ['journeyBoardServiceImpl', 'statJourneyBoard', '', '0 0 6 * * ?', '灵犀旅程看板统计（旅程环节体验指标汇总）', '已启动', '', [20000, 64000], '统计旅程 {n} 条', [40, 70]],
   ['experEvaluationServiceImpl', 'syncEvaluationData', '', '0 20 1 * * ?', '体验监测评价数据同步（重点渠道、精品产品评价明细）', '已启动', '', [30000, 120000], '同步评价数据 {n} 条', [5000, 21000], '评价数据文件未到达，等待下一周期重试'],
-  ['todoRemindServiceImpl', 'overdueRemindEmail', '', '0 0 9 ? * MON-FRI', '待办超期提醒邮件（工作日向超期待办处理人发送提醒）', '已启动', '', [2000, 9000], '发送待办超期提醒邮件 {n} 封', [4, 60]],
+  ['todoRemindServiceImpl', 'overdueRemindEmail', '', '0 0 10 * * ?', '优化建议待办提醒邮件（每日10点；「节假日」中的非工作日不发送，向待办处理人发送 dealSuggestion 邮件）', '已启动', '', [2000, 9000], '发送优化建议待办提醒邮件 {n} 封', [4, 60]],
   ['sysOrgServiceImpl', 'synOrganization', '', '0 0 23 * * ?', '用户机构同步（同步行内机构树及机构撤并信息）', '已启动', '', [15000, 45000], '同步机构 {n} 个，其中变更 {m} 个', [9800, 10200]],
   ['sysUserServiceImpl', 'synUserInfo', '', '0 10 0 * * ?', '同步行内人员信息（统一认证号、姓名、所属机构）', '已启动', '', [60000, 180000], '同步人员信息 {n} 人', [1200, 5400]],
   ['suggestionServiceImpl', 'autoConfirmSuggestion', '15', '0 0 3 * * ?', '优化建议答复后超期未确认自动办结（参数为自然日天数）', '已启动', '', [1500, 6000], '自动办结优化建议 {n} 条', [0, 45]],
@@ -58,13 +61,36 @@ function lastFires(cron, end, count) {
 
 const noteOf = (job, r = rand) => job.note.replace('{n}', between(job.n, r)).replace('{m}', between([0, 12], r))
 
+// 发邮件的任务：workday 为 true 时「节假日」中的非工作日跳过发送
+const SKIP = '今日为非工作日（节假日），跳过发送'
+const recipients = (list) => new Set(list.map((m) => m.recipient)).size
+const mailJobs = {
+  'todoRemindServiceImpl.overdueRemindEmail': {
+    type: 'dealSuggestion', label: '优化建议待办提醒邮件', workday: true, send: sendDealSuggestion,
+    note: (list) => (list.length ? `向 ${recipients(list)} 位待办处理人发送优化建议待办提醒邮件 ${list.length} 封` : '当前无待办优化建议，未发送邮件')
+  },
+  'emailRecipientServiceImpl.activityEmail': {
+    type: 'activityEmail', label: '活动超期提醒邮件', workday: true, send: sendActivityEmail,
+    note: (list) => (list.length ? `发送活动超期提醒邮件 ${list.length} 封` : '无创建超过 30 个自然日的未关闭活动，未发送邮件')
+  },
+  'realtimeMonitorServiceImpl.calcUvsiAndWarn': {
+    type: 'uvsiWarning', label: '实时监测预警邮件', workday: false, send: sendUvsiWarning,
+    note: (list) => (list.length ? `计算 UVSI 完成，达到中高度压力，向 ${list.length} 位实时监测收件人发送预警邮件` : '计算 UVSI 完成，未达到中高度压力，未发送预警邮件')
+  }
+}
+const mailJobOf = (job) => mailJobs[`${job.beanName}.${job.methodName}`]
+
 function seedLogs(job) {
   const end = job.pausedAt ? new Date(Math.min(parseTime(job.pausedAt), NOW)) : NOW
+  const mj = mailJobOf(job)
   return lastFires(job.cron, end, 6)
     .map((t) => {
       const failed = job.fail && rand() < 0.1
       const costMs = failed ? Math.round(job.cost[1] * (1.1 + rand() * 0.4)) : between(job.cost)
-      return { time: nowText(t), trigger: '定时', result: failed ? '失败' : '成功', costMs, note: failed ? job.fail : noteOf(job) }
+      const log = { time: nowText(t), trigger: '定时', result: failed ? '失败' : '成功', costMs, note: failed ? job.fail : noteOf(job) }
+      if (mj?.workday && !isWorkday(t)) Object.assign(log, { result: '成功', costMs: 20 + (costMs % 90), note: SKIP })
+      else if (mj && !failed) log.note = mj.note(emailsAt(mj.type, log.time))
+      return log
     })
     .reverse()
 }
@@ -80,15 +106,28 @@ export const scheduleJobs = reactive(
 // 新增任务的默认执行参数
 export const newJob = (data) => ({ ...data, id: Math.max(0, ...scheduleJobs.map((j) => j.id)) + 1, status: '已启动', pausedAt: '', cost: [500, 3000], note: '执行完成', n: [0, 0], fail: '', logs: [] })
 
-// 立刻执行：追加一条手动执行日志（最新在前）
+// 立刻执行：追加一条手动执行日志（最新在前）；发邮件的任务按当前数据发送一批，summary 用于页面提示
 export function runJob(job) {
+  const now = new Date()
+  const mj = mailJobOf(job)
+  const skip = mj?.workday && !isWorkday(now)
+  let detail = noteOf(job, Math.random)
+  let summary = ''
+  if (skip) {
+    detail = SKIP
+    summary = `今日为非工作日（节假日），未发送${mj.label}`
+  } else if (mj) {
+    const sent = mj.send(now)
+    detail = mj.note(sent)
+    summary = sent.length ? `${detail}，可在「邮件记录」中查看` : detail
+  }
   const log = {
-    time: nowText(),
+    time: nowText(now),
     trigger: '手动',
     result: '成功',
-    costMs: between(job.cost, Math.random),
-    note: `${currentUser.name}（${currentUser.id}）手动执行${job.params ? `，参数：${job.params}` : ''}；${noteOf(job, Math.random)}`
+    costMs: skip ? Math.round(20 + Math.random() * 90) : between(job.cost, Math.random),
+    note: `${currentUser.name}（${currentUser.id}）手动执行${job.params ? `，参数：${job.params}` : ''}；${detail}`
   }
   job.logs.unshift(log)
-  return log
+  return { ...log, summary }
 }

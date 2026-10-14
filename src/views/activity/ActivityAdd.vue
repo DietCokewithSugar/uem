@@ -22,12 +22,17 @@
       </el-form-item>
       <el-form-item label="体验渠道" prop="channel">
         <el-select v-model="model.channel" multiple placeholder="请选择体验渠道" style="width: 100%">
-          <el-option v-for="c in expChannels" :key="c" :label="c" :value="c" />
+          <el-option v-for="c in channels" :key="c.code" :label="c.value" :value="c.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="体验方法" prop="method">
         <el-select v-model="model.method" multiple placeholder="请选择体验方法" style="width: 100%">
-          <el-option v-for="m in expMethods" :key="m" :label="m" :value="m" />
+          <el-option v-for="m in methods" :key="m.code" :label="m.value" :value="m.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="活动阶段">
+        <el-select v-model="model.stage" clearable placeholder="请选择活动阶段" style="width: 100%">
+          <el-option v-for="s in stages" :key="s.code" :label="s.value" :value="s.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="申请部门" prop="dept">
@@ -47,11 +52,12 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import AttachmentUpload from '@/components/AttachmentUpload.vue'
-import { activities, products, bizDomains, expChannels, expMethods, applyDepts } from '@/mock'
+import { activities, products, bizDomains, applyDepts } from '@/mock'
+import { dictOptions } from '@/mock/dicts'
 import { currentUser } from '@/config/user'
 
 const route = useRoute()
@@ -59,15 +65,19 @@ const router = useRouter()
 const formRef = ref()
 const model = reactive({
   level: route.query.from === '/branchAllActivity' ? '分行' : '总行',
-  name: '', product: '', domain: '', channel: [], method: [], dept: '', people: 10, intro: '', files: []
+  name: '', product: '', domain: '', channel: [], method: [], stage: '', dept: '', people: 10, intro: '', files: []
 })
+// 体验渠道、体验方法、活动阶段取自「字典维护」中开启的字典值
+const channels = computed(() => dictOptions('EXPER_CHANNEL'))
+const methods = computed(() => dictOptions('EXPER_METHOD'))
+const stages = computed(() => dictOptions('WORK_LINK'))
 const req = (message) => [{ required: true, message, trigger: ['blur', 'change'] }]
 const rules = { level: req('请选择活动级别'), name: req('请输入活动名称'), channel: req('请选择体验渠道'), method: req('请选择体验方法'), dept: req('请选择申请部门') }
 
 const back = () => router.push(route.query.from || '/myAllActivity')
 
 async function save() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   activities.unshift({
     ...model,
     id: `ACT${Date.now()}`,
