@@ -102,7 +102,7 @@ async function toSuggestion(row) {
   await ElMessageBox.confirm(`将典型问题「${row.text}」转为优化建议，进入「待分拣」？`, '转优化建议', { type: 'info' })
   const d = new Date().toISOString().slice(0, 10)
   suggestions.unshift({
-    id: `UEM${d.replace(/-/g, '')}${String(Date.now()).slice(-10)}`,
+    id: `UEM${d.replace(/-/g, '')}${String(Date.now()).slice(-9)}`,
     product: row.product,
     column: `${row.column}-${row.action}`,
     desc: `【现象】${row.text}（覆盖用户声音 ${row.voices} 条）【建议】${row.optimization}`,

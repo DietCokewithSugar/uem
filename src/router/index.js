@@ -146,9 +146,11 @@ const routes = [
 
       section('admin', [
         { path: 'scheduleJobList', component: () => import('@/views/admin/ScheduleJobs.vue'), meta: { title: '定时任务' } },
-        ...[['dictMaintenance', '字典维护'], ['emailRecord', '邮件记录'], ['holiday', '节假日'], ['apiPermission', '接口权限'], ['logManage', '日志管理']].map(
-          ([path, title]) => ({ path, component: () => import('@/views/common/Placeholder.vue'), meta: { title } })
-        )
+        { path: 'genDictList', component: () => import('@/views/admin/DictList.vue'), meta: { title: '字典维护' } },
+        { path: 'emailHistoryList', component: () => import('@/views/admin/EmailHistory.vue'), meta: { title: '邮件记录' } },
+        { path: 'holidayList', component: () => import('@/views/admin/HolidayList.vue'), meta: { title: '节假日' } },
+        { path: 'interfaceList', component: () => import('@/views/admin/InterfaceList.vue'), meta: { title: '接口权限' } },
+        { path: 'log', component: () => import('@/views/admin/LogList.vue'), meta: { title: '日志管理' } }
       ]),
 
       // 「平台工具」一级菜单当前为冻结状态（菜单维护中可激活），截图未提供页面

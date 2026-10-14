@@ -192,7 +192,7 @@ function doCreate() {
   const d = fmt(new Date())
   suggestions.unshift({
     ...draft,
-    id: `UEM${d.replace(/-/g, '')}${String(Date.now()).slice(-10)}`,
+    id: `UEM${d.replace(/-/g, '')}${String(Date.now()).slice(-9)}`,
     submitter: currentUser.name,
     submitOrg: draft.org,
     proposeTime: d,

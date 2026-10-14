@@ -68,7 +68,7 @@ export const suggestions = reactive(Array.from({ length: 168 }, (_, i) => {
   const submitTime = dateBetween('2025-11-01', 345)
   const status = i < 15 ? '待处理' : i < 22 ? '待答复' : i < 23 ? '待跟进' : pick(statuses.slice(5))
   return {
-    id: `UEM${submitTime.replace(/-/g, '')}000042${pad(1430 - i, 4)}`,
+    id: `UEM${submitTime.replace(/-/g, '')}00042${pad(1430 - i, 4)}`,
     product,
     column: pick(columns),
     desc: desc(product),
