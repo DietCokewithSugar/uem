@@ -183,9 +183,10 @@ function open(row) {
 async function save() {
   if (!(await formRef.value.validate().catch(() => false))) return
   const data = { uri: t(d.uri), desc: t(d.desc), method: d.method, allowUsers: [...d.allowUsers], denyUsers: [...d.denyUsers], roles: [...d.roles] }
-  // 开启的规则既无允许用户又无权限时，该接口将拒绝所有用户
+  // 开启的规则既无允许用户又无权限，且同一URI和方法没有其他开启的规则放行时，该接口将拒绝所有用户
   const on = editing.value ? editing.value.status === '开启' : d.status === '开启'
-  if (on && !data.allowUsers.length && !data.roles.length) {
+  const granted = apiPermissions.some((r) => r !== editing.value && r.status === '开启' && r.uri === data.uri && r.method === data.method && (r.allowUsers.length || r.roles.length))
+  if (on && !data.allowUsers.length && !data.roles.length && !granted) {
     const ok = await ElMessageBox.confirm(`该规则未配置允许用户和权限，保存后所有用户都将无法访问 ${data.method} ${data.uri}，是否继续？`, '提示', { type: 'warning' }).catch(() => false)
     if (!ok) return
   }

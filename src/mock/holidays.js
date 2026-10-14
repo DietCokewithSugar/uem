@@ -17,7 +17,9 @@ export const holidayTypes = ['星期六', '星期日', '元旦', '春节', '清�
 
 function build() {
   const map = new Map()
-  for (let d = new Date(2019, 0, 1); d <= new Date(2026, 11, 31); d.setDate(d.getDate() + 1)) {
+  // 周末生成到当年年底（至少到 2026 年），跨年后周末仍按非工作日处理
+  const end = new Date(Math.max(2026, new Date().getFullYear()), 11, 31)
+  for (let d = new Date(2019, 0, 1); d <= end; d.setDate(d.getDate() + 1)) {
     const w = d.getDay()
     if (w === 0 || w === 6) map.set(fmtDate(d), weekNames[w])
   }

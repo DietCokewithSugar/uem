@@ -103,7 +103,7 @@ function onImg(file) {
   r.readAsDataURL(file.raw)
 }
 async function save() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   const { show, ...data } = d
   Object.assign(data, { status: show ? '展示中' : '已下线', sort: show ? data.sort : '', time: nowText() })
   if (editing.value) Object.assign(editing.value, data)

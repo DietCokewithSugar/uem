@@ -120,7 +120,7 @@ function open(row) {
   dialog.value = true
 }
 async function save() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   if (editing.value) touch(Object.assign(editing.value, d))
   else {
     productList.unshift(touch({ ...d, id: d.name, status: '激活', state: '启用中' }))

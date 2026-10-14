@@ -48,7 +48,7 @@ function open(row) {
   dialog.value = true
 }
 async function save() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   if (d.content.length > d.limit) return ElMessage.warning('提示词内容超过字数控制')
   Object.assign(editing.value, d, { time: new Date().toISOString().slice(0, 10), updater: currentUser.name })
   dialog.value = false

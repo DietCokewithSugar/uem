@@ -59,7 +59,7 @@ const listPath = () => (route.query.taskListType === '1' ? '/experTaskManage' : 
 const back = () => router.push(listPath())
 
 async function save() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   tasks.unshift({
     ...model,
     files: model.files.map((f) => f.name),

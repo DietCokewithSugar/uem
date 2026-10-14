@@ -76,7 +76,7 @@ watch(
 )
 
 async function submit() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   emit('submit', { ...draft, maintainerIds: [...draft.maintainerIds] })
   emit('update:modelValue', false)
 }

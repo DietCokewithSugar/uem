@@ -96,7 +96,7 @@ function onImg(file) {
   r.readAsDataURL(file.raw)
 }
 async function save() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   if (editing.value) Object.assign(editing.value, d)
   else measureImages.unshift({ ...d, id: `img${Date.now()}` })
   product.value = d.product

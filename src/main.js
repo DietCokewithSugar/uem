@@ -9,4 +9,6 @@ import './styles/global.css'
 
 const app = createApp(App)
 for (const [name, comp] of Object.entries(Icons)) app.component(name, comp)
-app.use(ElementPlus, { locale: zhCn }).use(router).mount('#app')
+// 分页跳页文案与平台一致：「跳至 [ ] 页」
+const locale = { ...zhCn, el: { ...zhCn.el, pagination: { ...zhCn.el.pagination, goto: '跳至' } } }
+app.use(ElementPlus, { locale }).use(router).mount('#app')

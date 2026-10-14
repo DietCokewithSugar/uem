@@ -63,7 +63,7 @@ function open(row) {
   dialog.value = true
 }
 async function save() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   if (editing.value) Object.assign(editing.value, { name: d.name, products: [...d.products] })
   else productDomains.push({ id: Date.now(), name: d.name, products: [...d.products] })
   dialog.value = false
