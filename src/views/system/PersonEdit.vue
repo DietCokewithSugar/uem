@@ -85,7 +85,7 @@ function lookup() {
 }
 
 async function submit() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   if (!d.name) return ElMessage.warning('请先点击「查询」带出人员信息')
   const missing = d.roles.find((r) => roleCatalog.flatMap((m) => m.roles).find((x) => x.name === r)?.scope?.some((s) => !d.scopes[r]?.[s]))
   if (missing) return ElMessage.warning(`请为「${missing}」选择数据范围`)

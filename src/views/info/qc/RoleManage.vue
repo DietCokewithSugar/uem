@@ -56,7 +56,7 @@ function open(row) {
   dialog.value = true
 }
 async function save() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   const meta = { updateTime: new Date().toISOString().slice(0, 10), updater: currentUser.name }
   if (editing.value) Object.assign(editing.value, draft, meta)
   else qcRoles.unshift({ ...draft, ...meta, id: Math.max(...qcRoles.map((r) => r.id)) + 1 })

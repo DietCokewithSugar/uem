@@ -5,7 +5,7 @@
       <template v-if="kind === 'inside'">
         <el-form-item label="统一认证号" prop="id"><el-input v-model="d.id" :disabled="!!row" maxlength="9" placeholder="9 位数字" /></el-form-item>
         <el-form-item label="姓名" prop="name"><el-input v-model="d.name" /></el-form-item>
-        <el-form-item label="性别" prop="gender"><el-radio-group v-model="d.gender"><el-radio v-for="g in E.genders" :key="g" :value="g">{{ g }}</el-radio></el-radio-group></el-form-item>
+        <el-form-item label="性别" prop="gender"><el-radio-group v-model="d.gender"><el-radio v-for="g in genders" :key="g" :value="g">{{ g }}<span v-if="g === keptGender" class="muted">（已停用）</span></el-radio></el-radio-group></el-form-item>
         <el-form-item label="年龄" prop="age"><el-input-number v-model="d.age" :min="18" :max="70" /></el-form-item>
         <el-form-item label="地区" prop="region"><ChainSelect v-model="d.region" :tree="E.regionTree" /></el-form-item>
         <el-form-item label="所属机构" prop="org"><ChainSelect v-model="d.org" :tree="E.orgTree" /></el-form-item>
@@ -18,7 +18,7 @@
       </template>
       <template v-else>
         <el-form-item label="姓名" prop="name"><el-input v-model="d.name" /></el-form-item>
-        <el-form-item label="性别" prop="gender"><el-radio-group v-model="d.gender"><el-radio v-for="g in E.genders" :key="g" :value="g">{{ g }}</el-radio></el-radio-group></el-form-item>
+        <el-form-item label="性别" prop="gender"><el-radio-group v-model="d.gender"><el-radio v-for="g in genders" :key="g" :value="g">{{ g }}<span v-if="g === keptGender" class="muted">（已停用）</span></el-radio></el-radio-group></el-form-item>
         <el-form-item label="年龄" prop="age"><el-input-number v-model="d.age" :min="16" :max="90" /></el-form-item>
         <el-form-item label="地区" prop="region"><ChainSelect v-model="d.region" :tree="E.regionTree" :depth="2" /></el-form-item>
         <el-form-item label="教育程度"><el-select v-model="d.education" style="width: 100%"><el-option v-for="o in E.educations" :key="o" :label="o" :value="o" /></el-select></el-form-item>
@@ -38,16 +38,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import ChainSelect from '@/components/ChainSelect.vue'
 import * as E from '@/mock/experiencer'
 import { staffIdRule } from '@/config/validators'
+import { dictOptions } from '@/mock/dicts'
 
 const props = defineProps({ modelValue: Boolean, kind: String, row: Object })
 const emit = defineEmits(['update:modelValue', 'save'])
 
 const formRef = ref()
 const d = reactive({})
+// 性别选项取自「字典维护」XB 中开启的字典值；修改时原值已停用则仍保留该选项
+const enabledGenders = computed(() => dictOptions('XB').map((o) => o.value))
+const keptGender = ref('')
+const genders = computed(() => (keptGender.value ? [...enabledGenders.value, keptGender.value] : enabledGenders.value))
 const req = (message) => [{ required: true, message, trigger: ['blur', 'change'] }]
 const rules = {
   id: [staffIdRule],
@@ -68,12 +73,13 @@ watch(
       education: '', industry: '', attr: '', type: '普通体验员', star: '', rating: '', status: '在库'
     }
     Object.assign(d, blank, props.row ? JSON.parse(JSON.stringify(props.row)) : {})
+    keptGender.value = d.gender && !enabledGenders.value.includes(d.gender) ? d.gender : ''
     formRef.value?.clearValidate()
   }
 )
 
 async function submit() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   const { activities, level, kind, officerLevel, ...data } = d
   emit('save', JSON.parse(JSON.stringify(data)))
   emit('update:modelValue', false)
@@ -82,4 +88,5 @@ async function submit() {
 
 <style scoped>
 .form { max-height: 60vh; overflow-y: auto; padding-right: 12px; }
+.muted { color: #999; }
 </style>

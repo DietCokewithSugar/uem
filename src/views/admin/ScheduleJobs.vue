@@ -166,7 +166,7 @@ async function runNow(row) {
   setTimeout(() => {
     const log = runJob(row)
     running.delete(row.id)
-    ElMessage.success(`执行成功，耗时 ${log.costMs.toLocaleString()} ms，可在「查看日志」中查看`)
+    ElMessage.success(`执行成功，耗时 ${log.costMs.toLocaleString()} ms，${log.summary || '可在「查看日志」中查看'}`)
   }, 600)
 }
 

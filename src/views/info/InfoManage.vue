@@ -158,7 +158,7 @@ function openEdit(row) {
   dialog.value = true
 }
 async function submit() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   const data = { ...draft, files: draft.files.map((f) => f.name) }
   if (editing.value) {
     Object.assign(editing.value, data)

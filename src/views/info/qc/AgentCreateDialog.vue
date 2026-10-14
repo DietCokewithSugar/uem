@@ -90,7 +90,7 @@ const step = ref(0)
 const steps = ['解析测评素材（文件分析）', '按体验维度评分（ETS 维度）', '各角色独立评估', '汇总生成综合报告']
 
 async function start() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   running.value = true
   for (let i = 0; i <= steps.length; i++) {
     step.value = i

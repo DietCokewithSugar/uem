@@ -145,7 +145,7 @@ function openCreate() {
   createVisible.value = true
 }
 async function submitCreate() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   const d = new Date()
   const p = (n) => String(n).padStart(2, '0')
   voices.unshift({

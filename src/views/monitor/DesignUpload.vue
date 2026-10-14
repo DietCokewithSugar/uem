@@ -76,7 +76,7 @@ function open(row) {
   dialog.value = true
 }
 async function save() {
-  await formRef.value.validate()
+  if (!(await formRef.value.validate().catch(() => false))) return
   if (editing.value) Object.assign(editing.value, d)
   else designWorks.unshift({ ...d, id: Date.now() })
   dialog.value = false

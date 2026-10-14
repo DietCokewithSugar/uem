@@ -73,7 +73,7 @@ const columns = computed(() =>
 const detailFields = [
   { prop: 'name', label: '活动名称' }, { prop: 'level', label: '活动级别' }, { prop: 'product', label: '产品名称' },
   { prop: 'domain', label: '业务领域' }, { prop: 'channel', label: '体验渠道' }, { prop: 'method', label: '体验方法' },
-  { prop: 'dept', label: '申请部门' }, { prop: 'people', label: '参与人数' }, { prop: 'submitTime', label: '提交时间' },
+  { prop: 'stage', label: '活动阶段' }, { prop: 'dept', label: '申请部门' }, { prop: 'people', label: '参与人数' }, { prop: 'submitTime', label: '提交时间' },
   { prop: 'status', label: '活动状态' }, { prop: 'creator', label: '创建人' }, { prop: 'intro', label: '活动简介' }
 ]
 

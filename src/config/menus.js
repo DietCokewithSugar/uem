@@ -172,12 +172,11 @@ export const sideMenus = {
   ],
   admin: [
     { title: '定时任务', path: '/scheduleJobList' },
-    // 以下页面待截图补充；路由为推测
-    { title: '字典维护', path: '/dictMaintenance' },
-    { title: '邮件记录', path: '/emailRecord' },
-    { title: '节假日', path: '/holiday' },
-    { title: '接口权限', path: '/apiPermission' },
-    { title: '日志管理', path: '/logManage' }
+    { title: '字典维护', path: '/genDictList' },
+    { title: '邮件记录', path: '/emailHistoryList' },
+    { title: '节假日', path: '/holidayList' },
+    { title: '接口权限', path: '/interfaceList' },
+    { title: '日志管理', path: '/log' }
   ]
 }
 
