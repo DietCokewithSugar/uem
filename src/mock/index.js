@@ -25,14 +25,12 @@ export const products = [
   '数字人民币', '个人养老金', '工银e生活', '企业网上银行', '个人贷款', '薪酬通', '实物贵金属', '柜面通', '工银问卷', '其他'
 ]
 
-export const orgs = [
-  '上海分行营业部', '上海分行金融科技部', '浦东开发区支行', '长宁支行', '闸北支行', '松江支行营业厅',
-  '河南分行运行管理部', '江西分行营业部', '江苏分行个人金融部', '广东分行运行管理部', '北京分行营业部',
-  '四川分行金融科技部', '浙江分行营业部', '山东分行渠道管理部'
-]
+// 提出机构（分行）：与系统管理中的分行列表一致
+export { branchOrgs as orgs } from './system'
 
+// 体验问题（研发阶段）的问题提出部门
 export const bizDepts = ['业务研发中心-个人业务部', '业务研发中心-对公业务部', '业务研发中心-渠道部', '业务研发中心-运营部']
-// 优化建议：数据与字典见 ./suggest
+// 优化建议：数据、字典与流程见 ./suggest（新代码请直接从 @/mock/suggest、@/mock/system 引入）
 export { suggestions, sources, adoptResults } from './suggest'
 export { rdLines as productLines } from './system'
 
@@ -86,6 +84,7 @@ export const todoCounts = reactive({
   get toSort() { return suggestionTodo.toSort },
   get toReply() { return suggestionTodo.toReply },
   get toAudit() { return suggestionTodo.toAudit },
+  get toBusiness() { return suggestionTodo.toBusiness },
   get toFollow() { return suggestionTodo.toFollow },
   get activity() { return activities.filter((a) => a.pendingForMe).length },
   get task() { return tasks.filter((t) => t.pendingForMe).length },
@@ -107,7 +106,6 @@ export const homeData = {
     { title: '业务研发中心派员参加UCAN设计专业论坛', date: '2023-07-06' },
     { title: '业务研发中心开展系列用户研究赋能重点产品体验提升', date: '2023-06-20' }
   ],
-  todo: { suggestion: 23, activity: 0 },
   supports: [
     { name: '丹青', icon: 'Brush' },
     { name: '燕儿', icon: 'Promotion' },
