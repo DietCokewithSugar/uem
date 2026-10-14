@@ -329,7 +329,7 @@ function sortAndReply(s, t, now, opt, round = 0) {
   const sorter = sorterOf(s.productLine)
   enter(s, '待分拣', t, sorter)
   if (opt.stop === '待分拣') return
-  const t1 = nextStep(t, 0, 1)
+  const t1 = nextStep(t, 0, 2)
   if (t1 > now) return
   const repliers = handlersOf(s.productLine).filter((p) => opt.replier ? p.id === opt.replier.id : p.id !== currentUser.id)
   const replier = opt.replier || pick(repliers.length ? repliers : handlersOf(s.productLine))
@@ -339,7 +339,7 @@ function sortAndReply(s, t, now, opt, round = 0) {
   s.sorterId = sorter?.id || ''
   enter(s, '待答复', t1, replier)
   if (opt.stop === '待答复') return
-  const t2 = nextStep(t1, 1, 4)
+  const t2 = nextStep(t1, 1, 3)
   if (t2 > now) return
 
   // 转总行业务部门（推测比例 2%）
@@ -379,7 +379,7 @@ function sortAndReply(s, t, now, opt, round = 0) {
   const auditor = auditorOf(s)
   enter(s, '待审核', t2, auditor)
   if (opt.stop === '待审核') return
-  const t3 = nextStep(t2, 0, 1)
+  const t3 = nextStep(t2, 0, chance(0.3) ? 1 : 0)
   if (t3 > now) return
   if (!opt.stop && round === 0 && chance(0.04)) {
     log(s, t3, auditor, '退回', '请补充解决方式说明及计划落实时间')
@@ -619,6 +619,32 @@ export function ekeyReturn(s, reason) {
   log(s, nowAt(), 'e键通', 'e键通退回', reason || '退回重新分拣', false)
   Object.assign(s, { track: '', adoptResult: '', solution: '', replyOpinion: '', priority: '', ekeyNo: '', replyTime: '' })
   enter(s, '待分拣', nowAt(), sorterOf(s.productLine))
+}
+
+// ===== 统计口径（管理报表、数据看板共用）=====
+// 各环节处理时长（工作日）：分拣 = 进入待分拣（提交或转处理）→ 指派答复人；答复 = 指派答复人 → 首次答复；审核 = 最后一次答复 → 通过
+export function stageDurations(s) {
+  const logs = [...s.logs].reverse()
+  const first = (action, after = '') => logs.find((l) => l.action === action && l.time >= after)
+  const enterSort = first('转处理') || first('提交')
+  const assign = enterSort && first('指派答复人', enterSort.time)
+  const reply = assign && first('答复', assign.time)
+  const lastReply = [...logs].reverse().find((l) => l.action === '答复')
+  const pass = lastReply && first('通过', lastReply.time)
+  return {
+    sort: assign ? workdaysBetween(enterSort.time, assign.time) : null,
+    reply: reply ? workdaysBetween(assign.time, reply.time) : null,
+    audit: pass ? workdaysBetween(lastReply.time, pass.time) : null
+  }
+}
+export function averageDurations(list) {
+  const sum = { sort: [0, 0], reply: [0, 0], audit: [0, 0] }
+  for (const s of list) {
+    const d = stageDurations(s)
+    for (const k of Object.keys(sum)) if (d[k] != null) { sum[k][0] += d[k]; sum[k][1]++ }
+  }
+  const avg = (k) => (sum[k][1] ? sum[k][0] / sum[k][1] : 0)
+  return { sort: avg('sort'), reply: avg('reply'), audit: avg('audit'), total: avg('sort') + avg('reply') + avg('audit') }
 }
 
 // 详情页「上一条 / 下一条」：记录进入详情前所在列表（菜单名与筛选后的编号顺序）
