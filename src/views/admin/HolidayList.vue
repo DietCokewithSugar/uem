@@ -89,16 +89,17 @@ const rules = {
     { validator: (_, v, cb) => (d.date && WEEKEND.includes(v) && v !== weekNameOf(d.date) ? cb(new Error(`所选日期为${weekNameOf(d.date)}`)) : cb()), trigger: 'change' }
   ]
 }
+// 用 resetFields 清空：重置期间下拉框值变化不触发校验，再次打开时不会残留必填提示
 function open() {
+  formRef.value?.resetFields()
   Object.assign(d, { date: '', type: '' })
   dialog.value = true
-  nextTick(() => formRef.value?.clearValidate())
 }
 // 选中周末时自动带出星期六/星期日；改选工作日时清掉自动带出的类型
 function onDate(v) {
   const w = v ? weekNameOf(v) : ''
   if (WEEKEND.includes(w) && (!d.type || WEEKEND.includes(d.type))) d.type = w
-  else if (WEEKEND.includes(d.type)) d.type = ''
+  else if (WEEKEND.includes(d.type)) formRef.value?.resetFields('type')
   nextTick(() => (d.type ? formRef.value?.validateField('type').catch(() => {}) : formRef.value?.clearValidate('type')))
 }
 
