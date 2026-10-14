@@ -25,7 +25,12 @@
 
       <!-- 待修改（提交人）：修改后重新提交 -->
       <template v-if="mode === '待修改'">
-        <div class="btns"><el-button type="primary" @click="toModify">修改</el-button></div>
+        <div v-if="!acting" class="btns"><el-button type="primary" @click="toModify">修改</el-button></div>
+        <!-- 演示：修改页仅限提交人本人使用，代提交人处理时按原内容重新提交 -->
+        <div v-else class="btns">
+          <el-button type="primary" @click="doResubmit">演示：按原内容重新提交</el-button>
+          <span class="muted">修改页仅限提交人本人使用，演示时按原内容重新提交</span>
+        </div>
       </template>
 
       <!-- 待处理（分行科技审核岗） -->
@@ -177,8 +182,9 @@
         <div class="tip">已转 e键通{{ s.ekeyNo ? `（单号 ${s.ekeyNo}）` : '' }}，处理结果由 e键通同步</div>
         <div class="btns">
           <el-button @click="doEkeyComplete">演示：同步处理完成</el-button>
-          <el-button @click="doEkeyReturn">演示：e键通退回</el-button>
-          <span class="muted">仅演示环境提供，用于模拟 e键通 回传处理结果</span>
+          <!-- 退回后由产品线分拣岗重新分拣；研发一体化问题无产品线分拣岗，不提供退回 -->
+          <el-button v-if="sorterName" @click="doEkeyReturn">演示：e键通退回</el-button>
+          <span class="muted">仅演示环境提供，用于模拟 e键通 回传处理结果{{ sorterName ? '' : '（该产品无产品线分拣岗，不支持退回）' }}</span>
         </div>
       </template>
 
@@ -229,7 +235,7 @@ import {
   adoptResults, solutions, solutionOf, priorities, rejectReasons, satisfactions, isOverdue,
   handlersOf, sorterOf, businessHandlerOf,
   transferToSort, returnToSubmitter, abortSuggestion, assignReplier, transferToEkey, replySuggestion, transferToBusiness,
-  auditSuggestion, followUp, businessReply, ekeyComplete, ekeyReturn, evaluate
+  auditSuggestion, followUp, businessReply, ekeyComplete, ekeyReturn, evaluate, resubmit
 } from '@/mock/suggest'
 
 // 父组件以「编号 + 日志条数」作为 key：每次办理后重新挂载，表单与演示身份随之复位
@@ -293,6 +299,12 @@ const notBlank = (message) => ({ validator: (_, v, cb) => (String(v ?? '').trim(
 
 // ===== 待修改 =====
 const toModify = () => router.push({ path: '/optimSuggestAdd', query: { problemId: s.value.seq } })
+function doResubmit() {
+  const x = s.value
+  const keys = ['product', 'channels', 'column', 'attachments', 'desc', 'source', 'activity', 'category', 'impact']
+  resubmit(x, Object.fromEntries(keys.map((k) => [k, x[k]])), actor.value)
+  done('已重新提交')
+}
 
 // ===== 待处理 / 待分拣：退回、中止 =====
 const sorterName = computed(() => sorterOf(s.value.productLine)?.name || '')
@@ -334,10 +346,11 @@ async function doEkey() {
 // ===== 待答复：答复 =====
 const replyRef = ref()
 const x0 = props.suggestion
-// 审核退回后重新答复：带出上次答复内容
+// 审核退回后重新答复：带出上次答复内容（e键通退回后采纳结果已清空，不带出残留的需求项编号等）
+const p0 = x0.adoptResult ? x0 : {}
 const reply = reactive({
-  adoptResult: x0.adoptResult || '', solution: x0.solution || '', priority: x0.priority || '', reqNo: x0.reqNo || '',
-  planTime: x0.planTime || '', rejectReason: x0.rejectReason || '', replyOpinion: x0.replyOpinion || ''
+  adoptResult: p0.adoptResult || '', solution: p0.solution || '', priority: p0.priority || '', reqNo: p0.reqNo || '',
+  planTime: p0.planTime || '', rejectReason: p0.rejectReason || '', replyOpinion: p0.replyOpinion || ''
 })
 const sol = computed(() => solutionOf(reply.solution))
 const needReq = computed(() => !!sol.value?.needReq)

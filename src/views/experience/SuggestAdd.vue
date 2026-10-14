@@ -211,7 +211,8 @@ const queryColumns = (q, cb) => {
 
 // ===== 校验 =====
 // 客户隐私信息（推测）：11 位手机号、18 位身份证号、16–19 位银行卡号/账号
-const PRIVACY = [/(?<!\d)1[3-9]\d{9}(?!\d)/, /(?<!\d)\d{17}[\dXx](?!\d)/, /(?<!\d)\d{16,19}(?!\d)/]
+// 紧跟字母的数字串（如优化建议编号 UEM+17 位数字）不视为证件号、卡号
+const PRIVACY = [/(?<!\d)1[3-9]\d{9}(?!\d)/, /(?<![\dA-Za-z])\d{17}[\dXx](?!\d)/, /(?<![\dA-Za-z])\d{16,19}(?!\d)/]
 const PRIVACY_MSG = '描述中疑似包含客户隐私信息（手机号、证件号、银行卡号等），请删除后再提交'
 const descRule = (_, v, cb) => {
   const t = String(v ?? '')
@@ -242,6 +243,7 @@ const readAsDataURL = (file) =>
     r.readAsDataURL(file)
   })
 const stamp = () => nowText().replace(/\D/g, '')
+let shotSeq = 0 // 截图序号在本页内递增，避免同一秒内多次粘贴重名
 async function addFiles(files, pasted = false) {
   if (!files.length) return
   const notes = []
@@ -257,7 +259,7 @@ async function addFiles(files, pasted = false) {
   try {
     const urls = await Promise.all(take.map(readAsDataURL))
     const items = take.map((f, i) => ({
-      name: pasted || !f.name ? `截图${stamp()}_${i + 1}.${(f.type.split('/')[1] || 'png').replace('jpeg', 'jpg')}` : f.name,
+      name: pasted || !f.name ? `截图${stamp()}_${++shotSeq}.${(f.type.split('/')[1] || 'png').replace('jpeg', 'jpg')}` : f.name,
       url: urls[i]
     }))
     form.attachments.push(...items.slice(0, MAX_PICS - form.attachments.length))
@@ -274,6 +276,8 @@ const removePic = (i) => form.attachments.splice(i, 1)
 // 粘贴、拖拽在整个页面生效；弹窗打开时不处理
 function onPaste(e) {
   if (sim.visible) return
+  // 在输入框中粘贴带文字的内容（如从 Word/Excel 复制，剪贴板同时含图片）时按文字粘贴
+  if (e.target?.closest?.('input, textarea') && e.clipboardData?.getData('text/plain')) return
   const files = [...(e.clipboardData?.items || [])].filter((it) => it.kind === 'file' && /^image\//.test(it.type)).map((it) => it.getAsFile()).filter(Boolean)
   if (!files.length) return
   e.preventDefault()
