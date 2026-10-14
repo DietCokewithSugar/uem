@@ -2,6 +2,7 @@
 // 使用固定随机种子，保证每次刷新数据一致
 import { reactive } from 'vue'
 import { journeys } from './journey'
+import { suggestionTodo } from './suggest'
 
 function seeded(seed) {
   let s = seed
@@ -30,10 +31,10 @@ export const orgs = [
   '四川分行金融科技部', '浙江分行营业部', '山东分行渠道管理部'
 ]
 
-export const sources = ['行内员工', '体验员', '客户之声', '体验活动', '舆情监测', '工银问卷']
 export const bizDepts = ['业务研发中心-个人业务部', '业务研发中心-对公业务部', '业务研发中心-渠道部', '业务研发中心-运营部']
-export const productLines = ['个人金融产品线', '对公金融产品线', '渠道产品线', '运营产品线', '内部管理产品线']
-export const adoptResults = ['采纳', '未采纳', '部分采纳', '已采纳待排期']
+// 优化建议：数据与字典见 ./suggest
+export { suggestions, sources, adoptResults } from './suggest'
+export { rdLines as productLines } from './system'
 
 const columns = ['其他个人业务', '客户服务', '账户管理', '转账汇款', '登录认证', '系统锁屏', '贷款申请', '查询服务', '']
 
@@ -54,40 +55,12 @@ const descTemplates = [
 ]
 const desc = (p) => pick(descTemplates).replace('{p}', p)
 
-const statuses = ['待修改', '待处理', '待分拣', '待答复', '待跟进', '已答复', '已办结', '已纳入e键通', '已中止']
 
 function dateBetween(start, days) {
   const d = new Date(start)
   d.setDate(d.getDate() + Math.floor(rand() * days))
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
-
-// 优化建议（运营阶段）
-export const suggestions = reactive(Array.from({ length: 168 }, (_, i) => {
-  const product = pick(products)
-  const submitTime = dateBetween('2025-11-01', 345)
-  const status = i < 15 ? '待处理' : i < 22 ? '待答复' : i < 23 ? '待跟进' : pick(statuses.slice(5))
-  return {
-    id: `UEM${submitTime.replace(/-/g, '')}00042${pad(1430 - i, 4)}`,
-    product,
-    column: pick(columns),
-    desc: desc(product),
-    org: pick(orgs),
-    proposer: fakeName(),
-    submitter: fakeName(),
-    submitOrg: pick(orgs),
-    proposeTime: submitTime,
-    submitTime,
-    replyTime: status.startsWith('已') ? dateBetween(submitTime, 20) : '',
-    status,
-    adoptResult: status.startsWith('已') ? pick(adoptResults) : '',
-    implemented: status === '已办结' ? (rand() > 0.3 ? '是' : '否') : '',
-    source: pick(sources),
-    bizDept: pick(bizDepts),
-    productLine: pick(productLines),
-    stayDays: 1 + Math.floor(rand() * 5)
-  }
-}).sort((a, b) => (a.submitTime < b.submitTime ? 1 : -1)))
 
 // 体验问题（研发阶段）
 export const problems = Array.from({ length: 96 }, (_, i) => {
@@ -106,14 +79,14 @@ export const problems = Array.from({ length: 96 }, (_, i) => {
   }
 }).sort((a, b) => (a.time < b.time ? 1 : -1))
 
-const countBy = (status) => suggestions.filter((s) => s.status === status).length
-// 待办数量随演示操作（转处理、退回等）实时变化
+// 待办数量随演示操作实时变化；优化建议待办为当前用户作为当前处理人的数量
 export const todoCounts = reactive({
-  get toModify() { return countBy('待修改') },
-  get toHandle() { return countBy('待处理') },
-  get toSort() { return countBy('待分拣') },
-  get toReply() { return countBy('待答复') },
-  get toFollow() { return countBy('待跟进') },
+  get toModify() { return suggestionTodo.toModify },
+  get toHandle() { return suggestionTodo.toHandle },
+  get toSort() { return suggestionTodo.toSort },
+  get toReply() { return suggestionTodo.toReply },
+  get toAudit() { return suggestionTodo.toAudit },
+  get toFollow() { return suggestionTodo.toFollow },
   get activity() { return activities.filter((a) => a.pendingForMe).length },
   get task() { return tasks.filter((t) => t.pendingForMe).length },
   get journeyModify() { return journeys.filter((j) => j.status === '待修改').length },

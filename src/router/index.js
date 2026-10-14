@@ -3,6 +3,7 @@ import MainLayout from '@/layouts/MainLayout.vue'
 import SectionLayout from '@/layouts/SectionLayout.vue'
 import { persons } from '@/mock/system'
 import { recordVisit } from '@/mock/vipVisits'
+import { menuPathOf } from '@/config/menus'
 import { currentUser } from '@/config/user'
 
 const section = (key, children) => ({
@@ -26,8 +27,20 @@ const routes = [
         { path: 'optimSuggestions', component: () => import('@/views/experience/OptimSuggestions.vue'), meta: { group: '优化建议', title: '全部列表' } },
         { path: 'mySubmit', component: () => import('@/views/experience/OptimSuggestions.vue'), props: { mode: 'mine' }, meta: { group: '优化建议', title: '我的提交' } },
         { path: 'myHandled', component: () => import('@/views/experience/OptimSuggestions.vue'), props: { mode: 'handled' }, meta: { group: '优化建议', title: '我已处理' } },
-        { path: 'manageReport', component: () => import('@/views/experience/ManageReport.vue'), meta: { group: '优化建议', title: '管理报表' } },
-        { path: 'dataBoard', component: () => import('@/views/experience/DataBoard.vue'), meta: { group: '优化建议', title: '数据看板' } }
+        { path: 'manageExcel', component: () => import('@/views/experience/ManageReport.vue'), meta: { group: '优化建议', title: '管理报表' } },
+        { path: 'suggestionDataBoard', component: () => import('@/views/experience/DataBoard.vue'), meta: { group: '优化建议', title: '数据看板' } },
+        // 新增优化建议（路由为推测）；带 problemId 时为「待修改」的修改并重新提交
+        {
+          path: 'optimSuggestAdd',
+          component: () => import('@/views/experience/SuggestAdd.vue'),
+          meta: { title: '新增', parent: () => '/optimSuggestions', crumbs: (r) => ['体验问题', '优化建议', r.query.problemId ? '修改' : '新增'], dynamicTitle: false, pageTitle: (r) => (r.query.problemId ? '修改' : '新增') }
+        },
+        // 优化建议详情：problemId 为编号末 9 位流水号，currentMenuName 为来源菜单
+        {
+          path: 'optimSuggestDetail',
+          component: () => import('@/views/experience/SuggestDetail.vue'),
+          meta: { title: '详情', parent: (r) => menuPathOf('experience', r.query.currentMenuName || '全部列表'), crumbs: (r) => ['体验问题', r.query.currentMenuName || '全部列表', '详情'] }
+        }
       ]),
 
       section('activity', [

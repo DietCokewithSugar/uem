@@ -45,6 +45,13 @@ export const scopeLabels = { productLine: '请选择产品线', bizDept: '请选
 export const headDepts = ['总行网络金融部', '总行运行管理部', '总行个人金融部', '总行金融科技部', '业务管理部', '业务运营二部']
 export const channels = ['手机银行', '网上银行', '工银e生活', '网点智能设备', '网点柜面']
 
+// 分行（提出机构）：分行员工提交的优化建议先由分行科技审核岗处理（待处理）
+export const branchOrgs = [
+  '上海分行营业部', '上海分行金融科技部', '浦东开发区支行', '长宁支行', '闸北支行', '松江支行营业厅',
+  '河南分行运行管理部', '江西分行营业部', '江苏分行个人金融部', '广东分行运行管理部', '北京分行营业部',
+  '四川分行金融科技部', '浙江分行营业部', '山东分行渠道管理部'
+]
+
 // ===== 人员 =====
 const orgPool = ['总行运行管理部经营支持处', '总行运行管理部现金运营管理处', '总行运行管理部自助渠道管理处', '总行运行管理部系统支持处', '总行运行管理部综合管理处', '总行运行管理部运营风险管理处', '业务管理部', '业务运营二部']
 const nameA = '方李胡陶王杨陆周吴郑'.split('')
@@ -52,8 +59,8 @@ const nameB = ['晓明', '知远', '博文', '雨晴', '玮程', '妍', '晋川'
 export const persons = reactive([
   {
     id: currentUser.id, name: currentUser.name, org: currentUser.dept, vip: false, status: '激活',
-    roles: ['系统管理员', '后台管理员', '产品线分拣岗', '产品线处理岗', '优化建议批量导出权限', '优化建议数据看板', '体验任务审核岗', '体验任务录入岗', '体验评价维护岗', '体验资讯审批岗', '体验资讯录入岗', '智能分析关键维护岗', '质检智能体管理岗', '灵犀旅程管理岗'],
-    scopes: { 产品线分拣岗: { productLine: '个人手机银行' }, 产品线处理岗: { productLine: '个人手机银行' } }
+    roles: ['系统管理员', '后台管理员', '分行科技审核岗', '产品线分拣岗', '产品线处理岗', '优化建议批量导出权限', '优化建议数据看板', '体验任务审核岗', '体验任务录入岗', '体验评价维护岗', '体验资讯审批岗', '体验资讯录入岗', '智能分析关键维护岗', '质检智能体管理岗', '灵犀旅程管理岗'],
+    scopes: { 产品线分拣岗: { productLine: '用户体验' }, 产品线处理岗: { productLine: '用户体验' } }
   },
   ...staff.slice(1).map((s) => ({ id: s.id, name: s.name, org: s.dept, vip: false, status: '激活', roles: ['灵犀旅程管理岗', '质检智能体使用岗'], scopes: {} })),
   ...Array.from({ length: 30 }, (_, i) => ({
@@ -68,8 +75,23 @@ export const persons = reactive([
 ])
 
 // ===== 产品维护 =====
-export const rdDepts = ['业务研发一部', '业务研发二部', '业务研发三部', '业务研发四部', '业务研发五部', '业务研发六部']
-export const rdLines = ['个人手机银行', '个人结算', '内控与办公管理', '运管参数及实物管理', '对公网络金融', '个人信贷', '财富管理', '信用卡']
+// 业研部门顺序与「优化建议 · 管理报表」一致；deptLines 为各部门的业研产品线
+export const deptLines = {
+  业务研发一部: ['运管参数及实物管理', '网点渠道'],
+  业务研发二部: ['财富管理'],
+  业务研发三部: ['个人结算', '对公结算'],
+  业务研发四部: ['个人手机银行', '对公网络金融'],
+  业务研发五部: ['个人信贷'],
+  业务研发六部: ['内控与办公管理', '养老金'],
+  大数据应用部: ['数据应用'],
+  境外业务研发部: ['境外渠道'],
+  用户体验部: ['用户体验'],
+  平台研发部: ['平台基础'],
+  '总行银行卡业务部（牡丹卡中心）': ['信用卡']
+}
+export const rdDepts = Object.keys(deptLines)
+export const rdLines = Object.values(deptLines).flat()
+export const deptOfLine = (line) => rdDepts.find((d) => deptLines[d].includes(line)) || ''
 export const outerOrgs = ['软件开发中心', '数据中心', '金融科技研究院']
 const P = (name, rdDept, rdLine, bizDept, outer, time, status = '激活', state = '启用中') => ({ id: name, name, rdDept, rdLine, bizDept, outer, updater: '吴雨桐', time, status, state })
 export const productList = reactive([
@@ -83,15 +105,62 @@ export const productList = reactive([
   P('e企邮', '', '', '', '软件开发中心', '2024-10-14'),
   P('企业网银基础业务', '业务研发四部', '对公网络金融', '', '', '2025-08-29'),
   P('其他（原）', '', '', '', '', '2024-04-19', '激活', '已废弃'),
-  P('个人养老金', '业务研发二部', '财富管理', '总行个人金融部', '', '2025-06-12'),
+  P('个人养老金', '业务研发六部', '养老金', '总行个人金融部', '', '2025-06-12'),
+  P('养老金融', '业务研发六部', '养老金', '总行个人金融部', '', '2025-06-12'),
   P('数字人民币', '业务研发四部', '个人手机银行', '总行网络金融部', '', '2025-03-18'),
-  P('个人信用卡', '业务研发五部', '信用卡', '', '', '2025-09-01'),
+  P('个人信用卡', '总行银行卡业务部（牡丹卡中心）', '信用卡', '', '', '2025-09-01'),
   P('工银e生活', '业务研发四部', '个人手机银行', '', '', '2025-07-22'),
   P('个人住房贷款', '业务研发五部', '个人信贷', '总行个人金融部', '', '2025-05-30'),
   P('实物贵金属', '业务研发二部', '财富管理', '', '', '2025-04-02'),
-  P('工银问卷', '业务研发六部', '内控与办公管理', '', '', '2025-02-14'),
+  P('工银问卷', '用户体验部', '用户体验', '', '', '2025-02-14'),
+  P('用户体验管理平台', '用户体验部', '用户体验', '', '', '2025-02-14'),
+  P('云网点', '业务研发一部', '网点渠道', '总行运行管理部', '', '2025-03-06'),
+  P('薪酬通', '业务研发三部', '对公结算', '', '', '2025-05-12'),
+  P('境外个人手机银行', '境外业务研发部', '境外渠道', '', '', '2025-06-20'),
+  P('数据服务平台', '大数据应用部', '数据应用', '', '', '2025-04-28'),
+  P('统一认证平台', '平台研发部', '平台基础', '', '', '2025-01-16'),
   P('企业手机银行', '业务研发四部', '对公网络金融', '', '', '2025-08-29', '冻结')
 ])
+
+// ===== 优化建议处理人员 =====
+// 每条业研产品线：一名产品线分拣岗（兼产品线审核岗）负责指派答复人和审核答复，两名产品线处理岗负责答复与跟进；
+// 各部门第一条产品线的分拣岗兼「产品线审核岗（要客）」。分行科技审核岗按分行配置。人员均为虚构
+const lineStaffNames = '韩立言 宋知夏 唐书瑶 秦以安 罗承泽 江映雪 苏念北 程亦凡 叶南乔 贺文澜 白景行 顾清和 沈星野 陶然之 傅砚秋 杜若衡 骆行舟 魏听澜 柏子期 钱慕白 姜书衡 邵云帆 霍思齐 葛安然 袁知微 钟一鸣 卢晚晴 范景澄 方以宁 季长风 严若初 曹映秋 简沐阳 黎知远 梅亦安 冉清越 龚书言 尹承宇 庞知夏 连星河 裴云舒 盛清和 雷奕辰 邹晓岚 甘若曦 华景川 薛予安 祝南星 蓝亦舟 闻知秋 温景行 戴书瑜 牛若川 管一诺 '.trim().split(' ')
+let nameIdx = 0
+const nextName = () => lineStaffNames[nameIdx++ % lineStaffNames.length]
+const leadOf = { 个人手机银行: '001700101', 养老金: '001700103', 内控与办公管理: '001700104', 运管参数及实物管理: '001700105', 财富管理: '001700108', 个人结算: '001700109' }
+const extraHandlerOf = { 个人手机银行: ['001700102'], 用户体验: [currentUser.id, '001700107'] }
+let staffSeq = 3001
+const newStaff = (dept) => {
+  const p = { id: `00170${staffSeq++}`, name: nextName(), org: `业务研发中心${dept}`, vip: false, status: '激活', roles: [], scopes: {} }
+  persons.push(p)
+  return p
+}
+const grant = (p, role, scope) => {
+  if (!p.roles.includes(role)) p.roles.push(role)
+  if (scope) p.scopes[role] = scope
+}
+for (const dept of rdDepts) {
+  deptLines[dept].forEach((line, li) => {
+    if (line === '用户体验') {
+      // 用户体验部：当前用户为分拣岗、处理岗；孙若曦为审核岗
+      const auditor = persons.find((x) => x.id === '001700106')
+      grant(auditor, '产品线审核岗', { bizDept: dept, productLine: line })
+      grant(auditor, '产品线审核岗（要客）', { bizDept: dept })
+      grant(auditor, '产品线处理岗', { productLine: line })
+      grant(persons.find((x) => x.id === '001700107'), '产品线处理岗', { productLine: line })
+      return
+    }
+    const lead = persons.find((x) => x.id === leadOf[line]) || newStaff(dept)
+    grant(lead, '产品线分拣岗', { productLine: line })
+    grant(lead, '产品线审核岗', { bizDept: dept, productLine: line })
+    if (li === 0) grant(lead, '产品线审核岗（要客）', { bizDept: dept })
+    const extra = (extraHandlerOf[line] || []).map((id) => persons.find((x) => x.id === id))
+    for (const h of [...extra, ...Array.from({ length: 2 }, () => newStaff(dept))].slice(0, 3)) grant(h, '产品线处理岗', { productLine: line })
+  })
+}
+// 分行科技审核岗：每家分行一名
+branchOrgs.forEach((org, i) => persons.push({ id: `00180${1001 + i}`, name: nextName(), org, vip: false, status: '激活', roles: ['分行科技审核岗'], scopes: {} }))
 
 // ===== 轮播图维护（首页横幅）=====
 const C = (title, time, status, sort, theme) => ({ id: title, title, time, status, sort, theme, link: '', src: '' })

@@ -42,8 +42,8 @@ export function menuLevels(route) {
   const l1 = topNav.find((n) => n.key === route.meta.section)?.title || ''
   if (!l1) return null
   if (route.meta.section === 'home') return ['首页', '', '']
-  const path = route.meta.parent ? route.meta.parent(route) : route.path
-  const hit = findMenuItem(route.meta.section, path, route.meta.parent ? {} : route.query)
+  const [path, qs = ''] = (route.meta.parent ? route.meta.parent(route) : route.path).split('?')
+  const hit = findMenuItem(route.meta.section, path, route.meta.parent ? Object.fromEntries(new URLSearchParams(qs)) : route.query)
   if (hit) return hit.group ? [l1, hit.group.title, hit.item.title] : [l1, hit.item.title, '']
   const title = route.meta.title || ''
   return route.meta.group ? [l1, route.meta.group, title] : [l1, title, '']

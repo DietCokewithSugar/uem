@@ -64,15 +64,29 @@ import { todoCounts } from '@/mock'
 const props = defineProps({ section: { type: String, required: true } })
 const route = useRoute()
 
-const menus = computed(() => sideMenus[props.section] || [])
+// 菜单项可通过 visible() 按当前用户岗位显示
+const menus = computed(() =>
+  (sideMenus[props.section] || []).map((g) => (g.children ? { ...g, children: g.children.filter((c) => !c.visible || c.visible()) } : g))
+)
 const opened = ref(new Set())
 
 // 子页面（如新增）通过 meta.parent 指定所属列表
-const parentPath = computed(() => route.meta.parent?.(route))
+// parent 可带查询参数（如 /optimPending?type=&suggestStatus=4），用于定位同一路径下的不同菜单
+const parentTarget = computed(() => {
+  const t = route.meta.parent?.(route)
+  if (!t) return null
+  const [path, qs = ''] = t.split('?')
+  return { path, query: Object.fromEntries(new URLSearchParams(qs)) }
+})
+const parentPath = computed(() => parentTarget.value?.path)
 const allItems = computed(() => menus.value.flatMap((g) => g.children || [g]))
 
 const isActive = (item) => {
-  if (parentPath.value) return item.path === parentPath.value
+  if (parentTarget.value) {
+    if (item.path !== parentTarget.value.path) return false
+    const st = parentTarget.value.query.suggestStatus
+    return st === undefined || item.query?.suggestStatus === st
+  }
   if (item.path !== route.path) return false
   if (item.query?.suggestStatus !== undefined && route.query.suggestStatus !== undefined) {
     return item.query.suggestStatus === route.query.suggestStatus
@@ -101,11 +115,13 @@ const toggle = (t) => {
 
 const pageTitle = computed(() => {
   if (route.path === '/optimPending') return pendingStatus[route.query.suggestStatus] || '待处理'
+  if (route.meta.pageTitle) return route.meta.pageTitle(route)
   if (route.meta.dynamicEditTitle) return route.query.id ? '修改' : '新增'
   if (route.meta.dynamicTitle) return allItems.value.find((i) => isActive(i))?.title || route.meta.title
   return route.meta.title || ''
 })
 const crumbs = computed(() => {
+  if (route.meta.crumbs) return route.meta.crumbs(route)
   if (parentPath.value) {
     const parent = allItems.value.find((i) => i.path === parentPath.value)
     const head = route.meta.crumbsWithSection ? [topNav.find((n) => n.key === props.section)?.title] : []

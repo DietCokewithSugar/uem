@@ -64,7 +64,7 @@
 
     <!-- 优化建议（运营阶段） -->
     <div class="uem-card stat-card area-s">
-      <router-link to="/dataBoard" class="card-head head-green">优化建议（运营阶段）</router-link>
+      <router-link to="/suggestionDataBoard" class="card-head head-green">优化建议（运营阶段）</router-link>
       <EChart class="bubble" :option="bubbleOption" />
     </div>
 
