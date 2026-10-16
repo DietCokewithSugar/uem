@@ -1,143 +1,85 @@
-<!-- 优化建议（运营阶段）：全部列表 / 我的提交 / 我已处理 -->
+<!-- 优化建议（运营阶段）：全部列表 / 我的提交 / 我已处理；点击编号进入详情页 -->
 <template>
   <div>
     <SearchForm :model="form" :fields="fields" @search="search" @reset="reset" />
 
     <div class="uem-card">
       <div class="uem-toolbar">
-        <el-button type="primary" @click="openCreate">新增</el-button>
+        <el-button type="primary" @click="router.push('/optimSuggestAdd')">新增</el-button>
         <el-button @click="notReady('下载模板')">下载模板</el-button>
         <el-button @click="notReady('批量导入')">批量导入</el-button>
         <el-button @click="doExport">批量导出</el-button>
         <el-button @click="notReady('查看结果')">查看结果</el-button>
       </div>
       <el-table :data="rows">
-        <el-table-column label="优化建议编号" width="220">
-          <template #default="{ row }"><span class="uem-link" @click="detail = row">{{ row.id }}</span></template>
+        <el-table-column label="优化建议编号" width="205">
+          <template #default="{ row }"><span class="uem-link" @click="openDetail(row)">{{ row.id }}</span></template>
         </el-table-column>
-        <el-table-column prop="product" label="产品名称" min-width="130" />
-        <el-table-column prop="desc" label="描述及解决建议" min-width="260">
-          <template #default="{ row }"><div class="clamp2">{{ row.desc }}</div></template>
+        <el-table-column prop="product" label="产品名称" min-width="120" show-overflow-tooltip />
+        <el-table-column prop="desc" label="描述及解决建议" min-width="190">
+          <template #default="{ row }"><div class="clamp2" :title="row.desc">{{ row.desc }}</div></template>
         </el-table-column>
-        <el-table-column prop="org" label="提出机构" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="proposer" label="提出人" width="90" />
+        <el-table-column prop="proposerOrg" label="提出机构" min-width="130" show-overflow-tooltip />
+        <el-table-column prop="proposer" label="提出人" width="80" />
         <el-table-column prop="submitTime" label="提交时间" width="110" />
-        <el-table-column prop="adoptResult" label="采纳结果" width="100" />
+        <el-table-column prop="adoptResult" label="采纳结果" width="80" />
         <el-table-column prop="status" label="状态" width="110" />
       </el-table>
-      <el-pagination
-        v-model:current-page="page"
-        v-model:page-size="pageSize"
-        class="pager"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="filtered.length"
-      />
+      <el-pagination v-model:current-page="page" v-model:page-size="pageSize" class="pager" layout="total, prev, pager, next, jumper" :total="filtered.length" />
     </div>
-
-    <el-dialog v-model="createDialog" title="新增优化建议" width="600px">
-      <el-form ref="createRef" :model="draft" :rules="rules" label-width="100px">
-        <el-form-item label="所属产品" prop="product">
-          <el-select v-model="draft.product" filterable style="width: 100%"><el-option v-for="p in products" :key="p" :label="p" :value="p" /></el-select>
-        </el-form-item>
-        <el-form-item label="功能栏目"><el-input v-model="draft.column" /></el-form-item>
-        <el-form-item label="提出机构" prop="org">
-          <el-select v-model="draft.org" filterable style="width: 100%"><el-option v-for="o in orgs" :key="o" :label="o" :value="o" /></el-select>
-        </el-form-item>
-        <el-form-item label="提出人" prop="proposer"><el-input v-model="draft.proposer" /></el-form-item>
-        <el-form-item label="描述及建议" prop="desc">
-          <el-input v-model="draft.desc" type="textarea" :rows="5" placeholder="【现象】……【建议】……" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="createDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitCreate">提交</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 相似度检测（系统管理 · 体验问题维护 中开启且在应用范围内时生效） -->
-    <el-dialog v-model="similarDialog" title="发现相似优化建议" width="760px" append-to-body :close-on-click-modal="false">
-      <el-alert type="warning" :closable="false" show-icon title="以下已有优化建议与本次描述相似，请确认是否重复提交。" class="similar-tip" />
-      <el-table :data="similar" size="small">
-        <el-table-column label="优化建议编号" width="210">
-          <template #default="{ row }"><span class="uem-link" @click="detail = row.item">{{ row.item.id }}</span></template>
-        </el-table-column>
-        <el-table-column label="产品名称" width="140" show-overflow-tooltip>
-          <template #default="{ row }">{{ row.item.product }}</template>
-        </el-table-column>
-        <el-table-column label="描述及解决建议" min-width="240">
-          <template #default="{ row }"><div class="clamp2" :title="row.item.desc">{{ excerpt(row.item.desc) }}</div></template>
-        </el-table-column>
-        <el-table-column label="相似度" width="80" align="center">
-          <template #default="{ row }"><span class="score">{{ Math.round(row.score * 100) }}%</span></template>
-        </el-table-column>
-      </el-table>
-      <template #footer>
-        <el-button @click="similarDialog = false">返回修改</el-button>
-        <el-button type="primary" @click="similarDialog = false; doCreate()">继续提交</el-button>
-      </template>
-    </el-dialog>
-    <SuggestionDetail :row="detail" @close="detail = null" />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import SearchForm from '@/components/SearchForm.vue'
-import SuggestionDetail from '@/components/SuggestionDetail.vue'
 import { useTableQuery, match } from '@/components/useTableQuery'
-import { suggestions, products, orgs, sources, bizDepts, productLines, adoptResults } from '@/mock'
-import { currentUser } from '@/config/user'
 import { exportCsv } from '@/components/exportCsv'
-import { featureActive, findSimilar } from '@/mock/problemFeatures'
+import { suggestions, sources, statusList, adoptResults, detailRoute } from '@/mock/suggest'
+import { productList, branchOrgs, rdDepts, rdLines, deptLines, persons } from '@/mock/system'
+import { fmtDate } from '@/mock/holidays'
+import { currentUser } from '@/config/user'
 
 const props = defineProps({ mode: { type: String, default: 'all' } })
+const router = useRouter()
+const menuTitle = { all: '全部列表', mine: '我的提交', handled: '我已处理' }[props.mode] || '全部列表'
 
 const today = new Date()
-const fmt = (d) => d.toISOString().slice(0, 10)
 const lastYear = new Date(today)
 lastYear.setFullYear(today.getFullYear() - 1)
 
-const allStatuses = ['全部', '待修改', '待处理', '待分拣', '待答复', '待跟进', '已答复', '已办结', '已纳入e键通', '已中止']
-const fields = [
-  { prop: 'id', label: '优化建议编号' },
-  { prop: 'keyword', label: '关键字' },
-  { prop: 'proposer', label: '提出人' },
-  { prop: 'org', label: '提出机构', type: 'select', options: orgs },
-  { prop: 'submitter', label: '提交人' },
-  { prop: 'submitOrg', label: '提交机构', type: 'select', options: orgs },
-  { prop: 'status', label: '状态', type: 'select', options: allStatuses },
-  { prop: 'product', label: '产品名称', type: 'select', options: products, placeholder: '2021年12月3日前所涉及的产品名称末端均加（原）' },
-  { prop: 'source', label: '来源', type: 'select', options: sources },
-  { prop: 'bizDept', label: '所属业研部门', type: 'select', options: bizDepts },
-  { prop: 'productLine', label: '所属业研产品线', type: 'select', options: productLines },
-  { prop: 'proposeTime', label: '提出时间', type: 'daterange' },
-  { prop: 'submitTime', label: '提交时间', type: 'daterange' },
-  { prop: 'replyTime', label: '答复时间', type: 'daterange' },
-  { prop: 'adoptResult', label: '采纳结果', type: 'select', options: adoptResults },
-  { prop: 'implemented', label: '是否落实', type: 'select', options: ['是', '否'] }
-]
+// 提出机构 / 提交机构：分行 + 数据中出现的业务研发中心等机构
+const orgsOf = (key) => [...new Set([...branchOrgs, ...suggestions.map((s) => s[key]).filter(Boolean).sort()])]
+const proposerOrgs = computed(() => orgsOf('proposerOrg'))
+const submitOrgs = computed(() => orgsOf('submitOrg'))
 
-// 演示：用编号尾号模拟"我的提交 / 我已处理"
+const initial = {
+  id: '', keyword: '', proposer: '', org: '', submitter: '', submitOrg: '', status: '全部', product: '', source: '',
+  bizDept: '', productLine: '', proposeTime: [], submitTime: [fmtDate(lastYear), fmtDate(today)], replyTime: [], adoptResult: '', implemented: ''
+}
+
+// 是否落实：已采纳的建议未落实时视为「否」（推测）
+const implementedOf = (r) => r.implemented || (r.adoptResult === '采纳' ? '否' : '')
+
+// 我的提交：本人提交；我已处理：本人在操作日志中办理过（不含提交、修改并提交、满意度评价等提交人操作，推测）
+const SUBMITTER_ACTIONS = ['提交', '修改并提交', '满意度评价']
 const scope = (r) => {
-  const tail = Number(r.id.slice(-2))
-  if (props.mode === 'mine') return tail % 6 === 0 || r.submitter === currentUser.name
-  if (props.mode === 'handled') return r.status.startsWith('已') && tail % 3 === 0
+  if (props.mode === 'mine') return r.submitterId === currentUser.id
+  if (props.mode === 'handled') return r.logs.some((l) => l.operatorId === currentUser.id && !SUBMITTER_ACTIONS.includes(l.action))
   return true
 }
 
 const { form, page, pageSize, filtered, rows, search, reset } = useTableQuery(
   () => suggestions,
-  {
-    id: '', keyword: '', proposer: '', org: '', submitter: '', submitOrg: '', status: '全部', product: '', source: '',
-    bizDept: '', productLine: '', proposeTime: [], submitTime: [fmt(lastYear), fmt(today)], replyTime: [], adoptResult: '', implemented: ''
-  },
+  initial,
   (r, q) =>
     scope(r) &&
     match.contains(r.id, q.id) &&
     match.contains(r.desc, q.keyword) &&
     match.contains(r.proposer, q.proposer) &&
-    match.equals(r.org, q.org) &&
+    match.equals(r.proposerOrg, q.org) &&
     match.contains(r.submitter, q.submitter) &&
     match.equals(r.submitOrg, q.submitOrg) &&
     match.equals(r.status, q.status) &&
@@ -149,71 +91,61 @@ const { form, page, pageSize, filtered, rows, search, reset } = useTableQuery(
     match.inRange(r.submitTime, q.submitTime) &&
     match.inRange(r.replyTime, q.replyTime) &&
     match.equals(r.adoptResult, q.adoptResult) &&
-    match.equals(r.implemented, q.implemented)
+    match.equals(implementedOf(r), q.implemented)
 )
 
-const detail = ref(null)
+// 所属业研产品线随所选业研部门收窄
+const lineOptions = computed(() => (form.bizDept ? deptLines[form.bizDept] || [] : rdLines))
+watch(
+  () => form.bizDept,
+  () => {
+    if (form.productLine && !lineOptions.value.includes(form.productLine)) form.productLine = ''
+  }
+)
+
+const fields = computed(() => [
+  { prop: 'id', label: '优化建议编号' },
+  { prop: 'keyword', label: '关键字' },
+  { prop: 'proposer', label: '提出人' },
+  { prop: 'org', label: '提出机构', type: 'select', options: proposerOrgs.value },
+  { prop: 'submitter', label: '提交人' },
+  { prop: 'submitOrg', label: '提交机构', type: 'select', options: submitOrgs.value },
+  { prop: 'status', label: '状态', type: 'select', options: ['全部', ...statusList] },
+  { prop: 'product', label: '产品名称', type: 'select', options: productList.map((p) => p.name), placeholder: '2021年12月3日前所涉及的产品名称末端均加（原）' },
+  { prop: 'source', label: '来源', type: 'select', options: sources },
+  { prop: 'bizDept', label: '所属业研部门', type: 'select', options: rdDepts },
+  { prop: 'productLine', label: '所属业研产品线', type: 'select', options: lineOptions.value },
+  { prop: 'proposeTime', label: '提出时间', type: 'daterange' },
+  { prop: 'submitTime', label: '提交时间', type: 'daterange' },
+  { prop: 'replyTime', label: '答复时间', type: 'daterange' },
+  { prop: 'adoptResult', label: '采纳结果', type: 'select', options: adoptResults },
+  { prop: 'implemented', label: '是否落实', type: 'select', options: ['是', '否'] }
+])
+
+const openDetail = (row) => router.push(detailRoute(row, menuTitle, filtered.value))
 const notReady = (name) => ElMessage.info(`演示环境：「${name}」功能待接入`)
 
 const exportColumns = [
-  { prop: 'id', label: '优化建议编号' }, { prop: 'product', label: '产品名称' }, { prop: 'desc', label: '描述及解决建议' },
-  { prop: 'org', label: '提出机构' }, { prop: 'proposer', label: '提出人' }, { prop: 'submitTime', label: '提交时间' },
-  { prop: 'adoptResult', label: '采纳结果' }, { prop: 'status', label: '状态' }
+  { prop: 'id', label: '优化建议编号' }, { prop: 'product', label: '产品名称' }, { prop: 'channelText', label: '产品使用渠道' }, { prop: 'column', label: '功能栏目' },
+  { prop: 'desc', label: '描述及解决建议' }, { prop: 'source', label: '来源' }, { prop: 'proposer', label: '提出人' }, { prop: 'proposerOrg', label: '提出人所在机构' },
+  { prop: 'submitTime', label: '提交时间' }, { prop: 'bizDept', label: '所属业研部门' }, { prop: 'productLine', label: '所属业研产品线' }, { prop: 'category', label: '优化建议分类' },
+  { prop: 'impact', label: '影响程度' }, { prop: 'status', label: '状态' }, { prop: 'currentHandler', label: '当前处理人' }, { prop: 'adoptResult', label: '采纳结果' },
+  { prop: 'solution', label: '解决方式' }, { prop: 'replyTime', label: '答复时间' }, { prop: 'implementedText', label: '是否落实' }
 ]
-const doExport = () => exportCsv('优化建议', exportColumns, filtered.value)
-
-// 新增
-const createDialog = ref(false)
-const createRef = ref()
-const draft = reactive({})
-const rules = {
-  product: [{ required: true, message: '请选择所属产品' }],
-  org: [{ required: true, message: '请选择提出机构' }],
-  proposer: [{ required: true, message: '请填写提出人' }],
-  desc: [{ required: true, message: '请填写描述及建议' }]
-}
-function openCreate() {
-  Object.assign(draft, { product: '', column: '', org: '', proposer: currentUser.name, desc: '' })
-  createDialog.value = true
-}
-// 相似度：功能开启且当前用户在应用范围内时，提交前检索相似建议
-const similarDialog = ref(false)
-const similar = ref([])
-const excerpt = (t, n = 60) => (t.length > n ? `${t.slice(0, n)}…` : t)
-async function submitCreate() {
-  if (!(await createRef.value.validate().catch(() => false))) return
-  if (featureActive('相似度')) {
-    similar.value = findSimilar(draft.desc, suggestions, { product: draft.product })
-    if (similar.value.length) return (similarDialog.value = true)
-  }
-  doCreate()
-}
-function doCreate() {
-  const d = fmt(new Date())
-  suggestions.unshift({
-    ...draft,
-    id: `UEM${d.replace(/-/g, '')}${String(Date.now()).slice(-9)}`,
-    submitter: currentUser.name,
-    submitOrg: draft.org,
-    proposeTime: d,
-    submitTime: d,
-    replyTime: '',
-    status: '待分拣',
-    adoptResult: '',
-    implemented: '',
-    source: '行内员工',
-    bizDept: '',
-    productLine: '',
-    stayDays: 0
-  })
-  createDialog.value = false
-  ElMessage.success('提交成功，已进入「待分拣」')
+// 批量导出需持有「优化建议批量导出权限」（人员维护岗位，推测）
+const canExport = () => !!persons.find((p) => p.id === currentUser.id)?.roles.includes('优化建议批量导出权限')
+function doExport() {
+  if (!canExport()) return ElMessage.warning('您没有「优化建议批量导出权限」，请联系系统管理员')
+  if (!filtered.value.length) return ElMessage.warning('当前查询条件下没有可导出的数据')
+  exportCsv(
+    '优化建议',
+    exportColumns,
+    filtered.value.map((r) => ({ ...r, channelText: (r.channels || []).join('、'), implementedText: implementedOf(r) }))
+  )
 }
 </script>
 
 <style scoped>
 .pager { margin-top: 16px; justify-content: flex-end; }
 .clamp2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.similar-tip { margin-bottom: 12px; }
-.score { color: var(--uem-red); font-weight: 600; }
 </style>

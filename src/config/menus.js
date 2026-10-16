@@ -4,6 +4,10 @@
 
 import { reactive, computed } from 'vue'
 import { voiceProducts } from '@/mock/voice'
+import { persons } from '@/mock/system'
+import { currentUser } from '@/config/user'
+
+const hasRole = (...roles) => !!persons.find((p) => p.id === currentUser.id)?.roles.some((r) => roles.includes(r))
 
 const voiceProductMenus = voiceProducts.map((p) => ({ title: p.name, path: '/cusSupreme', query: { productId: p.id } }))
 
@@ -31,6 +35,9 @@ export const sideMenus = {
         { title: '待处理', path: '/optimPending', query: { type: '', suggestStatus: '2' }, countKey: 'toHandle' },
         { title: '待分拣', path: '/optimPending', query: { type: '', suggestStatus: '3' }, countKey: 'toSort' },
         { title: '待答复', path: '/optimPending', query: { type: '', suggestStatus: '4' }, countKey: 'toReply' },
+        // 待审核、待业务部门答复：仅对持有对应岗位的用户显示（推测；截图用户无此岗位，菜单中未出现）
+        { title: '待审核', path: '/optimPending', query: { type: '', suggestStatus: '6' }, countKey: 'toAudit', visible: () => hasRole('产品线审核岗', '产品线审核岗（要客）') },
+        { title: '待业务部门答复', path: '/optimPending', query: { type: '', suggestStatus: '7' }, countKey: 'toBusiness', visible: () => hasRole('总行业务部门处理岗') },
         { title: '待跟进', path: '/optimPending', query: { type: '', suggestStatus: '5' }, countKey: 'toFollow' }
       ]
     },
@@ -44,8 +51,8 @@ export const sideMenus = {
         { title: '全部列表', path: '/optimSuggestions', query: { type: '1', suggestStatus: '' } },
         { title: '我的提交', path: '/mySubmit' },
         { title: '我已处理', path: '/myHandled' },
-        { title: '管理报表', path: '/manageReport' },
-        { title: '数据看板', path: '/dataBoard' }
+        { title: '管理报表', path: '/manageExcel' },
+        { title: '数据看板', path: '/suggestionDataBoard' }
       ]
     }
   ],
@@ -180,11 +187,25 @@ export const sideMenus = {
   ]
 }
 
-// 待办状态码 → 名称
+// 待办状态码 → 名称（6、7 为推测）
 export const pendingStatus = {
   1: '待修改',
   2: '待处理',
   3: '待分拣',
   4: '待答复',
-  5: '待跟进'
+  5: '待跟进',
+  6: '待审核',
+  7: '待业务部门答复'
+}
+
+// 按菜单名称取页面地址（含查询参数），供详情页「返回」和面包屑定位来源菜单
+export function menuPathOf(section, title) {
+  for (const g of sideMenus[section] || []) {
+    for (const item of g.children || [g]) {
+      if (item.title !== title || !item.path) continue
+      const q = new URLSearchParams(item.query || {}).toString()
+      return q ? `${item.path}?${q}` : item.path
+    }
+  }
+  return ''
 }

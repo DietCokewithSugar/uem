@@ -22,12 +22,14 @@
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { exportCsv } from '@/components/exportCsv'
-import { suggestions, activities, infos, journeys } from '@/mock'
+import { activities, infos, journeys } from '@/mock'
+import { suggestions } from '@/mock/suggest'
 import { voices } from '@/mock/voice'
 import { qcReports } from '@/mock/qc'
 import { persons } from '@/mock/system'
 
 const dims = ['按年', '按季度', '按月']
+const CLOSED = ['已完成', '已纳入需求整合池', '已纳入e企创']
 const dim = ref('')
 const keyOf = (date) => {
   const y = date.slice(0, 4)
@@ -35,7 +37,7 @@ const keyOf = (date) => {
   return { 按年: y, 按季度: `${y}-Q${Math.ceil(m / 3)}`, 按月: date.slice(0, 7) }[dim.value]
 }
 const cols = [
-  { prop: 'period', label: '统计周期' }, { prop: 'suggest', label: '新增优化建议' }, { prop: 'done', label: '办结/答复' },
+  { prop: 'period', label: '统计周期' }, { prop: 'suggest', label: '新增优化建议' }, { prop: 'reply', label: '答复优化建议' }, { prop: 'done', label: '办结优化建议' },
   { prop: 'activity', label: '体验活动' }, { prop: 'voice', label: '用户声音' }, { prop: 'qc', label: '质检报告' }, { prop: 'info', label: '资讯发布' }
 ]
 const rows = computed(() => {
@@ -44,11 +46,13 @@ const rows = computed(() => {
   const add = (date, k, n = 1) => {
     if (!date) return
     const p = keyOf(date)
-    ;(m[p] ||= { period: p, suggest: 0, done: 0, activity: 0, voice: 0, qc: 0, info: 0 })[k] += n
+    ;(m[p] ||= { period: p, suggest: 0, reply: 0, done: 0, activity: 0, voice: 0, qc: 0, info: 0 })[k] += n
   }
+  // 答复按答复时间；办结（已完成 / 已纳入需求整合池 / 已纳入e企创，不含已中止）按进入该状态的时间
   suggestions.forEach((s) => {
     add(s.submitTime, 'suggest')
-    if (s.status.startsWith('已')) add(s.replyTime || s.submitTime, 'done')
+    add(s.replyTime, 'reply')
+    if (CLOSED.includes(s.status)) add(s.stageAt.slice(0, 10), 'done')
   })
   activities.forEach((a) => add(a.submitTime, 'activity'))
   voices.forEach((v) => add(v.time.slice(0, 10), 'voice'))

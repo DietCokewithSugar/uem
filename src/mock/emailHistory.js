@@ -1,9 +1,11 @@
 // 后台管理 · 邮件记录演示数据：定时任务发送的提醒 / 预警邮件流水（收件人均为虚构）
-// dealSuggestion：每个工作日 10:00 向待办处理人逐条发送优化建议待办提醒，「节假日」中的非工作日不发送
+// dealSuggestion：每个工作日 10:00 向待办环节（待处理 / 待分拣 / 待答复 / 待审核 / 待业务部门答复）的当前处理人逐条发送提醒，
+//   「节假日」中的非工作日不发送；历史记录按操作日志还原各环节的起止时间与处理人
 // activityEmail：每周一 07:00 向创建超过 30 个自然日仍在进行中的体验活动创建人发送提醒，非工作日不发送
 // uvsiWarning：实时监测 UVSI 达到中高度压力时向实时监测收件人发送预警（实时监测不区分工作日）
 import { shallowReactive } from 'vue'
-import { suggestions, activities, productLines } from './index'
+import { activities } from './index'
+import { suggestions, isBranchOrg } from './suggest'
 import { persons } from './system'
 import { alertReceivers } from './voiceTools'
 import { realtime } from './voice'
@@ -24,11 +26,38 @@ const TODAY = fmtDate(NOW)
 const DAY = 864e5
 const parseDay = (s) => new Date(`${s}T00:00:00`)
 const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
-const PENDING = ['待修改', '待处理', '待分拣', '待答复', '待跟进']
+// 发送待办提醒的环节（待修改、待跟进、待开发中心处理不在提醒范围内，推测）
+const PENDING = ['待处理', '待分拣', '待答复', '待审核', '待业务部门答复']
 
-// 优化建议没有处理人字段：按产品线固定分派给一名处理岗人员，同一处理人每天会收到多封
-const handlerPool = persons.filter((p) => p.status === '激活' && p.roles.some((r) => r.endsWith('处理岗')))
-const handlerOf = (s) => handlerPool[(Math.max(0, productLines.indexOf(s.productLine)) * 6) % handlerPool.length].id
+// 操作日志还原待办环节：动作 → 进入的状态（null 为离开提醒环节）；不在表中的动作（跟进、满意度评价等）不改变状态
+const NEXT = {
+  转处理: '待分拣', 指派答复人: '待答复', 答复: '待审核', 转总行业务部门: '待业务部门答复', 退回: '待答复', e键通退回: '待分拣',
+  通过: null, 业务部门答复: null, 退回提交人: null, 中止: null, 转e键通: null, 开发中心处理完成: null
+}
+// 提交 / 修改并提交：研发一体化问题随即由系统转 e键通；分行员工提交进入待处理，其余进入待分拣
+const afterSubmit = (s) => (isBranchOrg(s.submitOrg) ? '待处理' : '待分拣')
+
+// 返回 [{ status, from, to, handlerId }]，to 为离开时间（当前环节为空）
+function stagesOf(s) {
+  const logs = s.logs.slice().reverse()
+  const stages = []
+  let cur = null
+  const close = (l) => {
+    if (cur) stages.push({ ...cur, to: l.time, handlerId: l.operatorId })
+    cur = null
+  }
+  logs.forEach((l, i) => {
+    let next
+    if (l.action === '提交' || l.action === '修改并提交') next = logs[i + 1]?.action === '转e键通' && logs[i + 1].time === l.time ? null : afterSubmit(s)
+    else if (l.action in NEXT) next = NEXT[l.action]
+    else return
+    close(l)
+    if (next && PENDING.includes(next)) cur = { status: next, from: l.time }
+  })
+  // 仍在当前环节：处理人取当前处理人
+  if (cur && cur.status === s.status) stages.push({ ...cur, to: '', handlerId: s.currentHandlerId })
+  return stages
+}
 
 // 体验活动只记录创建人姓名：同名人员取其统一认证号，否则按姓名生成固定的虚构认证号
 const creatorIds = new Map()
@@ -77,16 +106,24 @@ function fireDays(from, hms, step = 1) {
 function build() {
   const list = []
 
-  // 优化建议待办提醒：提交次日起至答复日（未答复的至今天），每个工作日一封
+  // 优化建议待办提醒：环节期间每个工作日 10:00 一封（进入时间 ≤ 10:00 < 离开时间），收件人为该环节的处理人
   const first = suggestions.reduce((m, s) => (s.submitTime < m ? s.submitTime : m), TODAY)
-  const workdays = fireDays(first, '10:00:00').filter((d) => isWorkday(d))
+  const fires = fireDays(first, '10:00:00').filter((d) => isWorkday(d)).map((d) => `${d} 10:00:00`)
+  const firstFireAt = (t) => {
+    let lo = 0
+    let hi = fires.length
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1
+      if (fires[mid] < t) lo = mid + 1
+      else hi = mid
+    }
+    return lo
+  }
   for (const s of suggestions) {
-    const pending = PENDING.includes(s.status)
-    // 已关闭的建议最晚提醒到答复日（答复日在今天及以后的视为今天已答复）
-    const days = workdays.filter((d) => d > s.submitTime && (pending || (d <= s.replyTime && d < TODAY)))
-    // 已答复 / 办结的建议：前约 2/3 为待处理，最后约 1/3 为待答复
-    const cut = Math.ceil((days.length * 2) / 3)
-    days.forEach((d, i) => list.push(mail('dealSuggestion', handlerOf(s), `${d} 10:00:00`, s, pending ? s.status : i < cut ? '待处理' : '待答复')))
+    for (const st of stagesOf(s)) {
+      if (!st.handlerId) continue
+      for (let i = firstFireAt(st.from); i < fires.length && (!st.to || fires[i] < st.to); i++) list.push(mail('dealSuggestion', st.handlerId, fires[i], s, st.status))
+    }
   }
 
   // 体验活动超期提醒：每周一 07:00
@@ -128,7 +165,7 @@ function prepend(list) {
   return list
 }
 export const sendDealSuggestion = (now = new Date()) =>
-  prepend(suggestions.filter((s) => PENDING.includes(s.status)).map((s) => mail('dealSuggestion', handlerOf(s), nowText(now), s, s.status)))
+  prepend(suggestions.filter((s) => PENDING.includes(s.status) && s.currentHandlerId).map((s) => mail('dealSuggestion', s.currentHandlerId, nowText(now), s, s.status)))
 export const sendActivityEmail = (now = new Date()) =>
   prepend(activities.filter((a) => overdue(a, fmtDate(now))).map((a) => mail('activityEmail', creatorId(a.creator), nowText(now))))
 // 以实时监测最新一期 UVSI 判断是否预警

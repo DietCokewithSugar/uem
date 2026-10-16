@@ -27,7 +27,7 @@
       <div class="uem-card">
         <div class="block-title">待办工作</div>
         <div class="todo">
-          <router-link :to="{ path: '/optimPending', query: { type: '', suggestStatus: '2' } }" class="todo-item">
+          <router-link :to="todoTarget" class="todo-item">
             <span>优化建议</span><b>{{ suggestionTodo }}</b>
             <el-icon class="todo-bg"><Search /></el-icon>
           </router-link>
@@ -64,7 +64,7 @@
 
     <!-- 优化建议（运营阶段） -->
     <div class="uem-card stat-card area-s">
-      <router-link to="/dataBoard" class="card-head head-green">优化建议（运营阶段）</router-link>
+      <router-link to="/suggestionDataBoard" class="card-head head-green">优化建议（运营阶段）</router-link>
       <EChart class="bubble" :option="bubbleOption" />
     </div>
 
@@ -102,14 +102,20 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import EChart from '@/components/EChart.vue'
 import { homeData, todoCounts } from '@/mock'
 import { carousels } from '@/mock/system'
+import { sideMenus } from '@/config/menus'
 import CarouselSlide from '@/components/CarouselSlide.vue'
 
 const slides = computed(() => carousels.filter((c) => c.status === '展示中').sort((a, b) => (a.sort || 99) - (b.sort || 99)))
 const ps = homeData.problemStats
 const solvedRate = Number(((ps.solved / ps.total) * 100).toFixed(2))
-const suggestionTodo = computed(() =>
-  ['toModify', 'toHandle', 'toSort', 'toReply', 'toFollow'].reduce((n, k) => n + todoCounts[k], 0)
-)
+// 优化建议待办：与「体验问题 · 待办工作」左侧菜单一致（按岗位显示的菜单项不可见时不计入）
+const todoMenus = computed(() => (sideMenus.experience.find((g) => g.title === '待办工作')?.children || []).filter((c) => c.countKey && (!c.visible || c.visible())))
+const suggestionTodo = computed(() => todoMenus.value.reduce((n, c) => n + (todoCounts[c.countKey] || 0), 0))
+// 点击进入第一个有待办的菜单（推测），均为 0 时进入待处理
+const todoTarget = computed(() => {
+  const m = todoMenus.value.find((c) => todoCounts[c.countKey] > 0)
+  return m ? { path: m.path, query: m.query } : { path: '/optimPending', query: { type: '', suggestStatus: '2' } }
+})
 
 const openNews = (n) => ElMessageBox.alert(`${n.title}\n\n（演示环境：资讯正文待接入）`, '体验公告', { confirmButtonText: '关闭' })
 const openSupport = (s) => ElMessage.info(`「${s.name}」为外部体验支撑系统，演示环境暂不跳转`)

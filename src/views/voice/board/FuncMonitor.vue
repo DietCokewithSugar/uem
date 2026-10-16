@@ -48,10 +48,10 @@
           <template #default="{ row }"><div v-for="(e, i) in row.examples" :key="i" class="example">{{ i + 1 }}.{{ e }}</div></template>
         </el-table-column>
         <el-table-column prop="handled" label="转处理情况" width="100" />
-        <el-table-column label="操作" width="96">
+        <el-table-column label="操作" width="108">
           <template #default="{ row }">
             <el-button v-if="row.handled === '未处理'" link type="primary" @click="toSuggestion(row)">转优化建议</el-button>
-            <el-button v-else link type="primary" @click="router.push({ path: '/optimPending', query: { type: '', suggestStatus: '3' } })">查看建议</el-button>
+            <el-button v-else link type="primary" @click="viewSuggestion(row)">查看建议</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -68,8 +68,8 @@ import Panel from '@/components/Panel.vue'
 import AsyncExport from '@/components/AsyncExport.vue'
 import KpiRow from './KpiRow.vue'
 import { funcMonitor as m, funcProblemRows } from '@/mock/voice'
-import { suggestions } from '@/mock'
-import { currentUser } from '@/config/user'
+import { createSuggestion, findSuggestion, detailRoute, impacts } from '@/mock/suggest'
+import { productList } from '@/mock/system'
 
 const router = useRouter()
 const kpis = [
@@ -97,32 +97,40 @@ const exportCols = [
 ]
 const exportRows = computed(() => filtered.value.map((r) => ({ ...r, exampleText: r.examples.join('；') })))
 
-// 典型问题 → 优化建议（进入「体验问题 · 待分拣」，打通声音分析与问题处理闭环）
+// 典型问题 → 优化建议：按产品路由至对应产品线（打通声音分析与问题处理闭环）
+// 声音看板产品 → 产品维护中的产品名称及产品使用渠道（映射为推测）
+const productAlias = { 融e行基础业务: '个人手机银行基础业务', '融e行-投资理财': '实物贵金属', '融e行-信用卡': '个人信用卡', 云工行: '云网点' }
+const channelOf = { 企业手机银行: '手机APP-企业手机银行', 数字人民币: '手机APP-数字货币', 工银e生活: '手机APP-工银e生活', 境外个人手机银行: '手机APP-境外个人手机银行' }
+function productOf(name) {
+  const usable = (n) => productList.some((p) => p.name === n && p.state !== '已废弃')
+  if (usable(name)) return name
+  return usable(productAlias[name]) ? productAlias[name] : '个人手机银行基础业务'
+}
+
 async function toSuggestion(row) {
-  await ElMessageBox.confirm(`将典型问题「${row.text}」转为优化建议，进入「待分拣」？`, '转优化建议', { type: 'info' })
-  const d = new Date().toISOString().slice(0, 10)
-  suggestions.unshift({
-    id: `UEM${d.replace(/-/g, '')}${String(Date.now()).slice(-9)}`,
-    product: row.product,
+  const product = productOf(row.product)
+  try {
+    await ElMessageBox.confirm(`将典型问题「${row.text}」转为优化建议？提交后按产品「${product}」流转至对应产品线处理。`, '转优化建议', { type: 'info' })
+  } catch {
+    return
+  }
+  const s = createSuggestion({
+    product,
+    channels: [channelOf[product] || '手机APP-个人手机银行'],
     column: `${row.column}-${row.action}`,
-    desc: `【现象】${row.text}（覆盖用户声音 ${row.voices} 条）【建议】${row.optimization}`,
-    org: '业务研发中心',
-    proposer: currentUser.name,
-    submitter: currentUser.name,
-    submitOrg: '业务研发中心',
-    proposeTime: d,
-    submitTime: d,
-    replyTime: '',
-    status: '待分拣',
-    adoptResult: '',
-    implemented: '',
-    source: '客户之声',
-    bizDept: '',
-    productLine: '',
-    stayDays: 0
+    desc: `【现象】${row.text}（覆盖用户声音 ${row.voices} 条）\n【建议】${row.optimization}`,
+    source: '客户：app用户反馈',
+    category: '功能流程',
+    impact: impacts[2]
   })
   row.handled = '已转优化建议'
-  ElMessage.success('已转为优化建议，可在「体验问题 · 待分拣」中查看')
+  row.suggestionSeq = s.seq
+  ElMessage.success(`已转为优化建议，当前状态：${s.status}${s.currentHandler ? `，当前处理人：${s.currentHandler}` : ''}`)
+}
+// 查看建议：进入转出的优化建议详情（来源菜单记为全部列表）
+function viewSuggestion(row) {
+  const s = row.suggestionSeq && findSuggestion(row.suggestionSeq)
+  router.push(s ? detailRoute(s, '全部列表', [s]) : '/optimSuggestions')
 }
 </script>
 

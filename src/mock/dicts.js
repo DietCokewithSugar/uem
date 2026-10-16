@@ -1,9 +1,11 @@
 // 后台管理 · 字典维护：平台下拉框、单选项等枚举值的统一来源
 // 字典类型 + 字典编码唯一；页面通过 dictOptions(type) 取「开启」的字典值，按排序升序
-// 已接入：XB（体验员新增/修改的性别）、EXPER_CHANNEL / EXPER_METHOD / WORK_LINK（新增体验活动）
+// 已接入：XB（体验员新增/修改的性别）、EXPER_CHANNEL / EXPER_METHOD / WORK_LINK（新增体验活动）、
+//         SUGGEST_SOURCE / IMPACT_LEVEL / SUGGEST_CATEGORY（新增优化建议的来源、影响程度、优化建议分类）
 // 其余类型由各模块的枚举生成，与页面选项保持一致，暂停后暂不影响页面
 import { reactive, computed } from 'vue'
-import { expChannels, expMethods, bizDomains, activityStatuses, sources, adoptResults, taskStatuses, infoTypes, trainingForms, reportTypes, reportLevels, journeyTypes } from './index'
+import { expChannels, expMethods, bizDomains, activityStatuses, taskStatuses, infoTypes, trainingForms, reportTypes, reportLevels, journeyTypes } from './index'
+import { sources, adoptResults, categories, impacts, channelGroups, solutions, priorities, rejectReasons } from './suggest'
 import { educations, industries, personStatus, jobLevels, yesNo } from './experiencer'
 import { voiceSources, emotions } from './voice'
 import { emailTypes } from './emailTypes'
@@ -27,8 +29,9 @@ const seed = [
 ]
 
 // 由枚举数组生成一组字典：编码默认为 1 起的流水号，默认值同字典值（withDefault: false 时为空）
+// remark 可为函数 (value, i) => 备注，用于逐条说明（如优化建议分类、解决方式）
 const group = (type, desc, values, remark, { codes, withDefault = true } = {}) =>
-  values.map((value, i) => [type, desc, codes ? codes[i] : String(i + 1), value, withDefault ? value : '', remark, i + 1, '开启'])
+  values.map((value, i) => [type, desc, codes ? codes[i] : String(i + 1), value, withDefault ? value : '', typeof remark === 'function' ? remark(value, i) : remark, i + 1, '开启'])
 
 const more = [
   ...group('EXPER_CHANNEL', '体验渠道', expChannels, '体验活动'),
@@ -37,7 +40,13 @@ const more = [
   ...group('ACTIVITY_STATUS', '活动状态', activityStatuses, '体验活动'),
   ...group('TASK_STATUS', '任务状态', taskStatuses, '体验任务'),
   ...group('SUGGEST_SOURCE', '建议来源', sources, '优化建议'),
+  ...group('SUGGEST_CATEGORY', '优化建议分类', categories.map((c) => c.value), (_, i) => categories[i].desc),
+  ...group('IMPACT_LEVEL', '影响程度', impacts, '优化建议'),
+  ...group('SUGGEST_CHANNEL', '产品使用渠道', channelGroups.flatMap((g) => g.items.map((item) => `${g.group}-${item}`)), '优化建议'),
   ...group('ADOPT_RESULT', '采纳结果', adoptResults, '优化建议'),
+  ...group('SOLUTION', '解决方式', solutions.map((x) => x.value), (_, i) => solutions[i].desc),
+  ...group('PRIORITY', '优先级', priorities, '优化建议'),
+  ...group('REJECT_REASON', '未采纳原因', rejectReasons, '优化建议'),
   ...group('VOICE_SOURCE', '声音来源', voiceSources, '用户声音'),
   ...group('EMOTION', '情感倾向', emotions, '用户声音'),
   ...group('INFO_TYPE', '资讯类型', infoTypes, '体验资讯'),
@@ -71,6 +80,9 @@ export const dictOptions = (type) =>
   dicts
     .filter((x) => x.type === type && x.status === '开启')
     .sort((a, b) => a.sort - b.sort)
-    .map(({ code, value, defaultValue }) => ({ code, value, defaultValue }))
+    .map(({ code, value, defaultValue, remark }) => ({ code, value, defaultValue, remark }))
+
+// 字典类型是否存在（含已暂停的字典值）；页面在类型被整体删除时可回退到模块内置枚举
+export const hasDictType = (type) => dicts.some((x) => x.type === type)
 
 export const newDict = (data) => ({ ...data, id: Math.max(0, ...dicts.map((x) => x.id)) + 1 })
