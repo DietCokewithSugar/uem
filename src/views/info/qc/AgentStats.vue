@@ -21,7 +21,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { qcReports, qcRoles } from '@/mock/qc'
+import { qcReports, qcRoles, averageScore } from '@/mock/qc'
 import { exportCsv } from '@/components/exportCsv'
 
 const range = ref([])
@@ -32,7 +32,7 @@ const byRole = computed(() => {
     r.roleIds.forEach((id) => {
       const x = (m[id] ||= { role: qcRoles.find((q) => q.id === id)?.name || `角色${id}`, count: 0, sum: 0 })
       x.count++
-      x.sum += r.roleViews[id]?.score || 0
+      x.sum += r.roleViews[id]?.score || averageScore(r.dimensions) || 0
     })
   )
   return Object.values(m).map((x) => ({ ...x, avg: (x.sum / x.count).toFixed(2) })).sort((a, b) => b.count - a.count)
@@ -45,7 +45,7 @@ function download() {
   ], list.value.map((r) => ({
     ...r,
     roles: r.roleIds.map((id) => qcRoles.find((q) => q.id === id)?.name).join('、'),
-    avg: (r.dimensions.reduce((n, d) => n + d.score, 0) / r.dimensions.length).toFixed(2),
+    avg: averageScore(r.dimensions)?.toFixed(2) || '—',
     issues: r.issues.length
   })))
 }

@@ -3,7 +3,8 @@
   <div class="uem-card">
     <div class="top">
       <div class="uem-toolbar">
-        <el-button type="primary" @click="openCreate">新增</el-button>
+        <el-button type="primary" @click="openCreate('standard')">新增</el-button>
+        <el-button plain type="primary" @click="openCreate('ab')">AB对比</el-button>
         <el-button plain type="primary" @click="refresh">刷新</el-button>
       </div>
       <el-input v-model="keyword" placeholder="请输入搜索关键词" clearable class="search" @input="page = 1">
@@ -14,8 +15,11 @@
     <div v-loading="loading" class="grid">
       <div v-for="r in pageItems" :key="r.id" class="card">
         <div class="thumb" @click="view(r)"><ScreenThumb :material="r.materials[0]" /></div>
-        <div class="title">{{ r.title }}</div>
-        <div class="time">{{ r.createTime }}</div>
+        <div class="title">
+          <el-tag v-if="r.type === 'ab'" size="small" effect="plain" class="ab-tag">AB对比</el-tag>
+          {{ r.title }}
+        </div>
+        <div class="time">{{ r.createTime }}<template v-if="r.verdict"> · {{ r.verdict }}</template></div>
         <div class="ops">
           <el-button size="small" plain type="primary" @click="view(r)">查看报告</el-button>
           <span class="links">
@@ -35,7 +39,7 @@
       :total="filtered.length"
     />
 
-    <AgentCreateDialog v-model="createVisible" @created="onCreated" />
+    <AgentCreateDialog v-model="createVisible" :mode="createMode" @created="onCreated" />
   </div>
 </template>
 
@@ -63,7 +67,11 @@ const refresh = () => {
 }
 
 const createVisible = ref(false)
-const openCreate = () => (createVisible.value = true)
+const createMode = ref('standard')
+const openCreate = (mode) => {
+  createMode.value = mode
+  createVisible.value = true
+}
 function onCreated(r) {
   qcReports.unshift(r)
   page.value = 1
@@ -93,6 +101,7 @@ async function remove(r) {
 .card { border: 1px solid #eee; border-radius: 4px; padding: 12px; background: #fff; }
 .thumb { height: 130px; border-radius: 4px; overflow: hidden; cursor: pointer; background: #f5f6f8; }
 .title { margin-top: 12px; font-size: 14px; color: #333; }
+.ab-tag { margin-right: 6px; border-color: var(--uem-red); color: var(--uem-red); vertical-align: text-bottom; }
 .time { margin-top: 4px; font-size: 12px; color: #999; }
 .ops { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
 .links a { color: #3a6fd8; cursor: pointer; font-size: 12px; margin-left: 8px; }
