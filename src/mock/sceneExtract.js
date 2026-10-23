@@ -24,13 +24,17 @@ export function categoriesFromPrompt(content = fileAnalysisPrompt()?.content || 
   return [...DEFAULT_CATEGORIES]
 }
 
-export function materialNote(files = []) {
-  if (!files.length) return '（尚未上传素材）'
-  return files.map((file) => {
-    const version = file.version ? `${file.version}：` : ''
-    const size = file.width && file.height ? `，${file.width}×${file.height}` : ''
-    return `${version}${file.name || '未命名图片'}${size}`
-  }).join('；')
+// supplement：AB方案对比步骤一填写的补充信息，A、B方案共用一段文字
+export function materialNote(files = [], supplement = '') {
+  const shots = files.length
+    ? files.map((file) => {
+      const version = file.version ? `${file.version}：` : ''
+      const size = file.width && file.height ? `，${file.width}×${file.height}` : ''
+      return `${version}${file.name || '未命名图片'}${size}`
+    }).join('；')
+    : '（尚未上传素材）'
+  const extra = String(supplement || '').trim()
+  return extra ? `${shots}。补充信息：${extra}` : shots
 }
 
 export function buildFileAnalysisPrompt(note) {
@@ -150,8 +154,8 @@ function voteCategory(files, categories) {
   return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0]
 }
 
-function bestHint(files) {
-  const names = files.map((file) => file.name || '').join(' ').toLowerCase()
+function bestHint(files, note = '') {
+  const names = [...files.map((file) => file.name || ''), note].join(' ').toLowerCase()
   let best = null
   let score = 0
   SCENE_HINTS.forEach((hint) => {
@@ -175,23 +179,11 @@ function conservative(category, fileCount) {
   }
 }
 
-function inferOne(files, categories) {
+function inferOne(files, categories, note = '') {
   const category = voteCategory(files, categories)
-  const hint = bestHint(files)
+  const hint = bestHint(files, note)
   if (!hint) return conservative(category, files.length)
   return { category, ...hint.fields, constraints: `${hint.fields.constraints}。本次识别到 ${files.length} 张素材` }
-}
-
-// A、B方案是同一业务场景的两套设计：两套素材合在一起提炼一份共用场景，不比较优劣
-function mergeAb(planA, planB, files, categories) {
-  const shared = inferOne(files, categories)
-  const categoryNote = planA.category && planA.category === planB.category
-    ? ''
-    : `A方案判断为「${planA.category || '未识别'}」，B方案判断为「${planB.category || '未识别'}」，请确认两套方案是否服务于同一业务场景`
-  return {
-    ...shared,
-    constraints: ['A、B方案服务于同一业务场景，共用以上目标和任务，只比较两套设计在画面上可见的差异，不编造中间页', categoryNote, shared.constraints].filter(Boolean).join('。')
-  }
 }
 
 function asSceneJson(obj, categories) {
@@ -203,17 +195,9 @@ function asSceneJson(obj, categories) {
   return parsed
 }
 
-export function extractBusinessScene({ files = [], mode = 'standard' } = {}) {
+// A、B方案是同一业务场景的两套设计：两套素材和补充信息合在一起提炼一份共用场景，不比较优劣。AB方案对比不设约束条件。
+export function extractBusinessScene({ files = [], mode = 'standard', note = '' } = {}) {
   const categories = categoriesFromPrompt()
-  if (mode === 'ab') {
-    const planA = files.filter((file) => file.version === 'A方案')
-    const planB = files.filter((file) => file.version === 'B方案')
-    if (!planA.length || !planB.length) {
-      const single = inferOne(files, categories)
-      single.constraints = `${single.constraints}。AB测试需要A方案和B方案都有素材`.replace(/。。/g, '。')
-      return asSceneJson(single, categories)
-    }
-    return asSceneJson(mergeAb(inferOne(planA, categories), inferOne(planB, categories), files, categories), categories)
-  }
-  return asSceneJson(inferOne(files, categories), categories)
+  if (mode === 'ab') return asSceneJson({ ...inferOne(files, categories, note), constraints: '' }, categories)
+  return asSceneJson(inferOne(files, categories, note), categories)
 }

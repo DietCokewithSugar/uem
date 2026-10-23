@@ -1,4 +1,4 @@
-<!-- 新建体验质检 / AB测试 #/agentTools：上传素材（AB测试分A、B方案） → 提炼业务目标（AB共用） → 选择角色 -->
+<!-- 新建体验质检 / AB方案对比 #/agentTools：上传素材（AB方案对比：A、B方案各 1 张 + 共用补充信息） → 提炼业务目标（AB共用） → 选择角色 -->
 <template>
   <div class="uem-card wizard">
     <div class="wizard-head">
@@ -17,7 +17,7 @@
           <b class="title-v">{{ form.title }}</b>
           <el-icon class="title-edit" @click="beginTitle"><EditPen /></el-icon>
         </template>
-        <el-tag v-if="isAb" size="small" effect="plain" class="ab-tag">AB测试</el-tag>
+        <el-tag v-if="isAb" size="small" effect="plain" class="ab-tag">AB方案对比</el-tag>
       </div>
       <span class="ai-note">AI 仅作为辅助来进行用户体验评估</span>
     </div>
@@ -41,10 +41,10 @@
 
     <template v-else>
       <section v-show="step === 0">
-        <p v-if="isAb" class="zone-hint">A方案、B方案是同一业务场景下的两套 UI 设计，请分别上传；业务场景与目标在下一步只填一份，两套方案共用。每个方案支持 PNG、JPG、JPEG，最多 5 张。</p>
+        <p v-if="isAb" class="zone-hint">A方案、B方案是同一业务场景下的两套 UI 设计，每个方案上传 1 张图片（PNG、JPG、JPEG）；需要说明的内容在下方补充信息中统一填写。业务场景与目标在下一步只填一份，两套方案共用。</p>
         <div class="zones" :class="{ ab: isAb }">
           <div v-for="zone in zones" :key="zone.key" class="zone">
-            <div v-if="zone.title" class="zone-title" :class="zone.key">{{ zone.title }}（{{ zone.files.length }}/5）</div>
+            <div v-if="zone.title" class="zone-title" :class="zone.key">{{ zone.title }}（{{ zone.files.length }}/{{ maxFiles }}）</div>
             <div
               class="drop"
               :class="{ over: overKey === zone.key, filled: zone.files.length }"
@@ -54,29 +54,41 @@
               @drop.prevent="onDrop($event, zone.key)"
             >
               <template v-if="!zone.files.length">
-                <p>支持 PNG、JPG、JPEG格式（最多可上传5张）</p>
+                <p>{{ isAb ? '支持 PNG、JPG、JPEG格式（每个方案上传1张）' : '支持 PNG、JPG、JPEG格式（最多可上传5张）' }}</p>
                 <el-button plain type="primary" @click.stop="choose(zone.key)">点击上传图片</el-button>
               </template>
               <template v-else>
-                <div class="shots" @click.stop>
+                <div class="shots" :class="{ single: isAb }" @click.stop>
                   <div v-for="file in zone.files" :key="file.uid" class="shot">
                     <img :src="file.src" :alt="file.name" />
                     <button type="button" class="shot-x" @click="removeFile(zone.key, file.uid)">×</button>
                     <div class="shot-name" :title="file.name">{{ file.name }}</div>
                   </div>
                 </div>
-                <el-button v-if="zone.files.length < 5" plain type="primary" @click.stop="choose(zone.key)">继续上传</el-button>
+                <el-button v-if="zone.files.length < maxFiles" plain type="primary" @click.stop="choose(zone.key)">继续上传</el-button>
+                <el-button v-else-if="isAb" plain type="primary" @click.stop="choose(zone.key)">更换图片</el-button>
               </template>
             </div>
           </div>
         </div>
-        <input ref="fileInput" class="file-input" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" multiple @change="onPick" />
+        <div v-if="isAb" class="field supplement">
+          <div class="field-label">补充信息<span class="opt">（可选，A、B方案共用）</span></div>
+          <el-input
+            v-model="form.supplement"
+            type="textarea"
+            :rows="4"
+            maxlength="500"
+            show-word-limit
+            placeholder="可用文字补充说明两套方案，如页面名称、所处流程、两套方案的主要区别或需要重点关注的地方"
+          />
+        </div>
+        <input ref="fileInput" class="file-input" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" :multiple="!isAb" @change="onPick" />
       </section>
 
       <section v-show="step === 1" class="goal">
         <div class="ai-banner">
           <b>建议先用ai快速起草场景</b>
-          <p v-if="canExtract">{{ isAb ? '你已上传A方案、B方案素材，可先点击「使用AI提炼场景」。两套方案服务于同一业务场景，系统会合并两套素材提炼一份共用的目标、任务等字段，之后可以手动微调。' : '你已上传素材，可先点击「使用AI提炼场景」，系统会自动生成目标、任务等字段，再手动微调。' }}</p>
+          <p v-if="canExtract">{{ isAb ? '你已上传A方案、B方案素材，可先点击「使用AI提炼场景」。两套方案服务于同一业务场景，系统会结合两套素材和补充信息提炼一份共用的业务目标、任务等字段，之后可以手动微调。' : '你已上传素材，可先点击「使用AI提炼场景」，系统会自动生成目标、任务等字段，再手动微调。' }}</p>
           <p v-else>{{ isAb ? '请先上传A方案和B方案素材，再使用 AI 提炼场景。' : '请先在上一步上传评测素材，再使用 AI 提炼场景。' }}</p>
           <div class="ai-actions">
             <el-button type="primary" plain :loading="extracting" :disabled="!canExtract" @click="applyExtract">使用AI提炼场景</el-button>
@@ -96,10 +108,12 @@
         <div v-for="field in mainFields" :key="field.key" class="field">
           <div class="field-label">{{ field.label }}<span class="req">（必填）</span></div>
           <el-input v-model="form[field.key]" type="textarea" :rows="3" :placeholder="field.placeholder" />
-          <div class="ex-label">推荐示例（可多选）</div>
-          <div class="examples">
-            <button v-for="text in field.examples" :key="text" type="button" class="chip" :class="{ on: hasExample(field.key, text) }" @click="toggleExample(field.key, text)">{{ text }}</button>
-          </div>
+          <template v-if="field.examples.length">
+            <div class="ex-label">推荐示例（可多选）</div>
+            <div class="examples">
+              <button v-for="text in field.examples" :key="text" type="button" class="chip" :class="{ on: hasExample(field.key, text) }" @click="toggleExample(field.key, text)">{{ text }}</button>
+            </div>
+          </template>
         </div>
 
         <button type="button" class="extra-toggle" @click="extraOpen = !extraOpen">
@@ -202,15 +216,28 @@ const isAb = computed(() => route.query.mode === 'ab')
 const stepLabels = computed(() => (isAb.value
   ? ['上传A/B方案', '定义共用业务场景与目标', '选择评测角色']
   : ['上传评测素材', '定义业务场景与目标', '选择评测角色']))
-const mainFields = [
+const standardMainFields = [
   { key: 'businessgoal', label: '评测目标', placeholder: '需要验证什么体验目标？', examples: ['验证新用户能否在 3 分钟内完成首个核心任务', '降低关键流程中的误操作与中途放弃', '提升核心功能的理解效率和操作确定性'] },
   { key: 'keytasks', label: '关键任务流', placeholder: '用户需要完成哪些核心任务？', examples: ['完成注册并进入主流程', '搜索并执行一次核心操作', '异常情况下的修改与重试'] }
 ]
-const extraFields = [
+const standardExtraFields = [
   { key: 'painpoints', label: '用户痛点', placeholder: '当前存在的主要痛点或感受', examples: ['页面信息密度高，关键按钮不够直观', '流程缺少状态反馈，用户不确定是否成功', '异常场景缺少恢复路径，导致任务中断'] },
   { key: 'successcriteria', label: '成功标准', placeholder: '如：完成率≥80%，错误率<5%，平均时长≤3分钟', examples: ['核心任务完成率 ≥ 90%', '关键步骤平均耗时下降 20%', '一级问题数量下降 50%'] },
   { key: 'constraints', label: '约束条件', placeholder: '如：只评估静态界面，不推测未出现的页面和真实性能', examples: [] }
 ]
+// AB方案对比：「评测目标」称为「业务目标」，不设约束条件，也不提供推荐示例
+const mainFields = computed(() => (isAb.value
+  ? standardMainFields.map((field) => ({
+      ...field,
+      ...(field.key === 'businessgoal' ? { label: '业务目标', placeholder: '两套方案共同服务的业务目标是什么？' } : {}),
+      examples: []
+    }))
+  : standardMainFields))
+const extraFields = computed(() => (isAb.value
+  ? standardExtraFields.filter((field) => field.key !== 'constraints').map((field) => ({ ...field, examples: [] }))
+  : standardExtraFields))
+const goalLabel = computed(() => (isAb.value ? '业务目标' : '评测目标'))
+const maxFiles = computed(() => (isAb.value ? 1 : 5))
 
 function shanghaiParts() {
   return new Intl.DateTimeFormat('en-CA', {
@@ -259,7 +286,8 @@ const form = reactive({
   keytasks: '',
   painpoints: '',
   successcriteria: '',
-  constraints: ''
+  constraints: '',
+  supplement: ''
 })
 
 const zones = computed(() => (isAb.value
@@ -273,7 +301,8 @@ const analysisFiles = computed(() => (isAb.value
   : files.value))
 const canExtract = computed(() => (isAb.value ? planAFiles.value.length > 0 && planBFiles.value.length > 0 : files.value.length > 0))
 const promptName = computed(() => fileAnalysisPrompt()?.name || '质检工具（文件分析）')
-const promptPreview = computed(() => buildFileAnalysisPrompt(materialNote(analysisFiles.value)).content)
+const supplementText = computed(() => (isAb.value ? form.supplement.trim() : ''))
+const promptPreview = computed(() => buildFileAnalysisPrompt(materialNote(analysisFiles.value, supplementText.value)).content)
 const categoryOptions = computed(() => {
   const list = categoriesFromPrompt()
   return form.category && !list.includes(form.category) ? [form.category, ...list] : list
@@ -294,12 +323,12 @@ const shownRoles = computed(() => {
   return qcRoles.filter((role) => role.type === '用户画像' && (role.group || '基础型') === roleFilter.value)
 })
 const runSteps = computed(() => (isAb.value
-  ? ['解析A方案（质检工具·AB测试-方案解析）', '解析B方案（质检工具·AB测试-方案解析）', '各角色对比两套方案并作出选择（质检工具·AB测试-角色评估）', '汇总生成综合报告（质检工具·AB测试-综合报告）']
+  ? ['解析A方案（质检工具·AB方案对比-方案解析）', '解析B方案（质检工具·AB方案对比-方案解析）', '各角色对比两套方案并作出选择（质检工具·AB方案对比-角色评估）', '汇总生成综合报告（质检工具·AB方案对比-综合报告）']
   : ['核对业务场景（质检工具·文件分析）', '按体验维度评价（质检工具·ETS维度）', '各角色独立评估', '汇总生成综合报告']))
 const startHint = computed(() => {
   if (step.value < 2) return '请先完成上传和业务目标，并进入选择评测角色'
   if (!canExtract.value) return isAb.value ? '请上传A方案和B方案素材' : '请至少上传 1 张评测素材'
-  if (!form.businessgoal.trim() || !form.keytasks.trim()) return '请填写评测目标和关键任务流'
+  if (!form.businessgoal.trim() || !form.keytasks.trim()) return `请填写${goalLabel.value}和关键任务流`
   if (!selectedIds.value.length) return '请至少选择 1 个评测角色'
   return ''
 })
@@ -355,13 +384,21 @@ async function addFiles(list, target) {
     else if (raw.size > 15 * 1024 * 1024) rejected.push(`「${raw.name}」超过 15MB`)
     else accepted.push(raw)
   })
-  const room = 5 - bucket.value.length
-  if (accepted.length > room) rejected.push(room > 0 ? `最多上传 5 张，已忽略多余的 ${accepted.length - room} 张` : '最多上传 5 张')
+  const limit = maxFiles.value
+  // AB方案对比每个方案只保留 1 张：再次上传视为更换
+  const replace = limit === 1
+  const room = replace ? 1 : limit - bucket.value.length
+  if (accepted.length > room) {
+    if (replace) rejected.push(`每个方案只能上传 1 张图片，已使用「${accepted[0].name}」`)
+    else rejected.push(room > 0 ? `最多上传 ${limit} 张，已忽略多余的 ${accepted.length - room} 张` : `最多上传 ${limit} 张`)
+  }
   for (const raw of accepted.slice(0, Math.max(room, 0))) {
     try {
       const src = await readAsDataURL(raw)
       const { width, height } = await measure(src)
-      bucket.value.push({ uid: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name: raw.name, src, width, height })
+      const file = { uid: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name: raw.name, src, width, height }
+      if (replace) bucket.value = [file]
+      else bucket.value.push(file)
     } catch {
       rejected.push(`「${raw.name}」读取失败`)
     }
@@ -388,10 +425,12 @@ function toggleExample(key, text) {
 }
 async function applyExtract() {
   if (!canExtract.value || extracting.value) return
-  const filled = ['category', 'businessgoal', 'keytasks', 'painpoints', 'successcriteria', 'constraints'].some((key) => String(form[key] || '').trim())
+  const keys = ['category', ...mainFields.value.map((field) => field.key), ...extraFields.value.map((field) => field.key)]
+  const filled = keys.some((key) => String(form[key] || '').trim())
   if (filled) {
     try {
-      await ElMessageBox.confirm('将覆盖当前已填写的产品类型、评测目标和补充信息', '使用AI提炼场景', { type: 'warning', confirmButtonText: '覆盖并提炼', cancelButtonText: '取消' })
+      const labels = ['产品类型', ...mainFields.value.map((field) => field.label), ...extraFields.value.map((field) => field.label)].join('、')
+      await ElMessageBox.confirm(`将覆盖当前已填写的${labels}`, '使用AI提炼场景', { type: 'warning', confirmButtonText: '覆盖并提炼', cancelButtonText: '取消' })
     } catch {
       return
     }
@@ -399,7 +438,8 @@ async function applyExtract() {
   extracting.value = true
   try {
     await sleep(650)
-    Object.assign(form, extractBusinessScene({ files: analysisFiles.value, mode: isAb.value ? 'ab' : 'standard' }))
+    const draft = extractBusinessScene({ files: analysisFiles.value, mode: isAb.value ? 'ab' : 'standard', note: supplementText.value })
+    keys.forEach((key) => { form[key] = draft[key] ?? '' })
     fromPrompt.value = true
     ElMessage.success(`已按「${promptName.value}」生成草稿，请再核对`)
   } finally {
@@ -411,7 +451,7 @@ function prev() {
 }
 function next() {
   if (step.value === 1 && (!form.businessgoal.trim() || !form.keytasks.trim())) {
-    ElMessage.warning('请填写评测目标和关键任务流')
+    ElMessage.warning(`请填写${goalLabel.value}和关键任务流`)
     return
   }
   if (step.value < 2) step.value += 1
@@ -455,7 +495,7 @@ function finishTitle() {
 }
 async function back() {
   if (running.value) return
-  const dirty = analysisFiles.value.length || selectedIds.value.length || ['category', 'businessgoal', 'keytasks', 'painpoints', 'successcriteria', 'constraints'].some((key) => String(form[key] || '').trim())
+  const dirty = analysisFiles.value.length || selectedIds.value.length || ['category', 'businessgoal', 'keytasks', 'painpoints', 'successcriteria', 'constraints', 'supplement'].some((key) => String(form[key] || '').trim())
   if (dirty) {
     try {
       await ElMessageBox.confirm('返回后本次填写的内容不会保存', '提示', { type: 'warning', confirmButtonText: '返回列表', cancelButtonText: '留在本页' })
@@ -474,11 +514,11 @@ async function start() {
     keytasks: form.keytasks.trim(),
     painpoints: form.painpoints.trim(),
     successcriteria: form.successcriteria.trim(),
-    constraints: form.constraints.trim(),
+    ...(isAb.value ? { supplement: supplementText.value } : { constraints: form.constraints.trim() }),
     fromPrompt: fromPrompt.value,
     promptName: promptName.value
   }
-  const scene = [business.category && `产品类型：${business.category}`, `评测目标：${business.businessgoal}`, `关键任务：${business.keytasks}`].filter(Boolean).join('。')
+  const scene = [business.category && `产品类型：${business.category}`, `${goalLabel.value}：${business.businessgoal}`, `关键任务：${business.keytasks}`].filter(Boolean).join('。')
   const roleIds = [...selectedIds.value]
   for (let i = 0; i <= runSteps.value.length; i++) {
     runStep.value = i
@@ -538,6 +578,10 @@ async function start() {
 .shot img { width: 120px; height: 90px; object-fit: cover; border: 1px solid #eee; border-radius: 4px; background: #fff; display: block; }
 .shot-x { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.55); color: #fff; cursor: pointer; line-height: 18px; }
 .shot-name { margin-top: 4px; font-size: 12px; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shots.single { justify-content: center; }
+.shots.single .shot { width: 100%; max-width: 360px; }
+.shots.single .shot img { width: 100%; height: 220px; object-fit: contain; }
+.supplement { margin-top: 20px; }
 .ai-banner { border: 1px solid #f3d4d6; background: #fff8f8; border-radius: 4px; padding: 14px 16px; margin-bottom: 16px; }
 .ai-banner b { display: block; margin-bottom: 6px; color: #333; }
 .ai-banner p { margin: 0 0 12px; color: #666; font-size: 13px; line-height: 1.7; }

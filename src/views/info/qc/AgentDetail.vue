@@ -1,10 +1,10 @@
-<!-- 质检报告详情 #/agentDetail?id=  综合报告 / 各角色报告；AB测试报告对比同一业务场景下A方案、B方案两套设计 -->
+<!-- 质检报告详情 #/agentDetail?id=  综合报告 / 各角色报告；AB方案对比报告对比同一业务场景下A方案、B方案两套设计 -->
 <template>
   <div v-if="report" class="uem-card detail">
     <div class="head">
       <div class="title-line">
         <b class="title">{{ report.title }}</b>
-        <el-tag v-if="isAb" size="small" effect="plain" class="ab-tag">AB测试</el-tag>
+        <el-tag v-if="isAb" size="small" effect="plain" class="ab-tag">AB方案对比</el-tag>
         <span class="time">{{ report.createTime }}</span>
       </div>
       <div class="actions">
@@ -43,8 +43,8 @@
       </div>
     </section>
 
-    <section v-if="businessRows.length" class="box">
-      <b class="with-tag">业务场景与目标<el-tag v-if="isAb" size="small" type="info" effect="plain">A、B方案共用</el-tag></b>
+    <section v-if="!isAb && businessRows.length" class="box">
+      <b>业务场景与目标</b>
       <p class="from">{{ businessSource }}</p>
       <div class="biz">
         <template v-for="row in businessRows" :key="row[0]">
@@ -152,31 +152,25 @@
     </template>
 
     <template v-else-if="roleView">
-      <div class="two">
-        <section class="box">
-          <b class="with-tag">执行摘要<span class="plan" :class="planCls(roleView.choice)">选择{{ planLabel(roleView.choice) }}</span></b>
-          <p v-for="(p, i) in summaryParas" :key="i">{{ p }}</p>
-        </section>
-        <section class="box">
-          <b class="with-tag">角色视角分析<span class="plan" :class="planCls(roleView.choice)">选择{{ planLabel(roleView.choice) }}</span></b>
-          <p>{{ roleView.perspective }}</p>
-        </section>
-      </div>
+      <section class="box">
+        <b class="with-tag">对比结论<span class="plan" :class="planCls(roleView.choice)">选择{{ planLabel(roleView.choice) }}</span></b>
+        <p>{{ roleView.conclusion }}</p>
+      </section>
 
       <section class="box">
         <div class="box-head"><b>可见差异</b><span class="count">共 {{ roleView.differences?.length || 0 }} 处</span></div>
-        <p class="note">该角色注意到的差异：两套方案各是怎样的、该角色分别怎么看、最终倾向哪一套以及原因。</p>
-        <div v-for="d in roleView.differences || []" :key="d.key" class="diff">
-          <div class="diff-head"><b>{{ d.location }}</b><span class="plan" :class="planCls(d.choice)">倾向{{ planLabel(d.choice) }}</span></div>
-          <div class="diff-grid">
-            <div v-for="key in PLAN_KEYS" :key="key" class="diff-side" :class="[planCls(key), { chosen: d.choice === key }]">
-              <span class="plan" :class="planCls(key)">{{ planLabel(key) }}</span>
-              <p class="design">{{ key === 'A' ? d.a : d.b }}</p>
-              <p class="view"><span>用户视角：</span>{{ key === 'A' ? d.aview : d.bview }}</p>
-            </div>
-          </div>
-          <p class="reason"><span>选择原因：</span>{{ d.reason }}</p>
-        </div>
+        <p class="note">该角色注意到的差异，以及在每一处倾向哪套方案、为什么。</p>
+        <el-table :data="roleView.differences || []" class="issue-table" empty-text="暂无差异">
+          <el-table-column label="位置" width="150">
+            <template #default="{ row }"><b class="loc">{{ row.location }}</b><div class="codes">{{ (row.codes || []).map(etsLabel).join('、') }}</div></template>
+          </el-table-column>
+          <el-table-column prop="a" label="A方案" min-width="170" />
+          <el-table-column prop="b" label="B方案" min-width="170" />
+          <el-table-column label="角色倾向" width="110">
+            <template #default="{ row }"><span class="plan" :class="planCls(row.choice)">{{ planLabel(row.choice) }}</span></template>
+          </el-table-column>
+          <el-table-column prop="reason" label="选择原因" min-width="240" />
+        </el-table>
       </section>
     </template>
 
@@ -186,12 +180,12 @@
         <p class="lead">{{ dimLead }}</p>
         <div v-for="dim in abDimDiffs" :key="dim.name" class="dim-diff">
           <div class="dim-diff-head">
-            <b>{{ dim.code }}. {{ dim.name }}</b>
-            <span class="count">{{ dim.items.length }} 条细则有差异<template v-if="tab === 'all' && dim.roles"> · {{ dim.roles }} 个角色涉及</template></span>
+            <b>{{ dim.name }}</b>
+            <span class="count">{{ dim.items.length }} 项指标有差异<template v-if="tab === 'all' && dim.roles"> · {{ dim.roles }} 个角色涉及</template></span>
           </div>
           <div v-for="item in dim.items" :key="item.code" class="crit">
-            <div class="crit-head"><b>{{ item.code }} {{ item.name }}</b><span class="plan" :class="planCls(item.better)">{{ planLabel(item.better) }}更符合</span></div>
-            <p class="crit-desc">细则：{{ item.desc }}</p>
+            <div class="crit-head"><b>{{ item.name }}</b><span class="plan" :class="planCls(item.better)">{{ planLabel(item.better) }}更符合</span></div>
+            <p class="crit-desc">指标含义：{{ item.desc }}</p>
             <p class="crit-side"><span class="plan a">A方案</span>{{ item.a }}</p>
             <p class="crit-side"><span class="plan b">B方案</span>{{ item.b }}</p>
           </div>
@@ -200,25 +194,22 @@
       </section>
 
       <section v-if="tab === 'all'" class="box">
-        <div class="box-head"><b>优化建议</b><span class="count">共 {{ suggestionCount }} 条</span></div>
-        <p class="note">按 ETS 维度归纳各角色针对差异提出的优化建议。</p>
-        <div v-for="g in report.suggestions || []" :key="g.dimension" class="sug-group">
-          <div class="sug-dim">{{ g.dimension }}</div>
-          <div v-for="(s, i) in g.items" :key="i" class="sug">
-            <div class="sug-head"><b>{{ s.location }}</b><span class="code">{{ etsLabel(s.code) }}</span></div>
-            <p>{{ s.text }}</p>
-            <p class="roles">提出角色：{{ (s.roles || []).join('、') }}</p>
-          </div>
-        </div>
+        <div class="box-head"><b>优化建议</b><span class="count">共 {{ report.suggestions?.length || 0 }} 条</span></div>
+        <p class="note">汇总各角色提出的优化建议。</p>
+        <el-table :data="report.suggestions || []" class="issue-table" empty-text="暂无建议">
+          <el-table-column label="提出角色" width="140">
+            <template #default="{ row }">{{ (row.roles || []).join('、') }}</template>
+          </el-table-column>
+          <el-table-column prop="location" label="位置" width="150" />
+          <el-table-column prop="text" label="优化建议" min-width="260" />
+          <el-table-column prop="reason" label="理由" min-width="200" />
+        </el-table>
       </section>
       <section v-else class="box">
         <div class="box-head"><b>优化建议</b><span class="count">共 {{ roleView.suggestions?.length || 0 }} 条</span></div>
-        <p class="note">针对两套方案的差异，给出取长补短的优化建议。</p>
+        <p class="note">从该角色的需求和期待出发给出整体建议，不局限于两套方案之间的差异。</p>
         <el-table :data="roleView.suggestions || []" class="issue-table" empty-text="暂无建议">
-          <el-table-column prop="location" label="差异位置" width="150" />
-          <el-table-column label="ETS细则" width="150">
-            <template #default="{ row }">{{ etsLabel(row.code) }}</template>
-          </el-table-column>
+          <el-table-column prop="location" label="位置" width="150" />
           <el-table-column prop="text" label="优化建议" min-width="260" />
           <el-table-column prop="reason" label="理由" min-width="200" />
         </el-table>
@@ -286,11 +277,10 @@ const abDimDiffs = computed(() => (tab.value === 'all' ? report.value?.dimension
 const dimLead = computed(() => {
   const names = abDimDiffs.value.map((dim) => dim.name)
   if (!names.length) return 'A、B方案在 ETS 八个维度上未发现可见差异。'
-  if (tab.value !== 'all') return `${roleName(tab.value)}注意到的差异涉及${names.join('、')} ${names.length} 个维度，以下只展示有差异的细则。`
+  if (tab.value !== 'all') return `${roleName(tab.value)}注意到的差异涉及${names.join('、')} ${names.length} 个维度，以下只展示有差异的指标。`
   const same = report.value?.sameDimensions || []
-  return `A、B方案在${names.join('、')} ${names.length} 个维度存在差异${same.length ? `；${same.join('、')}未发现可见差异` : ''}。以下按维度归纳有差异的细则。`
+  return `A、B方案在${names.join('、')} ${names.length} 个维度存在差异${same.length ? `；${same.join('、')}未发现可见差异` : ''}。以下按维度归纳有差异的指标。`
 })
-const suggestionCount = computed(() => (report.value?.suggestions || []).reduce((sum, g) => sum + (g.items?.length || 0), 0))
 
 const showMaterial = ref(true)
 const issuePage = ref(1)
@@ -308,21 +298,20 @@ const esc = (s) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<'
 
 function abExportBody() {
   const r = report.value
-  const dims = `<h2>维度差异（基于ETS维度进行分析）</h2><p>${esc(dimLead.value)}</p>${abDimDiffs.value.map((dim) => `<h3>${esc(dim.code)}. ${esc(dim.name)}</h3><ul>${dim.items.map((item) => `<li>${esc(item.code)} ${esc(item.name)}（${esc(planLabel(item.better))}更符合）<br>细则：${esc(item.desc)}<br>A方案：${esc(item.a)}<br>B方案：${esc(item.b)}</li>`).join('')}</ul>${tab.value === 'all' && dim.conclusion ? `<p>归纳：${esc(dim.conclusion)}</p>` : ''}`).join('')}`
+  const dims = `<h2>维度差异（基于ETS维度进行分析）</h2><p>${esc(dimLead.value)}</p>${abDimDiffs.value.map((dim) => `<h3>${esc(dim.name)}</h3><ul>${dim.items.map((item) => `<li>${esc(item.name)}（${esc(planLabel(item.better))}更符合）<br>指标含义：${esc(item.desc)}<br>A方案：${esc(item.a)}<br>B方案：${esc(item.b)}</li>`).join('')}</ul>${tab.value === 'all' && dim.conclusion ? `<p>归纳：${esc(dim.conclusion)}</p>` : ''}`).join('')}`
   if (tab.value === 'all') {
     const voteLine = PLAN_KEYS.map((key) => `选择${planLabel(key)} ${votes.value[key].length} 人：${esc(votes.value[key].map(roleName).join('、') || '无')}`).join('<br>')
     return `<h2>总结</h2><p>${voteLine}</p>${summaryParas.value.map((p) => `<p>${esc(p)}</p>`).join('')}
 <h2>可见差异</h2><ol>${(r.differences || []).map((d) => `<li>${esc(d.location)}<br>A方案：${esc(d.a)}<br>B方案：${esc(d.b)}<br>角色倾向：A方案 ${d.votes?.A || 0} 人，B方案 ${d.votes?.B || 0} 人<br>归纳：${esc(d.conclusion)}</li>`).join('')}</ol>
 ${dims}
-<h2>优化建议</h2>${(r.suggestions || []).map((g) => `<h3>${esc(g.dimension)}</h3><ol>${g.items.map((s) => `<li>${esc(s.location)}（${esc(etsLabel(s.code))}）：${esc(s.text)}<br>提出角色：${esc((s.roles || []).join('、'))}</li>`).join('')}</ol>`).join('')}`
+<h2>优化建议</h2><ol>${(r.suggestions || []).map((s) => `<li>${esc(s.location)}：${esc(s.text)}<br>理由：${esc(s.reason)}<br>提出角色：${esc((s.roles || []).join('、'))}</li>`).join('')}</ol>`
   }
   const v = roleView.value || {}
   const choice = `选择${planLabel(v.choice)}`
-  return `<h2>执行摘要（${esc(choice)}）</h2>${summaryParas.value.map((p) => `<p>${esc(p)}</p>`).join('')}
-<h2>角色视角分析</h2><p>${esc(v.perspective)}</p>
-<h2>可见差异</h2><ol>${(v.differences || []).map((d) => `<li>${esc(d.location)}（倾向${esc(planLabel(d.choice))}）<br>A方案：${esc(d.a)}<br>用户视角：${esc(d.aview)}<br>B方案：${esc(d.b)}<br>用户视角：${esc(d.bview)}<br>选择原因：${esc(d.reason)}</li>`).join('')}</ol>
+  return `<h2>对比结论（${esc(choice)}）</h2><p>${esc(v.conclusion)}</p>
+<h2>可见差异</h2><ol>${(v.differences || []).map((d) => `<li>${esc(d.location)}<br>A方案：${esc(d.a)}<br>B方案：${esc(d.b)}<br>角色倾向：${esc(planLabel(d.choice))}<br>选择原因：${esc(d.reason)}</li>`).join('')}</ol>
 ${dims}
-<h2>优化建议</h2><ol>${(v.suggestions || []).map((s) => `<li>${esc(s.location)}（${esc(etsLabel(s.code))}）：${esc(s.text)}<br>理由：${esc(s.reason)}</li>`).join('')}</ol>`
+<h2>优化建议</h2><ol>${(v.suggestions || []).map((s) => `<li>${esc(s.location)}：${esc(s.text)}<br>理由：${esc(s.reason)}</li>`).join('')}</ol>`
 }
 
 function standardExportBody() {
@@ -339,11 +328,11 @@ ${side}
 function exportDoc() {
   const r = report.value
   const heading = tab.value === 'all' ? '综合报告' : roleName(tab.value)
-  const biz = businessRows.value.length
-    ? `<h2>业务场景与目标${isAb.value ? '（A、B方案共用）' : ''}</h2><p>${esc(businessSource.value)}</p><ul>${businessRows.value.map(([k, v]) => `<li>${esc(k)}：${esc(v)}</li>`).join('')}</ul>`
+  const biz = !isAb.value && businessRows.value.length
+    ? `<h2>业务场景与目标</h2><p>${esc(businessSource.value)}</p><ul>${businessRows.value.map(([k, v]) => `<li>${esc(k)}：${esc(v)}</li>`).join('')}</ul>`
     : ''
   const html = `<html><head><meta charset="utf-8"><title>${esc(r.title)}</title></head><body>
-<h1>${esc(r.title)}${isAb.value ? '（AB测试）' : ''}</h1><p>${esc(r.createTime)}　${esc(heading)}　AI 仅作为辅助来进行用户体验评价</p>
+<h1>${esc(r.title)}${isAb.value ? '（AB方案对比）' : ''}</h1><p>${esc(r.createTime)}　${esc(heading)}　AI 仅作为辅助来进行用户体验评价</p>
 ${biz}
 ${isAb.value ? abExportBody() : standardExportBody()}
 </body></html>`
@@ -404,7 +393,7 @@ ${isAb.value ? abExportBody() : standardExportBody()}
 .issue-table :deep(.cell) { white-space: normal; line-height: 1.6; }
 .pager { margin-top: 12px; justify-content: flex-end; }
 
-/* AB测试：A方案蓝、B方案橙，两者并列，不代表先后或好坏 */
+/* AB方案对比：A方案蓝、B方案橙，两者并列，不代表先后或好坏 */
 .plan { display: inline-block; flex: none; padding: 0 8px; border-radius: 10px; font-size: 12px; line-height: 20px; font-weight: 500; white-space: nowrap; }
 .plan.a { color: #2f6fde; background: #eef3fd; }
 .plan.b { color: #d46b08; background: #fff4e6; }
@@ -422,17 +411,7 @@ ${isAb.value ? abExportBody() : standardExportBody()}
 .loc { color: #333; }
 .codes { color: #999; font-size: 12px; }
 .lean { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.diff { border: 1px solid #f0f0f0; border-radius: 4px; padding: 12px 14px; margin-top: 12px; }
-.diff-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-.diff-head b { color: #333; font-size: 14px; }
-.diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.diff-side { border: 1px solid #f0f0f0; border-radius: 4px; padding: 10px 12px; background: #fafafa; }
-.diff-side.chosen.a { border-color: #b7cdf5; background: #f6f9fe; }
-.diff-side.chosen.b { border-color: #f5d2a8; background: #fffaf3; }
-.diff-side .design { margin: 6px 0; color: #333; }
-.diff-side .view { margin: 0; }
-.diff-side .view span, .reason span, .dim-sum span { color: #888; }
-.reason { margin: 10px 0 0 !important; }
+.dim-sum span { color: #888; }
 .ets-note { font-size: 12px; font-weight: normal; color: #999; }
 .lead { color: #333; }
 .dim-diff { border: 1px solid #f0f0f0; border-radius: 4px; padding: 12px 14px; margin-top: 12px; }
@@ -444,15 +423,7 @@ ${isAb.value ? abExportBody() : standardExportBody()}
 .crit-desc { color: #999; font-size: 12px; margin: 2px 0 6px !important; }
 .crit-side { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 4px !important; }
 .dim-sum { margin: 10px 0 0 !important; }
-.sug-group { margin-top: 12px; }
-.sug-dim { color: #333; font-weight: 600; padding-left: 8px; border-left: 3px solid var(--uem-red); line-height: 1.4; }
-.sug { margin-top: 8px; padding: 8px 12px; border: 1px solid #f0f0f0; border-radius: 4px; }
-.sug-head { display: flex; align-items: center; gap: 8px; }
-.sug-head b { color: #333; }
-.sug .code { color: #999; font-size: 12px; }
-.sug p { margin: 4px 0 0; }
-.sug .roles { color: #888; font-size: 12px; }
 @media (max-width: 1100px) {
-  .two, .dims, .plan-materials, .diff-grid { grid-template-columns: 1fr; }
+  .two, .dims, .plan-materials { grid-template-columns: 1fr; }
 }
 </style>
