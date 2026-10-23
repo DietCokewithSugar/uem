@@ -32,6 +32,17 @@
       </div>
     </section>
 
+    <section v-if="businessRows.length" class="box">
+      <b>业务场景与目标</b>
+      <p class="from">{{ businessSource }}</p>
+      <div class="biz">
+        <template v-for="row in businessRows" :key="row[0]">
+          <span>{{ row[0] }}</span>
+          <p>{{ row[1] }}</p>
+        </template>
+      </div>
+    </section>
+
     <div class="two">
       <section class="box">
         <b>执行摘要</b>
@@ -140,6 +151,23 @@ const route = useRoute()
 const router = useRouter()
 const report = computed(() => qcReports.find((r) => r.id === route.query.id))
 const isAb = computed(() => report.value?.type === 'ab')
+const businessRows = computed(() => {
+  const business = report.value?.business
+  if (!business) return []
+  return [
+    ['产品类型', business.category],
+    ['评测目标', business.businessgoal],
+    ['关键任务流', business.keytasks],
+    ['用户痛点', business.painpoints],
+    ['成功标准', business.successcriteria],
+    ['约束条件', business.constraints]
+  ].filter(([, value]) => value)
+})
+const businessSource = computed(() => {
+  const business = report.value?.business
+  if (!business) return ''
+  return business.fromPrompt ? `由提示词「${business.promptName || '质检工具（文件分析）'}」提炼，提交前可修改` : '人工填写'
+})
 const roleName = (id) => qcRoles.find((r) => r.id === Number(id))?.name || '已删除角色'
 
 const tab = ref('all')
@@ -202,8 +230,12 @@ function exportDoc() {
   const improves = tab.value === 'all' && isAb.value
     ? `<h2>改版改善</h2><ul>${(r.improvements || []).map((d) => `<li>${esc(d.location)}：${esc(d.description)}对用户的价值：${esc(d.uservalue)}</li>`).join('')}</ul>`
     : ''
+  const biz = businessRows.value.length
+    ? `<h2>业务场景与目标</h2><p>${esc(businessSource.value)}</p><ul>${businessRows.value.map(([k, v]) => `<li>${esc(k)}：${esc(v)}</li>`).join('')}</ul>`
+    : ''
   const html = `<html><head><meta charset="utf-8"><title>${esc(r.title)}</title></head><body>
 <h1>${esc(r.title)}</h1><p>${esc(r.createTime)}　${esc(heading)}　AI 仅作为辅助来进行用户体验评价</p>
+${biz}
 <h2>执行摘要</h2>${summaryParas.value.map((p) => `<p>${esc(p)}</p>`).join('')}
 ${side}${diffs}
 <h2>维度详细解读</h2>${dims.map((d) => `<h3>${esc(d.name)}${d.change ? `（${esc(d.change)}）` : ''}</h3><p>${esc(d.text)}</p>`).join('')}
@@ -232,6 +264,10 @@ ${improves}
 .box { border: 1px solid #eee; border-radius: 4px; padding: 16px 20px; margin-bottom: 16px; font-size: 13px; color: #555; line-height: 1.8; }
 .box > b, .box-head > b { color: #333; font-size: 14px; display: block; margin-bottom: 8px; }
 .box p { margin: 0 0 8px; }
+.from { color: #999; font-size: 12px; }
+.biz { display: grid; grid-template-columns: 88px 1fr; gap: 8px 12px; margin-top: 8px; }
+.biz span { color: #888; }
+.biz p { margin: 0; }
 .box-head { display: flex; justify-content: space-between; align-items: center; }
 .box-head > b { margin-bottom: 0; }
 .with-icon { display: inline-flex; align-items: center; gap: 4px; }

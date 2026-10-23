@@ -3,8 +3,8 @@
   <div class="uem-card">
     <div class="top">
       <div class="uem-toolbar">
-        <el-button type="primary" @click="openCreate('standard')">新增</el-button>
-        <el-button plain type="primary" @click="openCreate('ab')">AB对比</el-button>
+        <el-button type="primary" @click="goCreate('standard')">新增</el-button>
+        <el-button plain type="primary" @click="goCreate('ab')">AB对比</el-button>
         <el-button plain type="primary" @click="refresh">刷新</el-button>
       </div>
       <el-input v-model="keyword" placeholder="请输入搜索关键词" clearable class="search" @input="page = 1">
@@ -39,7 +39,6 @@
       :total="filtered.length"
     />
 
-    <AgentCreateDialog v-model="createVisible" :mode="createMode" @created="onCreated" />
   </div>
 </template>
 
@@ -48,7 +47,6 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ScreenThumb from '@/components/ScreenThumb.vue'
-import AgentCreateDialog from './AgentCreateDialog.vue'
 import { qcReports, nowText } from '@/mock/qc'
 
 const router = useRouter()
@@ -66,17 +64,7 @@ const refresh = () => {
   setTimeout(() => (loading.value = false), 400)
 }
 
-const createVisible = ref(false)
-const createMode = ref('standard')
-const openCreate = (mode) => {
-  createMode.value = mode
-  createVisible.value = true
-}
-function onCreated(r) {
-  qcReports.unshift(r)
-  page.value = 1
-  view(r)
-}
+const goCreate = (mode) => router.push({ path: '/agentTools', query: { mode } })
 
 async function edit(r) {
   const { value } = await ElMessageBox.prompt('报告名称', '编辑报告', { inputValue: r.title, inputValidator: (v) => !!v?.trim() || '请输入报告名称' })

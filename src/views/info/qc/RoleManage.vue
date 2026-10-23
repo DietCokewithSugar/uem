@@ -23,6 +23,11 @@
         <el-form-item label="角色类型" prop="type">
           <el-radio-group v-model="draft.type"><el-radio value="专家角色">专家角色</el-radio><el-radio value="用户画像">用户画像</el-radio></el-radio-group>
         </el-form-item>
+        <el-form-item v-if="draft.type === '用户画像'" label="所属分组">
+          <el-select v-model="draft.group" style="width: 100%">
+            <el-option v-for="group in userRoleGroups" :key="group" :label="group" :value="group" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="角色设定" prop="desc">
           <el-input v-model="draft.desc" type="textarea" :rows="5" placeholder="描述该角色的背景、关注点与评估视角，将作为智能体评估时的角色提示词" />
         </el-form-item>
@@ -38,7 +43,7 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { qcRoles } from '@/mock/qc'
+import { qcRoles, userRoleGroups } from '@/mock/qc'
 import { currentUser } from '@/config/user'
 
 const page = ref(1)
@@ -52,14 +57,18 @@ const rules = { name: [{ required: true, message: '请输入角色名称' }], ty
 
 function open(row) {
   editing.value = row || null
-  Object.assign(draft, row ? { name: row.name, type: row.type, desc: row.desc } : { name: '', type: '用户画像', desc: '' })
+  Object.assign(draft, row
+    ? { name: row.name, type: row.type, desc: row.desc, group: row.group && row.group !== '专家角色' ? row.group : '基础型' }
+    : { name: '', type: '用户画像', desc: '', group: '基础型' })
   dialog.value = true
 }
 async function save() {
   if (!(await formRef.value.validate().catch(() => false))) return
   const meta = { updateTime: new Date().toISOString().slice(0, 10), updater: currentUser.name }
-  if (editing.value) Object.assign(editing.value, draft, meta)
-  else qcRoles.unshift({ ...draft, ...meta, id: Math.max(...qcRoles.map((r) => r.id)) + 1 })
+  const group = draft.type === '专家角色' ? '专家角色' : (draft.group || '基础型')
+  const roleClass = draft.type === '专家角色' ? '专家' : (editing.value?.roleClass || '普通用户')
+  if (editing.value) Object.assign(editing.value, draft, { group, roleClass }, meta)
+  else qcRoles.unshift({ ...draft, group, roleClass, portrait: [], traits: [], mine: false, ...meta, id: Math.max(...qcRoles.map((r) => r.id)) + 1 })
   dialog.value = false
   ElMessage.success('保存成功')
 }

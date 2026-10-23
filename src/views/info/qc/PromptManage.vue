@@ -13,16 +13,17 @@
     </el-table>
     <el-pagination class="pager" layout="total, prev, pager, next" :total="qcPrompts.length" />
 
-    <el-dialog v-model="dialog" :title="`修改提示词：${editing?.name}`" width="760px">
-      <el-form label-width="90px">
-        <el-form-item label="字数控制"><el-input-number v-model="draft.limit" :min="500" :max="50000" :step="500" /></el-form-item>
-        <el-form-item label="提示词内容">
-          <el-input v-model="draft.content" type="textarea" :rows="12" :maxlength="draft.limit" show-word-limit />
+    <el-dialog v-model="dialog" title="模型提示词修改" width="820px">
+      <el-form ref="formRef" :model="draft" :rules="rules" label-width="140px">
+        <el-form-item label="提示词名称：">{{ editing?.name }}</el-form-item>
+        <el-form-item label="提示词字数控制：" prop="limit"><el-input-number v-model="draft.limit" :min="500" :max="50000" :step="500" /></el-form-item>
+        <el-form-item label="提示词内容：" prop="content">
+          <el-input v-model="draft.content" type="textarea" :rows="16" :maxlength="draft.limit" show-word-limit />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialog = false">取消</el-button>
-        <el-button type="primary" @click="save">保存</el-button>
+        <el-button type="primary" @click="save">确定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -36,13 +37,20 @@ import { currentUser } from '@/config/user'
 
 const dialog = ref(false)
 const editing = ref(null)
+const formRef = ref()
 const draft = reactive({ content: '', limit: 10000 })
+const rules = {
+  limit: [{ required: true, message: '请输入字数控制' }],
+  content: [{ required: true, message: '请输入提示词内容' }]
+}
 function open(row) {
   editing.value = row
   Object.assign(draft, { content: row.content, limit: row.limit })
   dialog.value = true
 }
-function save() {
+async function save() {
+  if (!(await formRef.value.validate().catch(() => false))) return
+  if (draft.content.length > draft.limit) return ElMessage.warning('提示词内容超过字数控制')
   Object.assign(editing.value, draft, { updateTime: new Date().toISOString().slice(0, 10), updater: currentUser.name })
   dialog.value = false
   ElMessage.success('保存成功，新提示词将用于后续质检')
