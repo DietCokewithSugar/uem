@@ -136,17 +136,17 @@
         <div class="box-head"><b>可见差异</b><span class="count">共 {{ report.differences?.length || 0 }} 处</span></div>
         <p class="note">汇总各角色对每一处差异的倾向，并归纳原因。</p>
         <el-table :data="report.differences || []" class="issue-table" empty-text="暂无差异">
-          <el-table-column label="位置" width="150">
+          <el-table-column label="位置" min-width="200">
             <template #default="{ row }"><b class="loc">{{ row.location }}</b><div class="codes">{{ (row.codes || []).map(etsLabel).join('、') }}</div></template>
           </el-table-column>
           <el-table-column prop="a" label="A方案" min-width="170" />
           <el-table-column prop="b" label="B方案" min-width="170" />
-          <el-table-column label="角色倾向" width="120">
+          <el-table-column label="角色倾向" width="128">
             <template #default="{ row }">
               <div class="lean"><span v-for="key in PLAN_KEYS" :key="key" class="plan" :class="[planCls(key), { zero: !row.votes?.[key] }]">{{ planLabel(key) }} {{ row.votes?.[key] || 0 }}人</span></div>
             </template>
           </el-table-column>
-          <el-table-column prop="conclusion" label="归纳" min-width="240" />
+          <el-table-column prop="conclusion" label="归纳" min-width="220" />
         </el-table>
       </section>
     </template>
@@ -161,15 +161,15 @@
         <div class="box-head"><b>可见差异</b><span class="count">共 {{ roleView.differences?.length || 0 }} 处</span></div>
         <p class="note">该角色注意到的差异，以及在每一处倾向哪套方案、为什么。</p>
         <el-table :data="roleView.differences || []" class="issue-table" empty-text="暂无差异">
-          <el-table-column label="位置" width="150">
+          <el-table-column label="位置" min-width="210">
             <template #default="{ row }"><b class="loc">{{ row.location }}</b><div class="codes">{{ (row.codes || []).map(etsLabel).join('、') }}</div></template>
           </el-table-column>
           <el-table-column prop="a" label="A方案" min-width="170" />
           <el-table-column prop="b" label="B方案" min-width="170" />
-          <el-table-column label="角色倾向" width="110">
+          <el-table-column label="角色倾向" width="116">
             <template #default="{ row }"><span class="plan" :class="planCls(row.choice)">{{ planLabel(row.choice) }}</span></template>
           </el-table-column>
-          <el-table-column prop="reason" label="选择原因" min-width="240" />
+          <el-table-column prop="reason" label="选择原因" min-width="210" />
         </el-table>
       </section>
     </template>
@@ -197,10 +197,10 @@
         <div class="box-head"><b>优化建议</b><span class="count">共 {{ report.suggestions?.length || 0 }} 条</span></div>
         <p class="note">汇总各角色提出的优化建议。</p>
         <el-table :data="report.suggestions || []" class="issue-table" empty-text="暂无建议">
-          <el-table-column label="提出角色" width="140">
+          <el-table-column label="提出角色" min-width="180">
             <template #default="{ row }">{{ (row.roles || []).join('、') }}</template>
           </el-table-column>
-          <el-table-column prop="location" label="位置" width="150" />
+          <el-table-column prop="location" label="位置" min-width="210" />
           <el-table-column prop="text" label="优化建议" min-width="260" />
           <el-table-column prop="reason" label="理由" min-width="200" />
         </el-table>
@@ -209,9 +209,9 @@
         <div class="box-head"><b>优化建议</b><span class="count">共 {{ roleView.suggestions?.length || 0 }} 条</span></div>
         <p class="note">从该角色的需求和期待出发给出整体建议，不局限于两套方案之间的差异。</p>
         <el-table :data="roleView.suggestions || []" class="issue-table" empty-text="暂无建议">
-          <el-table-column prop="location" label="位置" width="150" />
-          <el-table-column prop="text" label="优化建议" min-width="260" />
-          <el-table-column prop="reason" label="理由" min-width="200" />
+          <el-table-column prop="location" label="位置" min-width="210" />
+          <el-table-column prop="text" label="优化建议" min-width="280" />
+          <el-table-column prop="reason" label="理由" min-width="220" />
         </el-table>
       </section>
     </template>
