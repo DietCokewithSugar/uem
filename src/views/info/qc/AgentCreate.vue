@@ -17,7 +17,7 @@
           <b class="title-v">{{ form.title }}</b>
           <el-icon class="title-edit" @click="beginTitle"><EditPen /></el-icon>
         </template>
-        <el-tag v-if="isAb" size="small" effect="plain" class="ab-tag">AB对比</el-tag>
+        <el-tag v-if="isAb" size="small" effect="plain" class="ab-tag">对比修改前后</el-tag>
       </div>
       <span class="ai-note">AI 仅作为辅助来进行用户体验评估</span>
     </div>

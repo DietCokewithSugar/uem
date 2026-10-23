@@ -4,7 +4,7 @@
     <div class="head">
       <div class="title-line">
         <b class="title">{{ report.title }}</b>
-        <el-tag v-if="isAb" size="small" effect="plain" class="ab-tag">AB对比</el-tag>
+        <el-tag v-if="isAb" size="small" effect="plain" class="ab-tag">对比修改前后</el-tag>
         <span class="time">{{ report.createTime }}</span>
       </div>
       <div class="actions">

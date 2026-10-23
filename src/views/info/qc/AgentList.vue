@@ -2,21 +2,31 @@
 <template>
   <div class="uem-card">
     <div class="top">
-      <div class="uem-toolbar">
-        <el-button type="primary" @click="goCreate('standard')">新增</el-button>
-        <el-button plain type="primary" @click="goCreate('ab')">AB对比</el-button>
-        <el-button plain type="primary" @click="refresh">刷新</el-button>
+      <div class="tasks">
+        <div class="task">
+          <el-button type="primary" @click="goCreate('standard')">评测这一版</el-button>
+          <p>上传一版界面，看用户会卡在哪里</p>
+        </div>
+        <div class="task">
+          <el-button plain type="primary" @click="goCreate('ab')">对比修改前后</el-button>
+          <p>上传两版设计，看改动要不要保留</p>
+        </div>
       </div>
-      <el-input v-model="keyword" placeholder="请输入搜索关键词" clearable class="search" @input="page = 1">
-        <template #suffix><el-icon><Search /></el-icon></template>
-      </el-input>
+      <div class="tools">
+        <el-input v-model="keyword" placeholder="搜索报告名称" clearable class="search" @input="page = 1">
+          <template #suffix><el-icon><Search /></el-icon></template>
+        </el-input>
+        <el-tooltip content="刷新列表" placement="top">
+          <el-button plain aria-label="刷新列表" @click="refresh"><el-icon><Refresh /></el-icon></el-button>
+        </el-tooltip>
+      </div>
     </div>
 
     <div v-loading="loading" class="grid">
       <div v-for="r in pageItems" :key="r.id" class="card">
         <div class="thumb" @click="view(r)"><ScreenThumb :material="r.materials[0]" /></div>
         <div class="title">
-          <el-tag v-if="r.type === 'ab'" size="small" effect="plain" class="ab-tag">AB对比</el-tag>
+          <el-tag v-if="r.type === 'ab'" size="small" effect="plain" class="ab-tag">对比</el-tag>
           {{ r.title }}
         </div>
         <div class="time">{{ r.createTime }}<template v-if="r.verdict"> · {{ r.verdict }}</template></div>
@@ -30,7 +40,7 @@
         </div>
       </div>
     </div>
-    <el-empty v-if="!filtered.length" description="暂无报告" />
+    <el-empty v-if="!filtered.length" :description="keyword ? '没有找到相关报告' : '还没有报告'" />
     <el-pagination
       v-model:current-page="page"
       class="pager"
@@ -83,7 +93,10 @@ async function remove(r) {
 </script>
 
 <style scoped>
-.top { display: flex; justify-content: space-between; align-items: flex-start; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+.tasks { display: flex; gap: 28px; flex-wrap: wrap; }
+.task p { margin: 8px 0 0; max-width: 240px; font-size: 12px; line-height: 1.5; color: #999; }
+.tools { display: flex; align-items: center; gap: 8px; flex: none; }
 .search { width: 220px; }
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .card { border: 1px solid #eee; border-radius: 4px; padding: 12px; background: #fff; }
@@ -96,4 +109,8 @@ async function remove(r) {
 .links a:hover { text-decoration: underline; }
 .pager { margin-top: 20px; justify-content: flex-end; }
 @media (max-width: 1280px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 960px) {
+  .top { flex-direction: column; }
+  .tools, .search { width: 100%; }
+}
 </style>
