@@ -21,7 +21,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { qcReports, qcRoles, averageScore } from '@/mock/qc'
+import { qcReports, qcRoles, averageScore, abVoteText } from '@/mock/qc'
 import { exportCsv } from '@/components/exportCsv'
 
 const range = ref([])
@@ -30,23 +30,30 @@ const byRole = computed(() => {
   const m = {}
   list.value.forEach((r) =>
     r.roleIds.forEach((id) => {
-      const x = (m[id] ||= { role: qcRoles.find((q) => q.id === id)?.name || `角色${id}`, count: 0, sum: 0 })
+      const x = (m[id] ||= { role: qcRoles.find((q) => q.id === id)?.name || `角色${id}`, count: 0, scored: 0, sum: 0 })
       x.count++
-      x.sum += r.roleViews[id]?.score || averageScore(r.dimensions) || 0
+      // AB测试报告只记录角色在A、B方案间的选择，不打分，不计入平均评分
+      const score = r.type === 'ab' ? null : r.roleViews[id]?.score || averageScore(r.dimensions)
+      if (typeof score === 'number') {
+        x.scored++
+        x.sum += score
+      }
     })
   )
-  return Object.values(m).map((x) => ({ ...x, avg: (x.sum / x.count).toFixed(2) })).sort((a, b) => b.count - a.count)
+  return Object.values(m).map((x) => ({ ...x, avg: x.scored ? (x.sum / x.scored).toFixed(2) : '—' })).sort((a, b) => b.count - a.count)
 })
 
 function download() {
   exportCsv('质检智能体统计', [
-    { prop: 'title', label: '报告名称' }, { prop: 'createTime', label: '创建时间' }, { prop: 'creator', label: '创建人' },
-    { prop: 'roles', label: '评估角色' }, { prop: 'avg', label: '维度平均分' }, { prop: 'issues', label: '待优化点数' }
+    { prop: 'title', label: '报告名称' }, { prop: 'kind', label: '报告类型' }, { prop: 'createTime', label: '创建时间' }, { prop: 'creator', label: '创建人' },
+    { prop: 'roles', label: '评估角色' }, { prop: 'avg', label: '维度平均分' }, { prop: 'votes', label: 'AB测试选择' }, { prop: 'issues', label: '待优化点数' }
   ], list.value.map((r) => ({
     ...r,
     roles: r.roleIds.map((id) => qcRoles.find((q) => q.id === id)?.name).join('、'),
+    kind: r.type === 'ab' ? 'AB测试' : '单场景质检',
     avg: averageScore(r.dimensions)?.toFixed(2) || '—',
-    issues: r.issues.length
+    votes: r.type === 'ab' ? abVoteText(r) : '—',
+    issues: r.type === 'ab' ? (r.suggestions || []).reduce((sum, g) => sum + (g.items?.length || 0), 0) : (r.issues || []).length
   })))
 }
 </script>

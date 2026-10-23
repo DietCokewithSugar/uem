@@ -1,4 +1,4 @@
-<!-- 新建体验质检 / AB对比 #/agentTools：上传素材 → 提炼业务目标 → 选择角色 -->
+<!-- 新建体验质检 / AB测试 #/agentTools：上传素材（AB测试分A、B方案） → 提炼业务目标（AB共用） → 选择角色 -->
 <template>
   <div class="uem-card wizard">
     <div class="wizard-head">
@@ -17,7 +17,7 @@
           <b class="title-v">{{ form.title }}</b>
           <el-icon class="title-edit" @click="beginTitle"><EditPen /></el-icon>
         </template>
-        <el-tag v-if="isAb" size="small" effect="plain" class="ab-tag">对比修改前后</el-tag>
+        <el-tag v-if="isAb" size="small" effect="plain" class="ab-tag">AB测试</el-tag>
       </div>
       <span class="ai-note">AI 仅作为辅助来进行用户体验评估</span>
     </div>
@@ -41,7 +41,7 @@
 
     <template v-else>
       <section v-show="step === 0">
-        <p v-if="isAb" class="zone-hint">请按任务顺序分别上传修改前、修改后。每一侧支持 PNG、JPG、JPEG，最多 5 张。</p>
+        <p v-if="isAb" class="zone-hint">A方案、B方案是同一业务场景下的两套 UI 设计，请分别上传；业务场景与目标在下一步只填一份，两套方案共用。每个方案支持 PNG、JPG、JPEG，最多 5 张。</p>
         <div class="zones" :class="{ ab: isAb }">
           <div v-for="zone in zones" :key="zone.key" class="zone">
             <div v-if="zone.title" class="zone-title" :class="zone.key">{{ zone.title }}（{{ zone.files.length }}/5）</div>
@@ -76,8 +76,8 @@
       <section v-show="step === 1" class="goal">
         <div class="ai-banner">
           <b>建议先用ai快速起草场景</b>
-          <p v-if="canExtract">{{ isAb ? '你已上传修改前、修改后素材，可先点击「使用AI提炼场景」。系统会按同一提示词分别看两版，再合并成目标、任务等字段，之后可以手动微调。' : '你已上传素材，可先点击「使用AI提炼场景」，系统会自动生成目标、任务等字段，再手动微调。' }}</p>
-          <p v-else>{{ isAb ? '请先上传修改前和修改后素材，再使用 AI 提炼场景。' : '请先在上一步上传评测素材，再使用 AI 提炼场景。' }}</p>
+          <p v-if="canExtract">{{ isAb ? '你已上传A方案、B方案素材，可先点击「使用AI提炼场景」。两套方案服务于同一业务场景，系统会合并两套素材提炼一份共用的目标、任务等字段，之后可以手动微调。' : '你已上传素材，可先点击「使用AI提炼场景」，系统会自动生成目标、任务等字段，再手动微调。' }}</p>
+          <p v-else>{{ isAb ? '请先上传A方案和B方案素材，再使用 AI 提炼场景。' : '请先在上一步上传评测素材，再使用 AI 提炼场景。' }}</p>
           <div class="ai-actions">
             <el-button type="primary" plain :loading="extracting" :disabled="!canExtract" @click="applyExtract">使用AI提炼场景</el-button>
             <el-button link type="primary" @click="promptVisible = true">查看本次提示词</el-button>
@@ -199,7 +199,9 @@ import { currentUser } from '@/config/user'
 const route = useRoute()
 const router = useRouter()
 const isAb = computed(() => route.query.mode === 'ab')
-const stepLabels = ['上传评测素材', '定义业务场景与目标', '选择评测角色']
+const stepLabels = computed(() => (isAb.value
+  ? ['上传A/B方案', '定义共用业务场景与目标', '选择评测角色']
+  : ['上传评测素材', '定义业务场景与目标', '选择评测角色']))
 const mainFields = [
   { key: 'businessgoal', label: '评测目标', placeholder: '需要验证什么体验目标？', examples: ['验证新用户能否在 3 分钟内完成首个核心任务', '降低关键流程中的误操作与中途放弃', '提升核心功能的理解效率和操作确定性'] },
   { key: 'keytasks', label: '关键任务流', placeholder: '用户需要完成哪些核心任务？', examples: ['完成注册并进入主流程', '搜索并执行一次核心操作', '异常情况下的修改与重试'] }
@@ -248,8 +250,8 @@ const detailVisible = computed({
   set: (open) => { if (!open) detailRole.value = null }
 })
 const files = ref([])
-const beforeFiles = ref([])
-const afterFiles = ref([])
+const planAFiles = ref([])
+const planBFiles = ref([])
 const form = reactive({
   title: `体验质检智能体报告${reportDate()}`,
   category: '',
@@ -262,14 +264,14 @@ const form = reactive({
 
 const zones = computed(() => (isAb.value
   ? [
-      { key: 'before', title: '修改前', files: beforeFiles.value },
-      { key: 'after', title: '修改后', files: afterFiles.value }
+      { key: 'a', title: 'A方案', files: planAFiles.value },
+      { key: 'b', title: 'B方案', files: planBFiles.value }
     ]
   : [{ key: 'standard', title: '', files: files.value }]))
 const analysisFiles = computed(() => (isAb.value
-  ? [...beforeFiles.value.map((file) => ({ ...file, version: '修改前' })), ...afterFiles.value.map((file) => ({ ...file, version: '修改后' }))]
+  ? [...planAFiles.value.map((file) => ({ ...file, version: 'A方案' })), ...planBFiles.value.map((file) => ({ ...file, version: 'B方案' }))]
   : files.value))
-const canExtract = computed(() => (isAb.value ? beforeFiles.value.length > 0 && afterFiles.value.length > 0 : files.value.length > 0))
+const canExtract = computed(() => (isAb.value ? planAFiles.value.length > 0 && planBFiles.value.length > 0 : files.value.length > 0))
 const promptName = computed(() => fileAnalysisPrompt()?.name || '质检工具（文件分析）')
 const promptPreview = computed(() => buildFileAnalysisPrompt(materialNote(analysisFiles.value)).content)
 const categoryOptions = computed(() => {
@@ -292,11 +294,11 @@ const shownRoles = computed(() => {
   return qcRoles.filter((role) => role.type === '用户画像' && (role.group || '基础型') === roleFilter.value)
 })
 const runSteps = computed(() => (isAb.value
-  ? ['逐张解析修改前（质检工具·AB对比-单图场景）', '逐张解析修改后（质检工具·AB对比-单图场景）', '生成对比结论（质检工具·AB对比-对比报告）', '汇总生成 AB 对比报告']
+  ? ['解析A方案（质检工具·AB测试-方案解析）', '解析B方案（质检工具·AB测试-方案解析）', '各角色对比两套方案并作出选择（质检工具·AB测试-角色评估）', '汇总生成综合报告（质检工具·AB测试-综合报告）']
   : ['核对业务场景（质检工具·文件分析）', '按体验维度评价（质检工具·ETS维度）', '各角色独立评估', '汇总生成综合报告']))
 const startHint = computed(() => {
   if (step.value < 2) return '请先完成上传和业务目标，并进入选择评测角色'
-  if (!canExtract.value) return isAb.value ? '请上传修改前和修改后素材' : '请至少上传 1 张评测素材'
+  if (!canExtract.value) return isAb.value ? '请上传A方案和B方案素材' : '请至少上传 1 张评测素材'
   if (!form.businessgoal.trim() || !form.keytasks.trim()) return '请填写评测目标和关键任务流'
   if (!selectedIds.value.length) return '请至少选择 1 个评测角色'
   return ''
@@ -307,8 +309,8 @@ let pickTarget = 'standard'
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function bucketOf(target) {
-  if (target === 'before') return beforeFiles
-  if (target === 'after') return afterFiles
+  if (target === 'a') return planAFiles
+  if (target === 'b') return planBFiles
   return files
 }
 function choose(target) {
@@ -488,9 +490,7 @@ async function start() {
         roleIds,
         scene,
         business,
-        materials: analysisFiles.value.map((file) => ({ src: file.src, name: file.name, version: file.version })),
-        before: beforeFiles.value[0] ? { src: beforeFiles.value[0].src, name: beforeFiles.value[0].name } : null,
-        after: afterFiles.value[0] ? { src: afterFiles.value[0].src, name: afterFiles.value[0].name } : null
+        materials: analysisFiles.value.map((file) => ({ src: file.src, name: file.name, version: file.version }))
       })
     : generateReport({
         title: form.title,
@@ -527,7 +527,8 @@ async function start() {
 .zone-hint { margin: 0 0 12px; color: #888; font-size: 13px; }
 .zones.ab { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .zone-title { margin-bottom: 8px; font-size: 14px; color: #666; }
-.zone-title.after { color: var(--uem-red); }
+.zone-title.a { color: #2f6fde; }
+.zone-title.b { color: #d46b08; }
 .drop { min-height: 320px; border: 1px dashed #dcdfe6; border-radius: 4px; background: #fafafa; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #999; text-align: center; padding: 24px; }
 .drop.over { border-color: var(--uem-red); background: #fff7f7; }
 .drop.filled { justify-content: flex-start; }
