@@ -3,11 +3,11 @@
   <div class="uem-card">
     <div class="top">
       <el-dropdown trigger="click" @command="goCreate">
-        <el-button type="primary">评测<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
+        <el-button type="primary">新增<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item command="standard">单场景质检</el-dropdown-item>
-            <el-dropdown-item command="ab">AB测试</el-dropdown-item>
+            <el-dropdown-item command="ab">AB方案对比</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -25,7 +25,7 @@
       <div v-for="r in pageItems" :key="r.id" class="card">
         <div class="thumb" @click="view(r)"><ScreenThumb :material="r.materials[0]" /></div>
         <div class="title">
-          <el-tag v-if="r.type === 'ab'" size="small" effect="plain" class="ab-tag">AB测试</el-tag>
+          <el-tag v-if="r.type === 'ab'" size="small" effect="plain" class="ab-tag">AB方案对比</el-tag>
           {{ r.title }}
         </div>
         <div class="time">{{ r.createTime }}</div>

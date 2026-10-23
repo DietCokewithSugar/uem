@@ -62,7 +62,7 @@ export const qcRoles = reactive([
 ])
 
 // ===== ETS 八维度细则 =====
-// AB 测试的「维度差异」按细则编号定位差异，提示词中也引用同一份细则。
+// AB方案对比的「维度差异」按细则编号定位差异，提示词中也引用同一份细则。
 export const ETS = [
   ['功能流程', [
     ['1.1', '功能完善性', '功能完善、流程闭环，可以满足使用需求；功能设计简洁、简单易理解，无冗余感；功能异常或错误时，流程完整闭环。'],
@@ -160,14 +160,15 @@ export const qcPrompts = reactive([
     content: '针对每个评估维度输出详细解读：现状描述、对用户的影响、优化建议。按维度得分从低到高排序，优先展示问题最突出的维度。'
   },
   {
-    id: 7, name: '质检工具（AB测试-方案解析）', updateTime: '2026-10-23', updater: currentUser.name, limit: 10000,
-    // 生成 AB 报告前，A方案、B方案各调用一次。%s 替换为步骤二确认的共用业务场景与目标。
+    id: 7, name: '质检工具（AB方案对比-方案解析）', updateTime: '2026-10-23', updater: currentUser.name, limit: 10000,
+    // 生成 AB 报告前，A方案、B方案各调用一次。%s 依次替换为步骤一填写的补充信息、步骤二确认的共用业务场景与目标。
     content: `你是资深体验研究员。A方案和B方案是同一业务场景下的两套UI设计，二者共用同一个业务需求，是并列的备选方案，不是修改前和修改后，也不存在先后或基线关系。
 本次只解析其中一套方案的设计图，方案标记只能是A方案或B方案。
 
+两套方案共用的补充信息：%s
 共用业务场景与目标：%s
 
-请对照共用的评测目标和关键任务流，逐张记录：页面名称、画面上能确认的任务步骤、关键元素及其位置、主要信息与文案、敏感信息的展示方式、运营内容的位置和大小。
+请对照共用的业务目标和关键任务流，逐张记录：页面名称、画面上能确认的任务步骤、关键元素及其位置、主要信息与文案、敏感信息的展示方式、运营内容的位置和大小。
 只描述画面上看得到的内容，看不全的流程不要编造；不要评价好坏，也不要和另一套方案比较。
 输出要求：所有字段使用简体中文。
 
@@ -178,7 +179,7 @@ export const qcPrompts = reactive([
 }`
   },
   {
-    id: 8, name: '质检工具（AB测试-角色评估）', updateTime: '2026-10-23', updater: currentUser.name, limit: 20000,
+    id: 8, name: '质检工具（AB方案对比-角色评估）', updateTime: '2026-10-23', updater: currentUser.name, limit: 20000,
     // 每个评测角色调用一次。%s 依次替换为角色设定、共用业务场景、A方案和B方案的解析结果。
     content: `你是用户体验评测师，请代入以下评测角色：%s
 
@@ -187,13 +188,12 @@ A方案和B方案是同一业务场景下的两套UI设计，共用同一个业�
 A方案解析结果：%s
 B方案解析结果：%s
 
-请站在该角色的立场，对照共用的评测目标和关键任务流完成以下内容：
+请站在该角色的立场，对照共用的业务目标和关键任务流完成以下内容：
 1. 选择：该角色最终会选择A方案还是B方案，只能二选一。
-2. 执行摘要：用2-3句话说明该角色完成任务时两套方案的主要区别，以及最终选择。
-3. 视角分析：用该角色的第一人称口吻，说明会选哪一套方案、为什么。
-4. 可见差异：逐条列出两套方案在画面上看得到的差异。每条写清差异位置、A方案是怎样的、B方案是怎样的、该角色看A方案的感受（A方案用户视角）、看B方案的感受（B方案用户视角）、在这一处会选哪一套方案以及原因。单处差异的选择可以与最终选择不同。
-5. 维度差异：基于下方ETS八维度细则分析。只输出两套方案存在差异的维度，没有差异的维度不要罗列；每个维度要落到具体细则编号，说明A方案、B方案在该细则上的表现，以及哪一套方案更符合细则。系统性能基于静态设计图无法比较，不输出。
-6. 优化建议：只针对上面的差异提出优化建议，写清对应的差异位置和ETS细则编号。可以建议保留某一套方案的做法，或融合两套方案的优点。
+2. 对比结论：用一段话说明该角色完成任务时两套方案的主要区别、最终选择哪一套以及原因，可以引用该角色的切身感受，不超过200字。
+3. 可见差异：逐条列出两套方案在画面上看得到的差异。每条写清位置、A方案是怎样的、B方案是怎样的、该角色在这一处倾向哪一套方案，以及选择原因。单处差异的倾向可以与最终选择不同。
+4. 维度差异：基于下方ETS八维度细则分析。只输出两套方案存在差异的维度，没有差异的维度不要罗列；每个维度要落到具体指标，说明A方案、B方案在该指标上的表现，以及哪一套方案更符合指标含义。系统性能基于静态设计图无法比较，不输出。
+5. 优化建议：不必局限于A方案、B方案的差异，从该角色的需求和期待出发，给出整体的优化建议。每条写清位置、建议内容和理由。
 
 ETS八维度细则：
 ${etsCriteriaText}
@@ -201,23 +201,22 @@ ${etsCriteriaText}
 请只返回标准合法json格式，不要多余文字：
 {
 "choice":"A方案或B方案",
-"summary":"",
-"perspective":"",
-"differences":[{"location":"","a":"","b":"","aview":"","bview":"","choice":"A方案或B方案","reason":""}],
+"conclusion":"",
+"differences":[{"location":"","a":"","b":"","choice":"A方案或B方案","reason":""}],
 "dimensiondiffs":[{"dimension":"","items":[{"code":"","a":"","b":"","better":"A方案或B方案"}]}],
-"suggestions":[{"location":"","code":"","suggestion":"","reason":""}]
+"suggestions":[{"location":"","suggestion":"","reason":""}]
 }`
   },
   {
-    id: 9, name: '质检工具（AB测试-综合报告）', updateTime: '2026-10-23', updater: currentUser.name, limit: 20000,
-    // 所有角色评估完成后调用一次。%s 替换为各角色「AB测试-角色评估」的 JSON 结果数组。
+    id: 9, name: '质检工具（AB方案对比-综合报告）', updateTime: '2026-10-23', updater: currentUser.name, limit: 20000,
+    // 所有角色评估完成后调用一次。%s 替换为各角色「AB方案对比-角色评估」的 JSON 结果数组。优化建议不经模型归纳，由系统直接汇总各角色的建议。
     content: `你是用户体验评测师。以下是多个评测角色对同一业务场景下A方案、B方案两套UI设计的评估结果：%s
 
 A方案和B方案是并列的备选方案，不是修改前和修改后。请做总结归纳，不要逐条复述各角色原文，不要输出问题清单和问题严重级别：
 1. 总结：统计选择A方案、选择B方案的角色数量和名称，用一段话综述两类角色各自看重什么，不超过150字。
 2. 可见差异：合并各角色提到的同一处差异。每处写清差异位置、A方案是怎样的、B方案是怎样的、倾向A方案和倾向B方案的角色数，并归纳角色选择背后的共性原因。
-3. 维度差异：基于下方ETS八维度细则，先列出存在差异的维度名称，再逐个维度归纳到具体细则编号，说明A方案、B方案的表现和更符合细则的方案。没有差异的维度不展开，只列在samedimensions中。
-4. 优化建议：按ETS维度分组，归纳针对差异的优化建议，合并相同建议并注明涉及的角色。
+3. 维度差异：基于下方ETS八维度细则，先列出存在差异的维度名称，再逐个维度归纳到具体指标，说明A方案、B方案的表现和更符合指标含义的方案。没有差异的维度不展开，只列在samedimensions中。
+优化建议不需要输出，系统会直接汇总各角色的优化建议。
 
 ETS八维度细则：
 ${etsCriteriaText}
@@ -228,8 +227,7 @@ ${etsCriteriaText}
 "summary":"",
 "differences":[{"location":"","a":"","b":"","choosea":0,"chooseb":0,"conclusion":""}],
 "dimensiondiffs":[{"dimension":"","items":[{"code":"","a":"","b":"","better":"A方案或B方案"}],"conclusion":""}],
-"samedimensions":[],
-"suggestions":[{"dimension":"","items":[{"location":"","code":"","suggestion":"","roles":[]}]}]
+"samedimensions":[]
 }`
   }
 ])
@@ -373,9 +371,10 @@ function hashText(text) {
   return h >>> 0
 }
 
-// ===== AB 测试 =====
+// ===== AB方案对比 =====
 // A方案、B方案是同一业务场景下的两套 UI 设计，共用一份业务需求，是并列的备选方案，不是修改前后的先后关系。
-// 每个角色在两套方案中二选一；报告只展示存在差异的 ETS 维度和细则，并给出针对差异的优化建议。
+// 每个角色在两套方案中二选一；报告只展示存在差异的 ETS 维度和指标。
+// 优化建议由各角色从自身需求和期待出发给出，不局限于两套方案的差异；综合报告直接汇总各角色的建议。
 export const PLAN_KEYS = ['A', 'B']
 export const planLabel = (key) => `${key}方案`
 
@@ -423,36 +422,32 @@ function dimConclusion(dim) {
     : `${dim.name}有 ${dim.items.length} 条细则存在差异：${list}。两套方案各有长处，可融合各自更合适的做法。`
 }
 
-function mergeSuggestions(roles, roleViews) {
-  const groups = new Map()
+// 综合报告的优化建议：按角色顺序直接汇总各角色的建议，不再另行归纳；位置和内容完全相同的建议合并为一条并列出提出角色。
+function collectSuggestions(roles, roleViews) {
+  const rows = []
   roles.forEach((role) => (roleViews[role.id]?.suggestions || []).forEach((s) => {
-    const dim = etsItem(s.code)?.dimension
-    if (!dim) return
-    if (!groups.has(dim)) groups.set(dim, new Map())
-    const key = `${s.location}|${s.code}`
-    const group = groups.get(dim)
-    if (!group.has(key)) group.set(key, { location: s.location, code: s.code, text: s.text, roles: [] })
-    group.get(key).roles.push(role.name)
+    const same = rows.find((row) => row.location === s.location && row.text === s.text)
+    if (same) same.roles.push(role.name)
+    else rows.push({ location: s.location, text: s.text, reason: s.reason, roles: [role.name] })
   }))
-  return ETS.filter((dim) => groups.has(dim.name)).map((dim) => ({ dimension: dim.name, items: [...groups.get(dim.name).values()].sort(byCode) }))
+  return rows
 }
 
-// diffs：两套方案的可见差异；specs：各角色的选择与视角；其余为综合页的归纳文字（缺省时自动生成）。
-function assembleAb({ roles, diffs, criteria, specs, conclusions = {}, dimConclusions = {}, suggestions, summary }) {
+// diffs：两套方案的可见差异；specs：各角色的选择、对比结论、各处倾向与优化建议；其余为综合页的归纳文字（缺省时自动生成）。
+function assembleAb({ roles, diffs, criteria, specs, conclusions = {}, dimConclusions = {}, summary }) {
   const diffMap = Object.fromEntries(diffs.map((d) => [d.key, d]))
   const roleViews = Object.fromEntries(roles.filter((role) => specs[role.id]).map((role) => {
     const spec = specs[role.id]
     const differences = spec.views.filter((v) => diffMap[v.key]).map((v) => {
       const d = diffMap[v.key]
-      return { key: v.key, location: d.location, a: d.a, b: d.b, aview: v.aview, bview: v.bview, choice: v.choice, reason: v.reason }
+      return { key: v.key, location: d.location, a: d.a, b: d.b, codes: d.codes, choice: v.choice, reason: v.reason }
     })
     return [role.id, {
       choice: spec.choice,
-      summary: spec.summary,
-      perspective: spec.perspective,
+      conclusion: spec.conclusion,
       differences,
-      dimensionDiffs: groupDimDiffs(differences.flatMap((v) => diffMap[v.key].codes), criteria),
-      suggestions: spec.suggestions.map((s) => ({ location: diffMap[s.key]?.location || s.location, code: s.code, text: s.text, reason: s.reason }))
+      dimensionDiffs: groupDimDiffs(differences.flatMap((v) => v.codes), criteria),
+      suggestions: spec.suggestions.map((s) => ({ location: s.location, text: s.text, reason: s.reason }))
     }]
   }))
   const views = Object.values(roleViews)
@@ -473,7 +468,7 @@ function assembleAb({ roles, diffs, criteria, specs, conclusions = {}, dimConclu
     differences,
     dimensionDiffs,
     sameDimensions,
-    suggestions: suggestions || mergeSuggestions(roles, roleViews),
+    suggestions: collectSuggestions(roles, roleViews),
     summary: summary || abSummary(roles, roleViews)
   }
 }
@@ -499,12 +494,12 @@ function abSummary(roles, roleViews) {
 
 // ----- 演示报告：个人手机银行「我的账户」页的 A/B 两套设计 -----
 const showAbBusiness = {
+  supplement: '个人手机银行「我的账户」页。A方案沿用卡片列表，常用功能收在卡片菜单里；B方案增加总资产、首屏常用入口和余额掩码',
   category: '移动App',
   businessgoal: '验证用户能否看清名下资金，并继续完成转账或查看明细',
   keytasks: '查看余额或总资产；找到转账入口；打开明细核对最近一笔变动',
   painpoints: '余额、卡号若默认完整露出，旁边有人时不放心；常用下一步若藏在菜单里，查完还要再找一层',
   successcriteria: '查账和常用下一步能在首屏识别；敏感数字默认不是完整露出',
-  constraints: 'A、B方案服务于同一业务场景，共用以上目标和任务，只比较两套设计在画面上可见的差异。不推测限额、到账时间等未出现的规则',
   fromPrompt: true,
   promptName: '质检工具（文件分析）'
 }
@@ -531,88 +526,86 @@ const showAbCriteria = {
 const showAbSpecs = {
   2: {
     choice: 'B',
-    summary: '陈同学最常做的是查完余额顺手转账。B方案把转账固定在首屏，余额和卡号默认遮挡，在宿舍、食堂这类有人的场合更放心；A方案信息直接，但每次转账都要多点一层菜单。底部理财横幅是B方案唯一让他不满的地方。综合判断，陈同学选择B方案。',
-    perspective: '我选B方案。我打开账户基本就是看一眼余额然后转账，B方案转账就在首屏，一下就点到了；余额默认藏起来，同学在旁边也看不到。下面那块理财广告有点占地方，要是能关掉就更好了。',
+    conclusion: '陈同学选择B方案。他打开账户页基本是看一眼余额就转账，B方案把转账固定在首屏，一下就能点到，A方案每次都要多点一层“更多”菜单；B方案的余额和卡号默认遮挡，在宿舍、食堂这类有人的场合更放心，眼睛图标他一看就会用。B方案唯一让他不满的是底部理财横幅，和查账无关，占着首屏又不能关闭。',
     views: [
-      { key: 'quick', aview: '查完余额还要点开“更多”才能转账，每次都多一步，有点烦。', bview: '转账就在首屏，点一下就进去，跟我常用的支付App习惯一样。', choice: 'B', reason: '转账是他最高频的下一步，B方案少一次点击。' },
-      { key: 'balance', aview: '余额一直亮着，在食堂排队时打开手机，别人也能看到。', bview: '默认是星号，想看时点一下眼睛就行，这个图标我认识。', choice: 'B', reason: '他熟悉眼睛图标，掩码没有增加理解成本，却能保护隐私。' },
-      { key: 'banner', aview: '页面很干净，打开就是我的卡。', bview: '底部一大块理财广告，我只是想看余额，还要先划过它。', choice: 'A', reason: '横幅和查账无关，占了首屏位置。' }
+      { key: 'quick', choice: 'B', reason: '转账是他查完余额后最常做的事，B方案在首屏一步进入，少点一次菜单。' },
+      { key: 'balance', choice: 'B', reason: '他熟悉眼睛图标，余额掩码没有增加理解成本，却能防止旁人看到。' },
+      { key: 'banner', choice: 'A', reason: '理财横幅和查账无关，还占了首屏位置，A方案打开就是自己的卡。' }
     ],
     suggestions: [
-      { key: 'banner', code: '8.1', text: '理财横幅增加关闭按钮，或移到全部账户列表之后，首屏只保留总资产和常用入口。', reason: '保留B方案的首屏效率，同时去掉与查账无关的干扰。' },
-      { key: 'quick', code: '3.3', text: '保留B方案首屏固定的转账、收支明细入口，并支持用户自定义一个常用功能。', reason: '高频用户希望一步直达，自定义可以覆盖更多习惯。' }
+      { location: '首屏常用功能', text: '把转账、收支明细等高频操作放在首屏，并支持自定义一个常用功能，查完余额可以一步办下一件事。', reason: '他打开账户页的目的很明确，希望少点一层、快点办完。' },
+      { location: '敏感信息', text: '余额、卡号默认遮挡，并记住用户上次选择的显示或隐藏状态。', reason: '在有人的场合他不想被看到，又不想每次进来都重新点开。' },
+      { location: '运营推荐位', text: '推荐内容放在账户信息之后并提供关闭按钮，关闭后一段时间内不再出现。', reason: '只想查账时被无关内容挡住，会让他觉得拖沓。' }
     ]
   },
   106: {
     choice: 'A',
-    summary: '王阿姨打开账户页只想确认钱在不在、有多少。A方案余额直接显示，她一眼就能看懂；B方案余额变成星号，她不认识眼睛图标，会以为余额没加载出来，理财横幅也让她分心。卡号掩码她认可，但不足以抵消看不懂的部分。王阿姨选择A方案。',
-    perspective: '我选A方案。我就是想看看卡里有多少钱，A方案数字直接摆在那儿，我放心。B方案一进去全是星号，那个小眼睛我不认识，也不敢乱点；下面的广告颜色那么亮，我还以为是要我买东西。卡号藏起几位倒是好的。',
+    conclusion: '王阿姨选择A方案。她打开账户页只想确认钱在不在、有多少，A方案余额直接写着，一眼就能看懂；B方案一进去全是星号，她不认识眼睛图标，以为余额没加载出来，也不敢乱点，“昨日收益”和颜色很亮的理财横幅还让她担心是不是要买东西。B方案把卡号中间几位藏起来，她很认可，但不足以抵消看不懂的部分。',
     views: [
-      { key: 'balance', aview: '余额直接写着，我一看就知道有多少钱。', bview: '一排星号，我以为钱没显示出来，小眼睛也不知道能点。', choice: 'A', reason: '图标没有文字说明，她无法自己找到查看余额的方法。' },
-      { key: 'asset', aview: '一张卡一张卡地看，跟存折差不多，我看得懂。', bview: '上面多了总资产和昨日收益，收益是什么钱我不清楚。', choice: 'A', reason: '“昨日收益”没有解释，让她担心钱发生了变化。' },
-      { key: 'cardno', aview: '卡号全露着，我平时常让孙子帮我看手机，有点不放心。', bview: '卡号中间藏起来了，别人看不全，这个好。', choice: 'B', reason: '她对安全敏感，卡号掩码不影响她要办的事。' },
-      { key: 'banner', aview: '没有广告，页面清清楚楚。', bview: '下面那块颜色很亮，我第一眼先看到它，还以为要我买理财。', choice: 'A', reason: '横幅颜色比账户信息更醒目，分散她的注意力。' }
+      { key: 'balance', choice: 'A', reason: '眼睛图标没有文字说明，她无法自己找到查看余额的方法，A方案直接显示更放心。' },
+      { key: 'asset', choice: 'A', reason: '“昨日收益”没有解释，让她担心钱发生了变化；A方案一张卡一张卡地看，跟存折一样好懂。' },
+      { key: 'cardno', choice: 'B', reason: '她常让家人帮忙看手机，对安全敏感，卡号掩码不影响她要办的事。' },
+      { key: 'banner', choice: 'A', reason: '横幅颜色比账户信息更醒目，她第一眼先看到广告，还以为要她买理财。' }
     ],
     suggestions: [
-      { key: 'balance', code: '3.1', text: '若采用余额掩码，在眼睛图标旁加上“显示余额 / 隐藏余额”文字，并让两种状态样式明显不同；长辈版可默认显示余额。', reason: '保留B方案的隐私保护，同时消除不会操作图标的顾虑。' },
-      { key: 'asset', code: '2.2', text: '“昨日收益”旁用一句话写明统计范围，如“理财产品昨日收益，不含存款利息”。', reason: '看不懂的数字会让长辈怀疑资金出了问题。' },
-      { key: 'banner', code: '6.1', text: '理财横幅降低色彩饱和度，放到账户列表之后。', reason: '把视觉重点还给余额和卡片。' }
+      { location: '余额展示', text: '余额的显示和隐藏用文字按钮说明，如“显示余额 / 隐藏余额”；长辈版默认直接显示余额。', reason: '她要一眼确认钱在不在，看不懂的图标会让她以为页面出了问题。' },
+      { location: '数字与术语', text: '页面上的每个金额都用一句话写明是什么钱，“昨日收益”等术语附上解释，未持有理财时不显示。', reason: '看不懂的数字会让她担心资金发生了变化。' },
+      { location: '页面整体', text: '加大余额、卡号等关键信息的字号，去掉颜色抢眼的广告，页面只保留和账户有关的内容。', reason: '页面越简单清楚，她越敢自己操作，不用每次都找家人帮忙。' }
     ]
   },
   3: {
     choice: 'B',
-    summary: '孙女士常在碎片时间单手查看宝宝卡和工资卡。B方案的总资产让她一眼掌握家里的钱，转账固定在首屏，也省得单手找菜单；A方案要展开卡片菜单，单手操作不方便。她希望B方案的横幅往后放，但整体仍选择B方案。',
-    perspective: '我选B方案。我经常一只手抱孩子一只手看手机，B方案上面就有总资产，几张卡加起来多少钱一下就知道，转账也不用再点“更多”。就是下面那个推荐可以放后面一点，我想先把每张卡看完。',
+    conclusion: '孙女士选择B方案。她常在碎片时间一手抱孩子一手看手机，B方案顶部的总资产让她不用自己心算几张卡加起来有多少，转账、明细放在首屏中间，单手也能点到；A方案要先点卡片右上角的“更多”，大拇指不太够得着。她希望B方案的理财横幅往后放，先让她把每张卡看完。',
     views: [
-      { key: 'asset', aview: '要一张张看，再自己算加起来是多少。', bview: '总资产直接写着，家里的钱一眼就清楚。', choice: 'B', reason: '她管理多张卡，总资产汇总省去心算。' },
-      { key: 'quick', aview: '单手要先点卡片右上角的“更多”，大拇指不太够得着。', bview: '转账、明细就在中间，单手也能点到。', choice: 'B', reason: '首屏入口更适合单手、碎片化的操作。' },
-      { key: 'banner', aview: '卡片列表一屏就能看完。', bview: '横幅挤占了位置，要多滑一下才能看到最后一张卡。', choice: 'A', reason: '横幅把账户列表挤到了下一屏。' }
+      { key: 'asset', choice: 'B', reason: '她管理宝宝卡、工资卡等多张卡，总资产汇总省去心算，家里的钱一眼就清楚。' },
+      { key: 'quick', choice: 'B', reason: '首屏入口在屏幕中间，适合单手、碎片化的操作。' },
+      { key: 'banner', choice: 'A', reason: '横幅把账户列表挤到了下一屏，要多滑一下才能看到最后一张卡。' }
     ],
     suggestions: [
-      { key: 'quick', code: '1.2', text: '保留B方案的首屏常用入口，并放在单手拇指容易触达的区域。', reason: '兼顾效率和单手操作。' },
-      { key: 'banner', code: '8.1', text: '名下有多张卡的用户，把理财横幅移到账户列表之后。', reason: '先让用户看全自己的账户，再展示推荐。' }
+      { location: '页头资产区', text: '顶部汇总名下全部账户的资金，并支持按宝宝卡、工资卡等分别查看。', reason: '她要同时照看家里几张卡，希望不用自己心算。' },
+      { location: '常用功能入口', text: '转账、明细等常用入口放在单手拇指容易点到的区域。', reason: '她常在抱孩子时单手操作，入口太高或藏得太深都不方便。' },
+      { location: '运营推荐位', text: '名下有多张卡时，推荐内容放到账户列表之后，先让用户看全自己的账户。', reason: '她先关心自己的钱，看完账户才有心思看推荐。' }
     ]
   },
   6: {
     choice: 'A',
-    summary: '小李打开账户页主要是确认工资到没到账。A方案进入后直接是工资卡余额，最快得到答案；B方案先出现总资产、昨日收益和理财推荐，余额还要点开眼睛才能看到。B方案把明细放在首屏是加分项，但没有改变他的选择。小李选择A方案。',
-    perspective: '我选A方案。我就想知道工资到了没有，A方案一打开就是我那张卡的余额，看完就走。B方案又是总资产又是收益，还要点小眼睛才能看到数字，这些我不太懂，也不想看。不过B方案明细放在外面，这点挺方便。',
+    conclusion: '小李选择A方案。他打开账户页主要是确认工资到没到账，A方案一打开就是工资卡余额，看完就走；B方案先出现总资产、昨日收益和理财推荐，这些词他不太懂，余额还要点开眼睛才能看到。B方案把收支明细放在首屏，核对工资入账更方便，这是他认可的一点，但没有改变他的选择。',
     views: [
-      { key: 'balance', aview: '一打开就能看到工资卡余额，到没到账马上知道。', bview: '余额是星号，还要再点一下才能看到。', choice: 'A', reason: '确认到账是他唯一的目的，多一步就是多余。' },
-      { key: 'asset', aview: '只有自己的卡，没有不懂的词。', bview: '“总资产”“昨日收益”这些词我不太熟，不知道和工资有什么关系。', choice: 'A', reason: '理财术语对他没有帮助，反而增加理解成本。' },
-      { key: 'quick', aview: '想看明细得点“更多”，我经常找不到。', bview: '收支明细就在首屏，想核对哪一笔都很方便。', choice: 'B', reason: '首屏明细入口方便核对工资入账记录。' }
+      { key: 'balance', choice: 'A', reason: '确认工资到账是他唯一的目的，余额还要多点一下就是多余。' },
+      { key: 'asset', choice: 'A', reason: '“总资产”“昨日收益”这类理财术语对他没有帮助，反而增加理解成本。' },
+      { key: 'quick', choice: 'B', reason: '首屏的收支明细入口方便他核对工资入账记录，不用再去“更多”里找。' }
     ],
     suggestions: [
-      { key: 'quick', code: '1.2', text: '采用B方案首屏的收支明细入口，同时在卡片上直接显示“最近一笔入账”。', reason: '代发用户最关心到账，最近入账比总资产更有用。' },
-      { key: 'asset', code: '2.2', text: '未持有理财的用户不展示“昨日收益”。', reason: '减少与用户无关的金融术语。' }
+      { location: '工资卡', text: '在工资卡上直接显示最近一笔入账的金额和时间，工资到账后推送提醒。', reason: '他打开账户页就是为了确认工资到没到，最好不用再进明细。' },
+      { location: '收支明细', text: '收支明细入口放在首屏，进入后默认定位到最近一笔交易。', reason: '核对入账时少找一层，就少一次犹豫。' },
+      { location: '数字与术语', text: '未持有理财的用户不展示“昨日收益”等理财数据，总资产旁说明包含哪些账户。', reason: '与他无关的金融术语只会增加理解成本。' }
     ]
   },
   12: {
     choice: 'B',
-    summary: '张总重视隐私和整体资产掌控。B方案余额和卡号默认掩码，符合他的要求；A方案把余额和完整卡号直接露出，在会议室、车上打开手机都不合适。他不满意B方案的理财横幅与自己的资产情况无关。张总选择B方案。',
-    perspective: '我选B方案。余额和卡号不应该默认露出来，B方案这点做对了。那个理财横幅推的是大众产品，跟我没什么关系，占着账户页的位置不合适，最好按我的情况推，或者干脆别放在这里。',
+    conclusion: '张总选择B方案。他认为余额和卡号不应该默认露出来，B方案默认掩码，在会议室、车上打开手机或截屏发给助理都不用担心；A方案把余额和完整卡号直接露出，不符合他对隐私的要求。他不满意B方案的理财横幅推的是大众产品，和自己的资产配置无关，占着账户页的位置不合适。',
     views: [
-      { key: 'balance', aview: '余额直接显示，在会议室或车上打开手机不合适。', bview: '默认隐藏，我需要时再看，这才对。', choice: 'B', reason: '他对隐私高度敏感，余额默认掩码是基本要求。' },
-      { key: 'cardno', aview: '完整卡号露在外面，截屏发给助理都要小心。', bview: '中间四位遮住了，截屏也不担心。', choice: 'B', reason: '卡号掩码降低截屏和旁人窥见的风险。' },
-      { key: 'banner', aview: '账户页只有账户，干净利落。', bview: '推荐的是大众理财，和我的资产配置无关。', choice: 'A', reason: '推荐内容缺少针对性，对他没有吸引力。' }
+      { key: 'balance', choice: 'B', reason: '他对隐私高度敏感，余额默认掩码是基本要求，需要时再看即可。' },
+      { key: 'cardno', choice: 'B', reason: '卡号中间四位遮住，截屏发给助理和被旁人看到的风险都更低。' },
+      { key: 'banner', choice: 'A', reason: '横幅推荐的是大众理财，和他的资产配置无关，账户页只放账户更干净利落。' }
     ],
     suggestions: [
-      { key: 'banner', code: '8.1', text: '理财推荐按用户资产情况区分，高净值客户展示专属客户经理入口，不展示大众产品横幅。', reason: '运营内容与用户相关时才有吸引力。' },
-      { key: 'cardno', code: '5.1', text: '保留B方案的余额、卡号掩码，并增加“截屏时自动隐藏敏感信息”的设置。', reason: '进一步降低截屏外传的风险。' }
+      { location: '敏感信息', text: '余额、卡号默认掩码，并提供“截屏时自动隐藏敏感信息”的设置。', reason: '他常在公共场合打开手机，也会截屏发给助理，隐私保护要默认到位。' },
+      { location: '专属服务', text: '账户页提供专属客户经理入口，推荐内容按客户资产情况区分，不展示大众理财横幅。', reason: '与他无关的推荐会降低他对服务专业性的信任。' }
     ]
   },
   5: {
     choice: 'B',
-    summary: '老赵对线上操作信心不足，A方案的“更多”菜单他常常找不到，B方案把转账、明细摆在首屏，他能自己办完。B方案的“昨日收益”他看不懂，余额星号也让他犹豫，需要补上文字说明。权衡之后，老赵选择B方案。',
-    perspective: '我选B方案，转账和明细能直接看到，我自己就能办，不用找人帮忙。不过上面那个收益数字我看不懂，不知道是利息还是别的钱；余额是星号，我也是试了好几下才知道要点那个眼睛。要是写上字就好了。',
+    conclusion: '老赵选择B方案。A方案的转账藏在“更多”菜单里，他找了半天才找到；B方案把转账、明细摆在首屏，他自己就能办完，不用找人帮忙。不过B方案的“昨日收益”他看不懂，不知道钱是不是变了，余额星号旁的眼睛图标他也试了好几次才明白，希望都能配上文字说明。',
     views: [
-      { key: 'quick', aview: '“更多”里面藏着转账，我找了半天才找到。', bview: '转账、明细就摆在上面，一眼就看到了。', choice: 'B', reason: '入口外露，对不熟悉线上操作的用户帮助最大。' },
-      { key: 'asset', aview: '没有多余的数字，我看得明白。', bview: '“昨日收益”我看不懂，不知道我的钱是不是变了。', choice: 'A', reason: '没有解释的数字让他不敢确认资金状态。' },
-      { key: 'balance', aview: '余额直接看得见。', bview: '星号加个小眼睛，我点了好几次才明白。', choice: 'A', reason: '图标缺少文字，他需要反复尝试才能理解。' }
+      { key: 'quick', choice: 'B', reason: '入口外露，对不熟悉线上操作的他帮助最大，一眼就能看到转账。' },
+      { key: 'asset', choice: 'A', reason: '没有解释的“昨日收益”让他不敢确认资金状态，A方案没有多余的数字。' },
+      { key: 'balance', choice: 'A', reason: '眼睛图标缺少文字，他要反复尝试才能理解，A方案余额直接看得见。' }
     ],
     suggestions: [
-      { key: 'asset', code: '2.2', text: '“昨日收益”旁增加说明入口，点开后用一句话解释统计范围。', reason: '看懂数字才敢确认资金状态。' },
-      { key: 'balance', code: '3.1', text: '眼睛图标旁增加“显示余额”文字。', reason: '文字比图标更容易理解。' }
+      { location: '常用功能入口', text: '转账、明细等常用入口直接摆在首屏，图标配上文字，不收进菜单。', reason: '入口一眼能看到，他才有信心自己办完，不用找人帮忙。' },
+      { location: '图标与说明', text: '所有图标按钮旁配上文字；“昨日收益”等数字提供说明入口，用一句话解释统计范围。', reason: '看不懂的图标和数字会让他反复尝试，甚至不敢继续操作。' },
+      { location: '操作指引', text: '首次进入时用简短引导，说明余额怎么显示、转账入口在哪里。', reason: '他对线上操作信心不足，需要有人告诉他下一步怎么做。' }
     ]
   }
 }
@@ -634,28 +627,6 @@ const showAbDimConclusions = {
   运营服务: 'B方案的运营内容与查账任务无关，也不能关闭，对用户缺少吸引力；在本场景中A方案不放运营内容更合适。'
 }
 
-const showAbSuggestions = [
-  { dimension: '功能流程', items: [
-    { location: '常用功能入口', code: '1.2', text: '采用B方案首屏固定的转账、收支明细入口，并放在单手拇指容易触达的区域；代发用户可在卡片上直接看到“最近一笔入账”。', roles: ['宝妈孙女士', '代发用户小李'] }
-  ] },
-  { dimension: '信息认知', items: [
-    { location: '页头资产区', code: '2.2', text: '“昨日收益”旁用一句话写明统计范围，并提供说明入口；未持有理财的用户不展示该数字。', roles: ['长辈用户王阿姨', '代发用户小李', '县域用户老赵'] }
-  ] },
-  { dimension: '交互设计', items: [
-    { location: '余额展示', code: '3.1', text: '保留余额掩码，在眼睛图标旁增加“显示余额 / 隐藏余额”文字，两种状态样式明显区分；长辈版可默认显示余额。', roles: ['长辈用户王阿姨', '县域用户老赵'] },
-    { location: '常用功能入口', code: '3.3', text: '在B方案首屏入口的基础上，支持用户自定义一个常用功能。', roles: ['学生用户陈同学'] }
-  ] },
-  { dimension: '信息安全', items: [
-    { location: '卡号展示', code: '5.1', text: '保留B方案的余额、卡号掩码，并增加“截屏时自动隐藏敏感信息”的设置。', roles: ['私银用户张总'] }
-  ] },
-  { dimension: '视觉设计', items: [
-    { location: '运营位', code: '6.1', text: '理财横幅降低色彩饱和度，把视觉重点留给余额和账户卡片。', roles: ['长辈用户王阿姨'] }
-  ] },
-  { dimension: '运营服务', items: [
-    { location: '运营位', code: '8.1', text: '理财横幅增加关闭按钮并移到账户列表之后；按用户资产情况区分推荐内容，高净值客户展示专属服务入口。', roles: ['学生用户陈同学', '宝妈孙女士', '私银用户张总'] }
-  ] }
-]
-
 function abShowcase() {
   const roles = [2, 106, 3, 6, 12, 5].map((id) => qcRoles.find((x) => x.id === id)).filter(Boolean)
   const body = assembleAb({
@@ -665,7 +636,6 @@ function abShowcase() {
     specs: showAbSpecs,
     conclusions: showAbConclusions,
     dimConclusions: showAbDimConclusions,
-    suggestions: showAbSuggestions,
     summary: '选择B方案的角色主要看重首屏常用入口和余额、卡号掩码：查完余额能直接转账，在有人的场合也更放心。选择A方案的角色看重余额直接可见、没有看不懂的数字和图标。无论选择哪套方案，提及理财横幅的角色都不认可它出现在首屏。'
   })
   return {
@@ -676,62 +646,78 @@ function abShowcase() {
   }
 }
 
-// ----- 新建 AB 报告：按步骤二确认的共用业务场景生成演示内容（正式环境由「AB测试」提示词生成） -----
+// ----- 新建 AB 报告：按步骤二确认的共用业务场景生成演示内容（正式环境由「AB方案对比」提示词生成） -----
+// advice / need：角色从自身需求和期待出发给出的优化建议及理由，不指定沿用哪一套方案。
 const abDiffPool = [
   {
     location: '「{step}」入口', codes: ['1.2', '3.3'],
     good: '「{step}」的入口放在首屏主区域，进入页面即可点击', weak: '「{step}」的入口收在二级菜单里，需要展开后才能看到',
-    goodView: '要办的事一眼就能找到，点一下就进去了。', weakView: '得先打开菜单才找得到，第一次用会犹豫是不是没有这个功能。',
-    reason: '入口直接可见，减少寻找和试错。', tip: '采用{better}的首屏入口做法，同时在菜单中保留备用入口，照顾已经养成习惯的用户。'
+    goodView: '要办的事一眼就能找到，点一下就进去了。',
+    reason: '入口直接可见，减少寻找和试错。',
+    advice: '把「{step}」等常用操作放在首屏主区域，菜单中保留备用入口，照顾已经养成习惯的用户。', need: '用户希望要办的事一眼就能找到，点一下就能进入。'
   },
   {
     location: '「{step}」后的结果反馈', codes: ['3.1'],
     good: '操作后有明确的结果提示，按钮状态随之变化', weak: '操作后页面没有明显变化',
-    goodView: '点完马上知道成了没有，心里踏实。', weakView: '点完没动静，我不确定是不是成功了，可能会再点一次。',
-    reason: '结果可见，避免重复操作和猜测。', tip: '统一采用{better}的结果提示方式，并让按钮的已完成和未完成状态明显区分。'
+    goodView: '点完马上知道成了没有，心里踏实。',
+    reason: '结果可见，避免重复操作和猜测。',
+    advice: '每次「{step}」后都给出明确的结果提示和下一步指引，按钮的已完成和未完成状态明显区分。', need: '用户需要马上知道办成了没有，不用猜，也不用重复点。'
   },
   {
     location: '关键信息与说明文案', codes: ['2.2'],
     good: '关键信息用一句话写清，标题与说明层级分明', weak: '说明文字字号小、术语多，关键信息和辅助说明混在一起',
-    goodView: '看一遍就明白要做什么。', weakView: '小字和术语太多，要反复读才敢往下点。',
-    reason: '文案易懂，判断成本更低。', tip: '参照{better}的文案写法，把关键信息放在第一行，术语换成用户能直接理解的说法。'
+    goodView: '看一遍就明白要做什么。',
+    reason: '文案易懂，判断成本更低。',
+    advice: '关键信息放在第一行用一句话写清，专业术语换成日常说法，必要时附一句解释。', need: '用户希望看一遍就明白要做什么，不用反复读。'
   },
   {
     location: '敏感信息展示', codes: ['5.1'],
     good: '金额、卡号等敏感信息默认掩码，主动点击后才显示，开关旁有文字说明', weak: '金额、卡号等敏感信息默认完整展示',
-    goodView: '旁边有人也不怕被看到，想看时点一下就行。', weakView: '数字全露在外面，在公共场合打开不太放心。',
-    reason: '隐私保护更充分，查看方式也说得清楚。', tip: '采用{better}的默认掩码做法，并在显隐开关旁写明“显示 / 隐藏”。'
+    goodView: '旁边有人也不怕被看到，想看时点一下就行。',
+    reason: '隐私保护更充分，查看方式也说得清楚。',
+    advice: '金额、卡号等敏感信息默认掩码，显隐开关旁写明“显示 / 隐藏”，并记住用户上次的选择。', need: '用户在公共场合打开也不担心被看到，想看时又能马上看到。'
   },
   {
     location: '「{step}」提交前确认', codes: ['3.4', '5.3'],
     good: '提交前集中展示关键要素，并在确认按钮前给出风险提示', weak: '关键要素分散在多屏，风险提示放在页面底部',
-    goodView: '确认前能把要素再核对一遍，不怕点错。', weakView: '要来回翻才能核对，提示在最下面很容易漏看。',
-    reason: '事前提示能预防误操作。', tip: '沿用{better}的集中确认做法，把风险提示放在确认按钮正上方。'
+    goodView: '确认前能把要素再核对一遍，不怕点错。',
+    reason: '事前提示能预防误操作。',
+    advice: '提交前把关键要素集中在一屏供核对，风险提示放在确认按钮正上方。', need: '用户希望确认前把要素再核对一遍，不怕点错。'
   },
   {
     location: '页面视觉重点', codes: ['6.1'],
     good: '页面干净，视觉重点落在主任务信息和主按钮上', weak: '装饰色块和运营图片比主任务信息更醒目',
-    goodView: '一打开就知道该看哪里。', weakView: '先被花哨的色块吸引，再回头找自己要办的事。',
-    reason: '层次简单、无干扰元素。', tip: '以{better}的视觉层级为基准，降低装饰元素的对比度，把视觉重点留给主任务。'
+    goodView: '一打开就知道该看哪里。',
+    reason: '层次简单、无干扰元素。',
+    advice: '降低装饰色块和运营图片的对比度，把视觉重点留给主任务信息和主按钮。', need: '用户希望一打开就知道该看哪里，不被花哨的内容分散注意力。'
   },
   {
     location: '运营推荐位', codes: ['8.1'],
     good: '运营内容放在主任务之后，与当前任务相关，可以关闭', weak: '推荐内容占据首屏显著位置，与当前任务关系不大',
-    goodView: '推荐不挡路，和我有关的我才会看。', weakView: '还没办正事就先看到广告，跟我要做的事没关系。',
-    reason: '运营内容不打断主任务，相关性更高。', tip: '运营位参照{better}的位置和关闭方式，并按用户办理习惯区分推荐内容。'
+    goodView: '推荐不挡路，和我有关的我才会看。',
+    reason: '运营内容不打断主任务，相关性更高。',
+    advice: '运营内容放在主任务之后，按用户的办理习惯推荐，并提供关闭按钮。', need: '用户希望先把正事办完，只看和自己有关的推荐。'
   },
   {
     location: '「{step}」流程进度', codes: ['1.3'],
     good: '多步流程顶部有步骤条，标明当前第几步、共几步', weak: '多步流程没有进度提示',
-    goodView: '知道还剩几步，心里有底。', weakView: '不知道还要填多久，容易半途放弃。',
-    reason: '进展可视、可追踪。', tip: '采用{better}的步骤条，并在每一步标题中写明本步要完成的事。'
+    goodView: '知道还剩几步，心里有底。',
+    reason: '进展可视、可追踪。',
+    advice: '多步流程顶部显示步骤条，每一步标题写明本步要完成的事和剩余步骤。', need: '用户想知道还剩几步，心里有底才不会半途放弃。'
   },
   {
     location: '「{step}」信息填写', codes: ['1.4'],
     good: '常用信息自动带出，关键输入项有示例提示', weak: '需要手动重复填写已有信息，输入项没有示例',
-    goodView: '不用重复输入，看示例就知道怎么填。', weakView: '同样的信息要再敲一遍，还担心格式填错。',
-    reason: '减少重复输入，降低出错。', tip: '沿用{better}的自动带出和示例提示，覆盖所有关键输入项。'
+    goodView: '不用重复输入，看示例就知道怎么填。',
+    reason: '减少重复输入，降低出错。',
+    advice: '已有信息自动带出，关键输入项给出示例和格式提示，填错时就地说明怎么改。', need: '用户不想重复输入，也担心格式填错。'
   }
+]
+// 每个角色再补一条与具体差异无关的整体建议
+const abGeneralAdvice = [
+  { location: '整体流程', text: '把完成「{step}」所需的信息和下一步集中在同一屏，减少来回切换。', reason: '用户希望少想少找，一次看清就能往下走。' },
+  { location: '文案与提示', text: '按钮和提示统一使用日常说法，必要的专业词旁附一句解释。', reason: '用户看得懂才敢操作，能减少犹豫和求助。' },
+  { location: '异常与求助', text: '操作失败时说明原因和处理办法，并提供返回上一步或联系人工客服的入口。', reason: '用户遇到问题时希望知道怎么办，而不是停在原地。' }
 ]
 
 function shuffled(list, r) {
@@ -751,7 +737,7 @@ function buildSceneAbReport({ title, roleIds, materials, scene = '', business })
   }
   const roles = roleIds.map((rid) => qcRoles.find((x) => x.id === rid)).filter(Boolean)
   const shots = materials?.length ? materials : [{ kind: 'mobile-green', version: 'A方案' }, { kind: 'mobile-fund', version: 'B方案' }]
-  const seed = hashText(`${biz.businessgoal}|${biz.keytasks}|${shots.map((m) => `${m.version}:${m.name || ''}`).join(',')}`)
+  const seed = hashText(`${biz.businessgoal}|${biz.keytasks}|${biz.supplement || ''}|${shots.map((m) => `${m.version}:${m.name || ''}`).join(',')}`)
   const r = seeded(seed % 233280)
   const steps = String(biz.keytasks).split(/[；;]\s*/).map((s) => s.trim()).filter(Boolean)
   const picked = shuffled(abDiffPool, r).slice(0, 4)
@@ -772,6 +758,7 @@ function buildSceneAbReport({ title, roleIds, materials, scene = '', business })
   })
   const criteria = {}
   diffs.forEach((d) => d.codes.forEach((code) => { criteria[code] = { a: `${d.a}。`, b: `${d.b}。`, better: d.better } }))
+  const mainStep = steps[0] || '当前任务'
   const specs = Object.fromEntries(roles.map((role) => {
     const rr = seeded(hashText(`${seed}|${role.id}`) % 233280)
     const count = Math.min(diffs.length, 2 + Math.floor(rr() * Math.max(diffs.length - 1, 1)))
@@ -782,20 +769,17 @@ function buildSceneAbReport({ title, roleIds, materials, scene = '', business })
     const other = choice === 'A' ? 'B' : 'A'
     const favored = mine.filter((d) => d.better === choice)
     const rest = mine.filter((d) => d.better !== choice)
-    const summary = `${role.name}围绕「${biz.businessgoal}」对比两套方案。${choice}方案在${favored.map((d) => d.location).join('、')}上更符合该角色的习惯${rest.length ? `；${other}方案在${rest.map((d) => d.location).join('、')}上更好` : ''}。综合判断，${role.name}选择${choice}方案。`
-    const perspective = `作为${role.name}，我选${choice}方案。${favored[0].location}这一处，${favored[0].tpl.goodView}${rest.length ? `不过${other}方案的${rest[0].location}更好，${rest[0].tpl.goodView}` : ''}`
+    const quote = `${favored[0].tpl.goodView}${rest.length ? `不过${other}方案的${rest[0].location}也不错，${rest[0].tpl.goodView}` : ''}`
+    const conclusion = `${role.name}选择${choice}方案。围绕「${biz.businessgoal}」对比两套方案，${choice}方案在${favored.map((d) => d.location).join('、')}上更符合该角色的习惯${rest.length ? `，${other}方案则在${rest.map((d) => d.location).join('、')}上更好` : ''}。用该角色的话说：“${quote}”`
+    const general = pick(abGeneralAdvice, rr)
     return [role.id, {
       choice,
-      summary,
-      perspective,
-      views: mine.map((d) => ({
-        key: d.key,
-        aview: d.better === 'A' ? d.tpl.goodView : d.tpl.weakView,
-        bview: d.better === 'B' ? d.tpl.goodView : d.tpl.weakView,
-        choice: d.better,
-        reason: d.reason
-      })),
-      suggestions: mine.map((d) => ({ key: d.key, code: d.codes[0], text: d.fill(d.tpl.tip).replaceAll('{better}', `${d.better}方案`), reason: d.tpl.reason }))
+      conclusion,
+      views: mine.map((d) => ({ key: d.key, choice: d.better, reason: d.reason })),
+      suggestions: [
+        ...mine.map((d) => ({ location: d.location, text: d.fill(d.tpl.advice), reason: d.tpl.need })),
+        { location: general.location, text: general.text.replaceAll('{step}', mainStep), reason: general.reason }
+      ]
     }]
   }))
   const body = assembleAb({ roles, diffs, criteria, specs })
