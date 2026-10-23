@@ -137,7 +137,7 @@
         <p class="note">汇总各角色对每一处差异的倾向，并归纳原因。</p>
         <el-table :data="report.differences || []" class="issue-table" empty-text="暂无差异">
           <el-table-column label="位置" min-width="200">
-            <template #default="{ row }"><b class="loc">{{ row.location }}</b><div class="codes">{{ (row.codes || []).map(etsLabel).join('、') }}</div></template>
+            <template #default="{ row }"><b class="loc">{{ row.location }}</b></template>
           </el-table-column>
           <el-table-column prop="a" label="A方案" min-width="170" />
           <el-table-column prop="b" label="B方案" min-width="170" />
@@ -162,7 +162,7 @@
         <p class="note">该角色注意到的差异，以及在每一处倾向哪套方案、为什么。</p>
         <el-table :data="roleView.differences || []" class="issue-table" empty-text="暂无差异">
           <el-table-column label="位置" min-width="210">
-            <template #default="{ row }"><b class="loc">{{ row.location }}</b><div class="codes">{{ (row.codes || []).map(etsLabel).join('、') }}</div></template>
+            <template #default="{ row }"><b class="loc">{{ row.location }}</b></template>
           </el-table-column>
           <el-table-column prop="a" label="A方案" min-width="170" />
           <el-table-column prop="b" label="B方案" min-width="170" />
@@ -189,7 +189,6 @@
             <p class="crit-side"><span class="plan a">A方案</span>{{ item.a }}</p>
             <p class="crit-side"><span class="plan b">B方案</span>{{ item.b }}</p>
           </div>
-          <p v-if="tab === 'all' && dim.conclusion" class="dim-sum"><span>归纳：</span>{{ dim.conclusion }}</p>
         </div>
       </section>
 
@@ -223,7 +222,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ScreenThumb from '@/components/ScreenThumb.vue'
-import { qcReports, qcRoles, abVotes, etsLabel, PLAN_KEYS, planLabel } from '@/mock/qc'
+import { qcReports, qcRoles, abVotes, PLAN_KEYS, planLabel } from '@/mock/qc'
 
 const route = useRoute()
 const router = useRouter()
@@ -298,7 +297,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<'
 
 function abExportBody() {
   const r = report.value
-  const dims = `<h2>维度差异（基于ETS维度进行分析）</h2><p>${esc(dimLead.value)}</p>${abDimDiffs.value.map((dim) => `<h3>${esc(dim.name)}</h3><ul>${dim.items.map((item) => `<li>${esc(item.name)}（${esc(planLabel(item.better))}更符合）<br>指标含义：${esc(item.desc)}<br>A方案：${esc(item.a)}<br>B方案：${esc(item.b)}</li>`).join('')}</ul>${tab.value === 'all' && dim.conclusion ? `<p>归纳：${esc(dim.conclusion)}</p>` : ''}`).join('')}`
+  const dims = `<h2>维度差异（基于ETS维度进行分析）</h2><p>${esc(dimLead.value)}</p>${abDimDiffs.value.map((dim) => `<h3>${esc(dim.name)}</h3><ul>${dim.items.map((item) => `<li>${esc(item.name)}（${esc(planLabel(item.better))}更符合）<br>指标含义：${esc(item.desc)}<br>A方案：${esc(item.a)}<br>B方案：${esc(item.b)}</li>`).join('')}</ul>`).join('')}`
   if (tab.value === 'all') {
     const voteLine = PLAN_KEYS.map((key) => `选择${planLabel(key)} ${votes.value[key].length} 人：${esc(votes.value[key].map(roleName).join('、') || '无')}`).join('<br>')
     return `<h2>总结</h2><p>${voteLine}</p>${summaryParas.value.map((p) => `<p>${esc(p)}</p>`).join('')}
@@ -409,9 +408,7 @@ ${isAb.value ? abExportBody() : standardExportBody()}
 .vote-names { margin-top: 10px; }
 .vote-names p { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; }
 .loc { color: #333; }
-.codes { color: #999; font-size: 12px; }
 .lean { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.dim-sum span { color: #888; }
 .ets-note { font-size: 12px; font-weight: normal; color: #999; }
 .lead { color: #333; }
 .dim-diff { border: 1px solid #f0f0f0; border-radius: 4px; padding: 12px 14px; margin-top: 12px; }
@@ -422,7 +419,6 @@ ${isAb.value ? abExportBody() : standardExportBody()}
 .crit-head b { color: #333; }
 .crit-desc { color: #999; font-size: 12px; margin: 2px 0 6px !important; }
 .crit-side { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 4px !important; }
-.dim-sum { margin: 10px 0 0 !important; }
 @media (max-width: 1100px) {
   .two, .dims, .plan-materials { grid-template-columns: 1fr; }
 }
