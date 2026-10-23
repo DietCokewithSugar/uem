@@ -182,21 +182,15 @@ function inferOne(files, categories) {
   return { category, ...hint.fields, constraints: `${hint.fields.constraints}。本次识别到 ${files.length} 张素材` }
 }
 
-function mergeAb(before, after) {
-  const same = before.category && before.category === after.category
-  const categoryNote = same
-    ? `两版都按「${after.category}」理解`
-    : `修改前判断为「${before.category || '未识别'}」，修改后判断为「${after.category || '未识别'}」，请确认是不是同一产品`
-  const extra = before.constraints === after.constraints
-    ? before.constraints
-    : `修改前：${before.constraints}。修改后：${after.constraints}`
+// A、B方案是同一业务场景的两套设计：两套素材合在一起提炼一份共用场景，不比较优劣
+function mergeAb(planA, planB, files, categories) {
+  const shared = inferOne(files, categories)
+  const categoryNote = planA.category && planA.category === planB.category
+    ? ''
+    : `A方案判断为「${planA.category || '未识别'}」，B方案判断为「${planB.category || '未识别'}」，请确认两套方案是否服务于同一业务场景`
   return {
-    category: after.category || before.category,
-    businessgoal: `对比修改前与修改后，验证是否更利于完成：${after.businessgoal || before.businessgoal}`,
-    keytasks: after.keytasks || before.keytasks,
-    painpoints: before.painpoints,
-    successcriteria: after.successcriteria || before.successcriteria,
-    constraints: [categoryNote, '只比较画面上看得到的差异，不编造中间页', extra].filter(Boolean).join('。')
+    ...shared,
+    constraints: ['A、B方案服务于同一业务场景，共用以上目标和任务，只比较两套设计在画面上可见的差异，不编造中间页', categoryNote, shared.constraints].filter(Boolean).join('。')
   }
 }
 
@@ -212,14 +206,14 @@ function asSceneJson(obj, categories) {
 export function extractBusinessScene({ files = [], mode = 'standard' } = {}) {
   const categories = categoriesFromPrompt()
   if (mode === 'ab') {
-    const before = files.filter((file) => file.version === '修改前')
-    const after = files.filter((file) => file.version === '修改后')
-    if (!before.length || !after.length) {
+    const planA = files.filter((file) => file.version === 'A方案')
+    const planB = files.filter((file) => file.version === 'B方案')
+    if (!planA.length || !planB.length) {
       const single = inferOne(files, categories)
-      single.constraints = `${single.constraints}。AB 对比需要修改前和修改后都有素材`.replace(/。。/g, '。')
+      single.constraints = `${single.constraints}。AB测试需要A方案和B方案都有素材`.replace(/。。/g, '。')
       return asSceneJson(single, categories)
     }
-    return asSceneJson(mergeAb(inferOne(before, categories), inferOne(after, categories)), categories)
+    return asSceneJson(mergeAb(inferOne(planA, categories), inferOne(planB, categories), files, categories), categories)
   }
   return asSceneJson(inferOne(files, categories), categories)
 }

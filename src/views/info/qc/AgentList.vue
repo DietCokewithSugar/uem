@@ -2,16 +2,15 @@
 <template>
   <div class="uem-card">
     <div class="top">
-      <div class="tasks">
-        <div class="task">
-          <el-button type="primary" @click="goCreate('standard')">评测这一版</el-button>
-          <p>上传一版界面，看用户会卡在哪里</p>
-        </div>
-        <div class="task">
-          <el-button plain type="primary" @click="goCreate('ab')">对比修改前后</el-button>
-          <p>上传两版设计，看改动要不要保留</p>
-        </div>
-      </div>
+      <el-dropdown trigger="click" @command="goCreate">
+        <el-button type="primary">评测<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="standard">单场景质检</el-dropdown-item>
+            <el-dropdown-item command="ab">AB测试</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <div class="tools">
         <el-input v-model="keyword" placeholder="搜索报告名称" clearable class="search" @input="page = 1">
           <template #suffix><el-icon><Search /></el-icon></template>
@@ -26,10 +25,11 @@
       <div v-for="r in pageItems" :key="r.id" class="card">
         <div class="thumb" @click="view(r)"><ScreenThumb :material="r.materials[0]" /></div>
         <div class="title">
-          <el-tag v-if="r.type === 'ab'" size="small" effect="plain" class="ab-tag">对比</el-tag>
+          <el-tag v-if="r.type === 'ab'" size="small" effect="plain" class="ab-tag">AB测试</el-tag>
           {{ r.title }}
         </div>
-        <div class="time">{{ r.createTime }}<template v-if="r.verdict"> · {{ r.verdict }}</template></div>
+        <div class="time">{{ r.createTime }}</div>
+        <div v-if="r.type === 'ab'" class="votes">角色选择：{{ abVoteText(r) }}</div>
         <div class="ops">
           <el-button size="small" plain type="primary" @click="view(r)">查看报告</el-button>
           <span class="links">
@@ -57,7 +57,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ScreenThumb from '@/components/ScreenThumb.vue'
-import { qcReports, nowText } from '@/mock/qc'
+import { qcReports, nowText, abVoteText } from '@/mock/qc'
 
 const router = useRouter()
 const keyword = ref('')
@@ -93,9 +93,7 @@ async function remove(r) {
 </script>
 
 <style scoped>
-.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
-.tasks { display: flex; gap: 28px; flex-wrap: wrap; }
-.task p { margin: 8px 0 0; max-width: 240px; font-size: 12px; line-height: 1.5; color: #999; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
 .tools { display: flex; align-items: center; gap: 8px; flex: none; }
 .search { width: 220px; }
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
@@ -104,13 +102,14 @@ async function remove(r) {
 .title { margin-top: 12px; font-size: 14px; color: #333; }
 .ab-tag { margin-right: 6px; border-color: var(--uem-red); color: var(--uem-red); vertical-align: text-bottom; }
 .time { margin-top: 4px; font-size: 12px; color: #999; }
+.votes { margin-top: 2px; font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ops { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
 .links a { color: #3a6fd8; cursor: pointer; font-size: 12px; margin-left: 8px; }
 .links a:hover { text-decoration: underline; }
 .pager { margin-top: 20px; justify-content: flex-end; }
 @media (max-width: 1280px) { .grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 960px) {
-  .top { flex-direction: column; }
+  .top { flex-direction: column; align-items: flex-start; }
   .tools, .search { width: 100%; }
 }
 </style>
