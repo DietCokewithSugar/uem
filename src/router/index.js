@@ -98,6 +98,11 @@ const routes = [
         },
         { path: 'agentFirst', component: () => import('@/views/info/qc/AgentList.vue'), meta: { group: '体验质检', title: '体验质检智能体' } },
         {
+          path: 'agentTools',
+          component: () => import('@/views/info/qc/AgentCreate.vue'),
+          meta: { group: '体验质检', title: '质检智能体', crumbsWithSection: true, parent: () => '/agentFirst' }
+        },
+        {
           path: 'agentDetail',
           component: () => import('@/views/info/qc/AgentDetail.vue'),
           meta: { group: '体验质检', title: '体验质检智能体', crumbsWithSection: true, parent: () => '/agentFirst' }

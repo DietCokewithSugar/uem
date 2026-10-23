@@ -17,22 +17,32 @@ export const nowText = (d = new Date()) =>
   `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 
 // ===== 角色 =====
+// 分组与画像对齐新建评测第 3 步。已有角色的 id 不变，避免历史报告对不上。
+export const userRoleGroups = ['基础型', '投资理财型', '信贷融资型', '权益消费型', '对公用户']
 const personaSeed = [
-  [2, '学生用户陈同学', '20 岁在校大学生，熟悉各类 App，追求操作快捷，对繁琐验证和广告弹窗容忍度低。'],
-  [106, '长辈用户王阿姨', '65 岁退休教师，视力下降，偏好大字号和明确的文字指引，担心误操作和诈骗。'],
-  [3, '宝妈孙女士', '32 岁全职妈妈，碎片化时间使用手机银行，关注教育储蓄和家庭理财，常单手操作。'],
-  [6, '代发用户小李', '25 岁制造业员工，工资代发到卡，主要查询余额、转账，对金融术语不熟悉。'],
-  [12, '私银用户张总', '50 岁企业主，资产规模大，重视专属服务与隐私保护，期望一键直达客户经理。'],
-  [5, '县域用户老赵', '45 岁县域个体户，网络条件一般，习惯到网点办理，对线上操作信心不足。'],
-  [8, '理财新手白先生', '28 岁白领，刚开始接触理财，需要通俗的产品说明和风险提示。'],
-  [9, '资深理财用户林先生', '40 岁金融从业者，关注收益数据和对比工具，要求信息密度高、操作高效。'],
-  [10, '稳健型投资者周女士', '38 岁公务员，风险偏好低，关注本金安全与到期提醒。'],
-  [11, '激进型投资者吴先生', '35 岁互联网从业者，偏好基金和贵金属，关注行情实时性与交易速度。'],
-  [13, '跨境用户钱女士', '30 岁外企员工，常办理结售汇和跨境汇款，关注汇率与到账时间。'],
-  [14, '小微企业主郑先生', '42 岁餐饮店老板，使用企业手机银行收款对账，希望流程简洁。'],
-  [15, '视障用户冯先生', '36 岁视障人士，依赖读屏软件，要求控件可读、焦点顺序合理。'],
-  [16, '新市民刘女士', '27 岁外来务工人员，初次办理社保卡和账户，需要清晰的办理指引。'],
-  [17, '海外留学生何同学', '22 岁留学生，跨时区使用，关注境外登录与安全验证体验。']
+  { id: 2, name: '学生用户陈同学', group: '基础型', roleClass: '普通用户', desc: '在校学生，手机重度用户，各类 App 使用熟练。银行卡主要用于生活费、扫码支付和转账。', portrait: [['人生阶段', '校园求学'], ['核心功能', '转账支付、生活缴费'], ['理财接受度', '高']], traits: [['价值敏感度', '敏感'], ['学习适应力', '快速上手'], ['安全敏感度', '便利优先']] },
+  { id: 106, name: '长辈用户王阿姨', group: '基础型', roleClass: '普通用户', desc: '已退休，手机使用多限于微信和基本通话。手机银行步骤一多就容易犹豫，通常只在办理固定业务时打开。', portrait: [['人生阶段', '退休养老'], ['功能使用广度', '低（1-2项）'], ['功能探索深度', '浅']], traits: [['学习适应力', '缓慢适应'], ['安全敏感度', '高度敏感']] },
+  { id: 3, name: '宝妈孙女士', group: '基础型', roleClass: '普通用户', desc: '育有子女，核心关注教育储蓄和少儿相关的金融产品。持有宝宝卡，常在碎片时间查看收益和账户进出。', portrait: [['人生阶段', '家庭育儿'], ['家庭结构', '三口之家'], ['核心功能', '账户管理、收益查询、生活缴费']], traits: [['功能使用广度', '中'], ['价格敏感度', '敏感'], ['活跃时段', '碎片时间']] },
+  { id: 6, name: '代发用户小李', group: '基础型', roleClass: '普通用户', desc: '工资卡由单位统一办理。每月到账后按需要转出一部分，看完余额就离开，对金融术语不熟悉。', portrait: [['人生阶段', '初入社会'], ['核心功能', '转账支付'], ['功能使用广度', '低'], ['下载渠道', '单位统一办理']], traits: [['价格敏感度', '适度敏感']] },
+  { id: 5, name: '县域用户老赵', group: '基础型', roleClass: '普通用户', desc: '县域个体户，网络条件一般，习惯到网点办理，对线上操作信心不足，看不懂的数字不会继续点。', portrait: [['人生阶段', '稳定经营'], ['核心功能', '转账、余额查询'], ['功能使用广度', '低']], traits: [['学习适应力', '需要引导'], ['安全敏感度', '敏感']] },
+  { id: 16, name: '新市民刘女士', group: '基础型', roleClass: '普通用户', desc: '外来务工人员，初次办理社保卡和账户，需要逐步、可回退的办理指引。', portrait: [['人生阶段', '新市民'], ['核心功能', '开户、社保卡'], ['功能探索深度', '浅']], traits: [['学习适应力', '按步骤操作'], ['安全敏感度', '敏感']] },
+  { id: 17, name: '海外留学生何同学', group: '基础型', roleClass: '普通用户', desc: '跨时区使用，关注境外登录、安全验证和到账时间，不希望验证失败后不知道原因。', portrait: [['人生阶段', '校园求学'], ['核心功能', '跨境汇款、登录验证'], ['理财接受度', '低']], traits: [['安全敏感度', '敏感'], ['使用环境', '境外网络']] },
+  { id: 15, name: '视障用户冯先生', group: '基础型', roleClass: '普通用户', desc: '依赖读屏软件完成查询和转账，要求控件有可读名称，焦点顺序和视觉顺序一致。', portrait: [['核心功能', '余额查询、转账'], ['辅助方式', '读屏软件'], ['功能使用广度', '中']], traits: [['安全敏感度', '高度敏感']] },
+  { id: 8, name: '理财新手白先生', group: '投资理财型', roleClass: '普通用户', desc: '刚开始接触理财，需要通俗的产品说明和风险提示，不敢在看不懂收益口径时确认购买。', portrait: [['人生阶段', '职场新人'], ['核心功能', '理财浏览、风险测评'], ['理财接受度', '尝试中']], traits: [['价格敏感度', '敏感'], ['学习适应力', '需要解释']] },
+  { id: 9, name: '资深理财用户林先生', group: '投资理财型', roleClass: '普通用户', desc: '金融从业者，关注收益数据和对比，要求信息密度高、路径短，不希望营销挡住行情和持仓。', portrait: [['人生阶段', '专业投资者'], ['核心功能', '收益对比、持仓'], ['理财接受度', '高']], traits: [['学习适应力', '快速上手'], ['信息密度偏好', '高']] },
+  { id: 10, name: '稳健型投资者周女士', group: '投资理财型', roleClass: '普通用户', desc: '风险偏好低，关注本金是否安全、何时到期、到期后钱回到哪里。', portrait: [['人生阶段', '家庭积累'], ['核心功能', '稳健理财、到期提醒'], ['理财接受度', '稳健']], traits: [['价格敏感度', '敏感'], ['安全敏感度', '高度敏感']] },
+  { id: 11, name: '激进型投资者吴先生', group: '投资理财型', roleClass: '普通用户', desc: '偏好基金和贵金属，关注行情是否及时、买卖步骤是否短，反感下单前被无关活动打断。', portrait: [['人生阶段', '积极投资'], ['核心功能', '基金、贵金属'], ['理财接受度', '高']], traits: [['学习适应力', '快速上手'], ['价格敏感度', '低']] },
+  { id: 12, name: '私银用户张总', group: '投资理财型', roleClass: '普通用户', desc: '企业主，资产规模大，重视专属服务与隐私，不希望余额和卡号默认露出，也不希望无关推荐占着账户页。', portrait: [['人生阶段', '企业主'], ['核心功能', '资产总览、客户经理'], ['理财接受度', '高']], traits: [['安全敏感度', '高度敏感'], ['价格敏感度', '低']] },
+  { id: 25, name: '房贷用户陈先生', group: '信贷融资型', roleClass: '普通用户', desc: '按揭还款中，每月打开贷款页确认扣款金额、日期和剩余本金，担心扣款失败却没有说清楚。', portrait: [['人生阶段', '供房'], ['核心功能', '查还款、提前还款'], ['功能使用广度', '低']], traits: [['安全敏感度', '高度敏感'], ['活跃时段', '还款日前']] },
+  { id: 26, name: '经营贷用户马老板', group: '信贷融资型', roleClass: '普通用户', desc: '餐饮店主，贷款用于周转。关注额度、利率和还款日，常在打烊后用手机处理，没有时间研究术语。', portrait: [['人生阶段', '小微经营'], ['核心功能', '额度、还款'], ['功能使用广度', '低']], traits: [['学习适应力', '需要引导'], ['价格敏感度', '敏感']] },
+  { id: 27, name: '信用卡分期用户小周', group: '信贷融资型', roleClass: '普通用户', desc: '把大额消费做成分期，在意每期还多少、手续费是多少，不希望这些数字藏在协议末尾。', portrait: [['人生阶段', '职场'], ['核心功能', '账单分期'], ['价格敏感度', '敏感']], traits: [['学习适应力', '快速上手']] },
+  { id: 28, name: '普惠贷款用户老周', group: '信贷融资型', roleClass: '普通用户', desc: '县域小店店主，第一次在线上申请经营贷款，需要逐步指引，对征信授权尤其谨慎。', portrait: [['人生阶段', '县域经营'], ['核心功能', '贷款申请、授权'], ['功能探索深度', '浅']], traits: [['学习适应力', '缓慢适应'], ['安全敏感度', '高度敏感']] },
+  { id: 13, name: '跨境用户钱女士', group: '权益消费型', roleClass: '普通用户', desc: '外企员工，常办理结售汇和跨境汇款，关注汇率、手续费和到账时间是否写在确认之前。', portrait: [['人生阶段', '跨境工作'], ['核心功能', '结售汇、跨境汇款'], ['功能使用广度', '中']], traits: [['价格敏感度', '敏感'], ['安全敏感度', '敏感']] },
+  { id: 29, name: '信用卡用户赵女士', group: '权益消费型', roleClass: '普通用户', desc: '日常用信用卡消费，先看账单、可用额度和还款入口，权益活动只有和自己有关时才愿意看。', portrait: [['人生阶段', '日常消费'], ['核心功能', '账单、还款、额度'], ['功能使用广度', '中']], traits: [['价格敏感度', '适度敏感']] },
+  { id: 30, name: '积分权益用户小陈', group: '权益消费型', roleClass: '普通用户', desc: '习惯用积分抵现和兑换权益，在意积分有效期、兑换结果是否一次说清。', portrait: [['人生阶段', '权益敏感'], ['核心功能', '积分兑换'], ['功能使用广度', '中']], traits: [['价格敏感度', '敏感'], ['学习适应力', '快速上手']] },
+  { id: 14, name: '小微企业主郑先生', group: '对公用户', roleClass: '普通用户', desc: '餐饮店老板，用企业手机银行收款、对账，希望流程短，凭证要能马上找到。', portrait: [['人生阶段', '小微经营'], ['核心功能', '收款、对账'], ['功能使用广度', '中']], traits: [['学习适应力', '按步骤操作'], ['活跃时段', '营业结束后']] },
+  { id: 31, name: '企业财务李会计', group: '对公用户', roleClass: '普通用户', desc: '负责企业网银对账和付款复核，流程不能跳步，金额、收款人和用途必须同时看得见。', portrait: [['人生阶段', '企业财务'], ['核心功能', '对账、付款复核'], ['功能使用广度', '高']], traits: [['安全敏感度', '高度敏感'], ['信息密度偏好', '高']] },
+  { id: 32, name: '企业网银用户王经理', group: '对公用户', roleClass: '普通用户', desc: '审批付款。看不清收款人和金额时不会点通过，退回原因也要能转给经办。', portrait: [['人生阶段', '企业管理'], ['核心功能', '付款审批'], ['功能使用广度', '中']], traits: [['安全敏感度', '高度敏感']] }
 ]
 const expertSeed = [
   [1, '用户体验专家', '从用户目标、任务流程、信息认知与情感体验等方面评估界面整体可用性。'],
@@ -47,15 +57,34 @@ const expertSeed = [
   [24, '数据分析专家', '结合埋点与行为数据给出量化洞察与改进优先级。']
 ]
 export const qcRoles = reactive([
-  ...personaSeed.map(([id, name, desc]) => ({ id, name, type: '用户画像', desc, updateTime: '2026-09-16', updater: '周可欣' })),
-  ...expertSeed.map(([id, name, desc]) => ({ id, name, type: '专家角色', desc, updateTime: '2026-09-16', updater: '周可欣' }))
+  ...personaSeed.map((p) => ({ ...p, type: '用户画像', mine: false, updateTime: '2026-09-16', updater: '周可欣' })),
+  ...expertSeed.map(([id, name, desc]) => ({ id, name, type: '专家角色', group: '专家角色', roleClass: '专家', desc, portrait: [], traits: [], mine: false, updateTime: '2026-09-16', updater: '周可欣' }))
 ])
 
 // ===== 提示词 =====
 export const qcPrompts = reactive([
   {
-    id: 1, name: '质检工具（文件分析）', updateTime: '2026-10-13', updater: currentUser.name, limit: 10000,
-    content: '你是一名资深的银行数字渠道体验评估师。请仔细识别用户上传的界面截图或设计稿，逐页提取：页面名称、核心功能入口、主要信息模块、关键操作按钮及其文案、状态提示与异常提示。输出结构化的页面清单，作为后续多角色评估的输入。不得臆测截图中不存在的内容。'
+    id: 1, name: '质检工具（文件分析）', updateTime: '2026-10-23', updater: currentUser.name, limit: 10000,
+    // 生产环境步骤二「使用AI提炼场景」使用的提示词。%s 替换为本次素材说明。
+    content: `你是资深体验研究员，请根据我输入的UI设计素材提炼业务场景。从UI设计图中提取UI设计图可能的产品分类，评测目标，关键任务流，用户痛点以及成功标准。
+
+业务场景截图及对应的业务场景及说明： %s
+现有产品类型字典：["Web网站","移动App","小程序","桌面应用","其他"]
+对应字段：category
+匹配规则：
+识别输入内容后，仅返回匹配到的产品类型字典中文结果
+如果信息不足，请给出合理假设并保持保守。
+输出要求：所有字段必须使用简体中文，不得输出英文句子（品牌名/产品名可保留原文）。
+
+请只返回标准合法json格式,不要多余文字,不要标点符号,不要\`\`\`这类符号,纯json结构,语法严格正确,无需多余符号：
+{
+"category":"",
+"businessgoal": "",
+"keytasks": "",
+"painpoints": "",
+"successcriteria":"",
+"constraints":""
+}`
   },
   {
     id: 2, name: '质检工具（ETS维度）', updateTime: '2026-07-28', updater: currentUser.name, limit: 10000,
@@ -128,7 +157,7 @@ function severityOf(score) {
   return '三级问题'
 }
 
-export function generateReport({ title, roleIds, materials, scene = '' }, r = Math.random) {
+export function generateReport({ title, roleIds, materials, scene = '', business = null }, r = Math.random) {
   const roles = roleIds.map((id) => qcRoles.find((x) => x.id === id)).filter(Boolean)
   const dims = dimensions.map((name) => {
     if (name === '系统性能') return { name, score: null, text: PERF_TEXT }
@@ -160,10 +189,11 @@ export function generateReport({ title, roleIds, materials, scene = '' }, r = Ma
     `本次共选择了${roles.length}个角色进行评估，包括${roles.map((x) => x.name).join('、')}。`,
     `综合各角色的评估结果，整体表现${(averageScore(dims) || 0) >= 3.8 ? '较好' : '中等偏下'}。在${good.map((d) => d.name).join('与')}上相对完整，但在${weak.map((d) => d.name).join('、')}上仍有差距。主要的待优化点有 ${issues.length} 个，分别是：${issues.map((x) => x.description).join('；')}。`
   ]
-  if (scene) summary.unshift(`本次评估场景：${scene}`)
+  if (business?.businessgoal) summary.unshift(`本次评测目标：${business.businessgoal}。关键任务：${business.keytasks}。`)
+  else if (scene) summary.unshift(`本次评估场景：${scene}`)
   return {
     id: `QC${Date.now()}${Math.floor(r() * 1000)}`, type: 'standard', title, createTime: nowText(), materials, roleIds, scene,
-    summary, demand, keywords, dimensions: dims, issues, roleViews
+    summary, demand, keywords, dimensions: dims, issues, roleViews, business: business || null
   }
 }
 
@@ -300,7 +330,103 @@ function buildAbReport({ title, roleIds, before, after, scene = '', id, createTi
   }
 }
 
-export function generateAbReport({ title, roleIds, before, after, scene = '' }) {
+function hashText(text) {
+  let h = 2166136261
+  for (const ch of String(text)) {
+    h ^= ch.codePointAt(0)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+
+// 新建 AB 报告：按步骤二提炼出的目标组织对比，不再套用「我的账户」示例。
+function buildSceneAbReport({ title, roleIds, before, after, materials, scene = '', business, id, createTime, creator }) {
+  const roles = roleIds.map((rid) => qcRoles.find((x) => x.id === rid)).filter(Boolean)
+  const shots = materials?.length
+    ? materials
+    : [
+        { ...(before || { kind: 'mobile-green' }), version: '修改前' },
+        { ...(after || { kind: 'mobile-fund' }), version: '修改后' }
+      ]
+  const seed = `${business.businessgoal}|${business.keytasks}|${shots.map((m) => m.name || m.version || '').join(',')}`
+  const task = business.keytasks || '画面上的主要任务'
+  const dims = dimensions.map((name) => {
+    if (name === '系统性能') {
+      return { name, change: '无法判断', beforescore: null, afterscore: null, score: null, text: '两版都是静态设计图，无法评估加载速度、滑动和点击后的真实反馈。系统性能需待后续支持视频或真机操作后再做对比。' }
+    }
+    const n = hashText(seed + name) % 10
+    const change = n < 4 ? '提升' : n < 7 ? '持平' : '下降'
+    const scoreMap = { 提升: [3, 4], 持平: [3, 3], 下降: [4, 3] }
+    const [beforescore, afterscore] = scoreMap[change]
+    const pain = business.painpoints ? `修改前较突出的感受是：${business.painpoints}。` : ''
+    const text = change === '提升'
+      ? `对照关键任务「${task}」，修改后在${name}上比修改前更容易完成。${pain}`
+      : change === '下降'
+        ? `对照关键任务「${task}」，修改后在${name}上不如修改前直接，用户要多确认一次才知道自己有没有做对。`
+        : `对照关键任务「${task}」，修改前后在${name}上没有看得出的差别。`
+    return { name, change, beforescore, afterscore, score: afterscore, text }
+  })
+  const down = dims.filter((d) => d.change === '下降')
+  const up = dims.filter((d) => d.change === '提升')
+  const issues = down.map((d, i) => {
+    const role = roles[i % Math.max(roles.length, 1)]
+    return {
+      roleId: role?.id, roleName: role?.name || '综合', severity: '二级问题', changetype: '改版后退步', location: d.name,
+      description: `修改后在${d.name}上不如修改前，关键任务「${task}」更难一次完成。`,
+      recommendation: `把与「${task}」直接相关的信息和主按钮留在修改后的主路径上，不要新增会挡住任务的内容。`,
+      reason: business.painpoints || '用户是来完成当前任务的。这一步变难时，任务不一定失败，但会多一次犹豫。'
+    }
+  })
+  if (business.painpoints) {
+    const role = roles[issues.length % Math.max(roles.length, 1)]
+    issues.push({
+      roleId: role?.id, roleName: role?.name || '综合', severity: '三级问题', changetype: '改版后仍存在', location: '已知痛点',
+      description: business.painpoints,
+      recommendation: business.successcriteria ? `用成功标准核对修改后是否还要用户自己猜：${business.successcriteria}` : '对照修改后画面，看这个痛点是否还在。',
+      reason: '这是提炼场景时记下的痛点。修改后如果仍然如此，用户会重复遇到原来的阻碍。'
+    })
+  }
+  const improvements = up.slice(0, 3).map((d) => ({
+    location: d.name,
+    description: `修改后在${d.name}上更接近本次目标：${business.businessgoal}`,
+    uservalue: business.successcriteria || '用户更快完成同一任务，并更容易确认结果。'
+  }))
+  const differences = [
+    { location: '关键任务', before: `修改前需要完成：${task}`, after: `修改后仍对照同一任务：${task}`, usereffect: '两版按同一任务比较，画面里看不到的步骤不算进结果。' },
+    { location: '用户痛点', before: business.painpoints || '修改前痛点需结合画面确认', after: '见修改后素材中同一位置是否还在', usereffect: business.businessgoal },
+    { location: '成功标准', before: '作为改版前的对照基线', after: business.successcriteria || '未填写成功标准', usereffect: '用来判断修改后是保留、局部采纳，还是退回修改前。' }
+  ]
+  let verdict = '建议局部采纳'
+  if (!down.length && up.length >= 3) verdict = '建议采纳修改后'
+  else if (down.length >= 3 && up.length <= 1) verdict = '建议保留修改前'
+  const verdictreason = `${verdict}。本次目标是：${business.businessgoal}。修改后有 ${up.length} 个维度提升、${down.length} 个维度下降。${business.successcriteria ? `成功标准：${business.successcriteria}。` : ''}`
+  const names = roles.map((x) => x.name).join('、') || '未选择角色'
+  const roleViews = Object.fromEntries(roles.map((role) => {
+    const mine = issues.filter((x) => x.roleId === role.id)
+    return [role.id, {
+      score: averageScore(dims),
+      summary: `${role.name}对照两版完成「${task}」。${role.desc}`,
+      perspective: `作为${role.name}，我关心的是能不能把「${business.businessgoal}」这件事做完。${business.painpoints ? `让我犹豫的是：${business.painpoints}` : ''}`,
+      dimensions: dims,
+      issues: mine.length ? mine : issues.slice(0, 1)
+    }]
+  }))
+  const constraints = business.constraints ? `约束：${business.constraints}。` : ''
+  return {
+    id: id || `QCAB${Date.now()}`, type: 'ab', title, createTime: createTime || nowText(), creator,
+    materials: shots, roleIds: roles.map((x) => x.id), scene, business,
+    verdict, verdictreason,
+    summary: [
+      `本次对比修改前、修改后设计图，参与角色包括${names}。`,
+      `评测目标：${business.businessgoal}。关键任务：${task}。综合判断为${verdict}。`
+    ],
+    scenariosummary: `评测目标：${business.businessgoal}。关键任务：${task}。${business.painpoints ? `修改前痛点：${business.painpoints}。` : ''}${constraints}`,
+    differences, improvements, dimensions: dims, issues, roleViews
+  }
+}
+
+export function generateAbReport({ title, roleIds, before, after, scene = '', materials, business }) {
+  if (business?.businessgoal) return buildSceneAbReport({ title, roleIds, before, after, materials, scene, business })
   return buildAbReport({
     title, roleIds, scene,
     before: before || { kind: 'mobile-green' },
