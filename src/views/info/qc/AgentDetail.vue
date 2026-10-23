@@ -136,17 +136,17 @@
         <div class="box-head"><b>可见差异</b><span class="count">共 {{ report.differences?.length || 0 }} 处</span></div>
         <p class="note">汇总各角色对每一处差异的倾向，并归纳原因。</p>
         <el-table :data="report.differences || []" class="issue-table" empty-text="暂无差异">
-          <el-table-column label="位置" width="150">
-            <template #default="{ row }"><b class="loc">{{ row.location }}</b><div class="codes">{{ (row.codes || []).map(etsLabel).join('、') }}</div></template>
+          <el-table-column label="位置" min-width="200">
+            <template #default="{ row }"><b class="loc">{{ row.location }}</b></template>
           </el-table-column>
           <el-table-column prop="a" label="A方案" min-width="170" />
           <el-table-column prop="b" label="B方案" min-width="170" />
-          <el-table-column label="角色倾向" width="120">
+          <el-table-column label="角色倾向" width="128">
             <template #default="{ row }">
               <div class="lean"><span v-for="key in PLAN_KEYS" :key="key" class="plan" :class="[planCls(key), { zero: !row.votes?.[key] }]">{{ planLabel(key) }} {{ row.votes?.[key] || 0 }}人</span></div>
             </template>
           </el-table-column>
-          <el-table-column prop="conclusion" label="归纳" min-width="240" />
+          <el-table-column prop="conclusion" label="归纳" min-width="220" />
         </el-table>
       </section>
     </template>
@@ -161,15 +161,15 @@
         <div class="box-head"><b>可见差异</b><span class="count">共 {{ roleView.differences?.length || 0 }} 处</span></div>
         <p class="note">该角色注意到的差异，以及在每一处倾向哪套方案、为什么。</p>
         <el-table :data="roleView.differences || []" class="issue-table" empty-text="暂无差异">
-          <el-table-column label="位置" width="150">
-            <template #default="{ row }"><b class="loc">{{ row.location }}</b><div class="codes">{{ (row.codes || []).map(etsLabel).join('、') }}</div></template>
+          <el-table-column label="位置" min-width="210">
+            <template #default="{ row }"><b class="loc">{{ row.location }}</b></template>
           </el-table-column>
           <el-table-column prop="a" label="A方案" min-width="170" />
           <el-table-column prop="b" label="B方案" min-width="170" />
-          <el-table-column label="角色倾向" width="110">
+          <el-table-column label="角色倾向" width="116">
             <template #default="{ row }"><span class="plan" :class="planCls(row.choice)">{{ planLabel(row.choice) }}</span></template>
           </el-table-column>
-          <el-table-column prop="reason" label="选择原因" min-width="240" />
+          <el-table-column prop="reason" label="选择原因" min-width="210" />
         </el-table>
       </section>
     </template>
@@ -189,7 +189,6 @@
             <p class="crit-side"><span class="plan a">A方案</span>{{ item.a }}</p>
             <p class="crit-side"><span class="plan b">B方案</span>{{ item.b }}</p>
           </div>
-          <p v-if="tab === 'all' && dim.conclusion" class="dim-sum"><span>归纳：</span>{{ dim.conclusion }}</p>
         </div>
       </section>
 
@@ -197,10 +196,10 @@
         <div class="box-head"><b>优化建议</b><span class="count">共 {{ report.suggestions?.length || 0 }} 条</span></div>
         <p class="note">汇总各角色提出的优化建议。</p>
         <el-table :data="report.suggestions || []" class="issue-table" empty-text="暂无建议">
-          <el-table-column label="提出角色" width="140">
+          <el-table-column label="提出角色" min-width="180">
             <template #default="{ row }">{{ (row.roles || []).join('、') }}</template>
           </el-table-column>
-          <el-table-column prop="location" label="位置" width="150" />
+          <el-table-column prop="location" label="位置" min-width="210" />
           <el-table-column prop="text" label="优化建议" min-width="260" />
           <el-table-column prop="reason" label="理由" min-width="200" />
         </el-table>
@@ -209,9 +208,9 @@
         <div class="box-head"><b>优化建议</b><span class="count">共 {{ roleView.suggestions?.length || 0 }} 条</span></div>
         <p class="note">从该角色的需求和期待出发给出整体建议，不局限于两套方案之间的差异。</p>
         <el-table :data="roleView.suggestions || []" class="issue-table" empty-text="暂无建议">
-          <el-table-column prop="location" label="位置" width="150" />
-          <el-table-column prop="text" label="优化建议" min-width="260" />
-          <el-table-column prop="reason" label="理由" min-width="200" />
+          <el-table-column prop="location" label="位置" min-width="210" />
+          <el-table-column prop="text" label="优化建议" min-width="280" />
+          <el-table-column prop="reason" label="理由" min-width="220" />
         </el-table>
       </section>
     </template>
@@ -223,7 +222,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ScreenThumb from '@/components/ScreenThumb.vue'
-import { qcReports, qcRoles, abVotes, etsLabel, PLAN_KEYS, planLabel } from '@/mock/qc'
+import { qcReports, qcRoles, abVotes, PLAN_KEYS, planLabel } from '@/mock/qc'
 
 const route = useRoute()
 const router = useRouter()
@@ -298,7 +297,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<'
 
 function abExportBody() {
   const r = report.value
-  const dims = `<h2>维度差异（基于ETS维度进行分析）</h2><p>${esc(dimLead.value)}</p>${abDimDiffs.value.map((dim) => `<h3>${esc(dim.name)}</h3><ul>${dim.items.map((item) => `<li>${esc(item.name)}（${esc(planLabel(item.better))}更符合）<br>指标含义：${esc(item.desc)}<br>A方案：${esc(item.a)}<br>B方案：${esc(item.b)}</li>`).join('')}</ul>${tab.value === 'all' && dim.conclusion ? `<p>归纳：${esc(dim.conclusion)}</p>` : ''}`).join('')}`
+  const dims = `<h2>维度差异（基于ETS维度进行分析）</h2><p>${esc(dimLead.value)}</p>${abDimDiffs.value.map((dim) => `<h3>${esc(dim.name)}</h3><ul>${dim.items.map((item) => `<li>${esc(item.name)}（${esc(planLabel(item.better))}更符合）<br>指标含义：${esc(item.desc)}<br>A方案：${esc(item.a)}<br>B方案：${esc(item.b)}</li>`).join('')}</ul>`).join('')}`
   if (tab.value === 'all') {
     const voteLine = PLAN_KEYS.map((key) => `选择${planLabel(key)} ${votes.value[key].length} 人：${esc(votes.value[key].map(roleName).join('、') || '无')}`).join('<br>')
     return `<h2>总结</h2><p>${voteLine}</p>${summaryParas.value.map((p) => `<p>${esc(p)}</p>`).join('')}
@@ -409,9 +408,7 @@ ${isAb.value ? abExportBody() : standardExportBody()}
 .vote-names { margin-top: 10px; }
 .vote-names p { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; }
 .loc { color: #333; }
-.codes { color: #999; font-size: 12px; }
 .lean { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.dim-sum span { color: #888; }
 .ets-note { font-size: 12px; font-weight: normal; color: #999; }
 .lead { color: #333; }
 .dim-diff { border: 1px solid #f0f0f0; border-radius: 4px; padding: 12px 14px; margin-top: 12px; }
@@ -422,7 +419,6 @@ ${isAb.value ? abExportBody() : standardExportBody()}
 .crit-head b { color: #333; }
 .crit-desc { color: #999; font-size: 12px; margin: 2px 0 6px !important; }
 .crit-side { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 4px !important; }
-.dim-sum { margin: 10px 0 0 !important; }
 @media (max-width: 1100px) {
   .two, .dims, .plan-materials { grid-template-columns: 1fr; }
 }
