@@ -42,6 +42,13 @@ export const sideMenus = {
       ]
     },
     {
+      title: '统计视图',
+      children: [
+        { title: '整体视图', path: '/allView' },
+        { title: '产品维度', path: '/productView' }
+      ]
+    },
+    {
       title: '体验问题',
       children: [{ title: '体验问题', path: '/experienceProblems', query: { type: '1', suggestStatus: '' } }]
     },
@@ -61,6 +68,7 @@ export const sideMenus = {
       title: '待办工作',
       children: [
         { title: '体验活动', path: '/activityPending', countKey: 'activity' },
+        { title: '体验公告', path: '/noticePending', countKey: 'notice' },
         { title: '体验任务', path: '/taskPending', countKey: 'task' }
       ]
     },
@@ -77,6 +85,14 @@ export const sideMenus = {
       children: [
         { title: '体验管理任务', path: '/experTaskManage' },
         { title: '我的体验任务', path: '/myExperTask' }
+      ]
+    },
+    {
+      title: '体验公告',
+      children: [
+        { title: '总行体验公告', path: '/headOfficeAllNotice' },
+        { title: '分行体验公告', path: '/branchAllNotice' },
+        { title: '我的体验公告', path: '/myAllNotice' }
       ]
     }
   ],

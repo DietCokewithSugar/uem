@@ -14,12 +14,12 @@
       <div class="block-title"><span class="red-title">体验动态</span></div>
       <el-tag effect="dark" class="news-tab">总行动态</el-tag>
       <ul class="news-list">
-        <li v-for="n in homeData.news" :key="n.title" @click="openNews(n)">
-          <span class="news-title">【体验公告】{{ n.title }}</span>
-          <span class="news-date">{{ n.date }}</span>
+        <li v-for="n in news" :key="n.id" @click="openNews(n)">
+          <span class="news-title">【体验公告】{{ n.name }}</span>
+          <span class="news-date">{{ n.submitTime }}</span>
         </li>
       </ul>
-      <router-link to="/experInformation" class="more">更多 <el-icon><CirclePlusFilled /></el-icon></router-link>
+      <router-link to="/headOfficeAllNotice" class="more">更多 <el-icon><CirclePlusFilled /></el-icon></router-link>
     </div>
 
     <!-- 右侧：待办工作 + 体验支撑 -->
@@ -93,14 +93,23 @@
         </div>
       </div>
     </div>
+
+    <el-dialog :model-value="!!currentNews" :title="currentNews?.name" width="640px" @close="currentNews = null">
+      <p v-if="currentNews" class="news-body">{{ currentNews.content }}</p>
+      <template #footer>
+        <span class="news-date">{{ currentNews?.submitTime }} · {{ currentNews?.org }}</span>
+        <el-button type="primary" @click="currentNews = null">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { computed, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import EChart from '@/components/EChart.vue'
 import { homeData, todoCounts } from '@/mock'
+import { homeNotices } from '@/mock/notices'
 import { carousels } from '@/mock/system'
 import { sideMenus } from '@/config/menus'
 import CarouselSlide from '@/components/CarouselSlide.vue'
@@ -117,7 +126,9 @@ const todoTarget = computed(() => {
   return m ? { path: m.path, query: m.query } : { path: '/optimPending', query: { type: '', suggestStatus: '2' } }
 })
 
-const openNews = (n) => ElMessageBox.alert(`${n.title}\n\n（演示环境：资讯正文待接入）`, '体验公告', { confirmButtonText: '关闭' })
+const news = computed(() => homeNotices().slice(0, 10))
+const currentNews = ref(null)
+const openNews = (n) => { currentNews.value = n }
 const openSupport = (s) => ElMessage.info(`「${s.name}」为外部体验支撑系统，演示环境暂不跳转`)
 
 const bubbleColors = ['#4fb3c8', '#f39c12', '#7f6fd1', '#5aa8e0', '#e74c3c', '#f08a5d', '#4fb3c8', '#f39c12', '#e74c3c', '#e74c3c']
@@ -165,6 +176,8 @@ const gaugeOption = {
 </script>
 
 <style scoped>
+.news-body { margin: 0; line-height: 1.7; color: #333; white-space: pre-wrap; }
+.news-date { float: left; color: #888; font-size: 13px; line-height: 32px; }
 .home {
   display: grid;
   grid-template-areas:
