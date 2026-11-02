@@ -4,7 +4,7 @@
     <SearchForm :model="form" :fields="fields" @search="search" @reset="reset" />
     <div class="uem-card">
       <div class="uem-toolbar">
-        <el-button type="primary" @click="openCreate">新增</el-button>
+        <el-button type="primary" @click="router.push('/experInformationAdd')">新增</el-button>
         <el-button @click="batch('冻结')">批量冻结</el-button>
         <el-button @click="batch('解冻')">批量解冻</el-button>
         <el-button @click="batch('删除')">批量删除</el-button>
@@ -14,7 +14,7 @@
         <el-table-column type="selection" width="44" />
         <el-table-column type="index" label="序号" width="64" :index="(i) => (page - 1) * pageSize + i + 1" />
         <el-table-column label="资讯名称" min-width="320">
-          <template #default="{ row }"><span class="uem-link" @click="openEdit(row)">{{ row.name }}</span></template>
+          <template #default="{ row }"><span class="uem-link" @click="router.push({ path: '/experInformationAdd', query: { id: row.id } })">{{ row.name }}</span></template>
         </el-table-column>
         <el-table-column prop="type" label="资讯类型" width="110" />
         <el-table-column prop="org" label="所属机构" width="140" />
@@ -42,50 +42,19 @@
         :total="filtered.length"
       />
     </div>
-
-    <el-dialog v-model="dialog" :title="editing ? '编辑资讯' : '新增资讯'" width="640px">
-      <el-form ref="formRef" :model="draft" :rules="rules" label-width="100px">
-        <el-form-item label="资讯名称" prop="name"><el-input v-model="draft.name" /></el-form-item>
-        <el-form-item label="资讯类型" prop="type">
-          <el-radio-group v-model="draft.type">
-            <el-radio v-for="t in infoTypes" :key="t" :value="t">{{ t }}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item v-if="draft.type === '方法培训'" label="培训板块" prop="board">
-          <el-select v-model="draft.board" style="width: 100%"><el-option v-for="b in trainingBoards" :key="b" :label="b" :value="b" /></el-select>
-        </el-form-item>
-        <template v-if="draft.type === '体验研究'">
-          <el-form-item label="报告类型"><el-select v-model="draft.reportType" style="width: 100%"><el-option v-for="b in reportTypes" :key="b" :label="b" :value="b" /></el-select></el-form-item>
-          <el-form-item label="报告量级"><el-select v-model="draft.level" style="width: 100%"><el-option v-for="b in reportLevels" :key="b" :label="b" :value="b" /></el-select></el-form-item>
-          <el-form-item label="所属产品"><el-select v-model="draft.product" filterable style="width: 100%"><el-option v-for="b in products" :key="b" :label="b" :value="b" /></el-select></el-form-item>
-        </template>
-        <el-form-item label="所属机构" prop="org">
-          <el-select v-model="draft.org" style="width: 100%"><el-option v-for="o in infoOrgs" :key="o" :label="o" :value="o" /></el-select>
-        </el-form-item>
-        <el-form-item label="作者"><el-input v-model="draft.author" /></el-form-item>
-        <el-form-item label="形式 / 文件">
-          <el-select v-model="draft.form" style="width: 48%; margin-right: 4%"><el-option v-for="o in trainingForms" :key="o" :label="o" :value="o" /></el-select>
-          <el-select v-model="draft.fileType" style="width: 48%"><el-option v-for="o in fileTypes" :key="o" :label="o" :value="o" /></el-select>
-        </el-form-item>
-        <el-form-item label="简介"><el-input v-model="draft.intro" type="textarea" :rows="3" /></el-form-item>
-        <el-form-item label="上传附件"><AttachmentUpload v-model="draft.files" /></el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialog = false">取消</el-button>
-        <el-button type="primary" @click="submit">{{ editing ? '保存' : '发布' }}</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import SearchForm from '@/components/SearchForm.vue'
-import AttachmentUpload from '@/components/AttachmentUpload.vue'
 import { useTableQuery, match } from '@/components/useTableQuery'
 import { exportCsv } from '@/components/exportCsv'
-import { infos, infoTypes, infoOrgs, trainingBoards, trainingForms, fileTypes, reportTypes, reportLevels, products } from '@/mock'
+import { infos, infoTypes, infoOrgs } from '@/mock'
+
+const router = useRouter()
 
 const fields = [
   { prop: 'name', label: '名称' },
@@ -130,52 +99,6 @@ async function confirmApply(list, action) {
 function batch(action) {
   if (!selected.value.length) return ElMessage.warning('请先勾选需要操作的资讯')
   confirmApply(selected.value, action)
-}
-
-// 新增 / 编辑
-const dialog = ref(false)
-const editing = ref(null)
-const formRef = ref()
-const draft = reactive({})
-const rules = {
-  name: [{ required: true, message: '请输入资讯名称' }],
-  type: [{ required: true, message: '请选择资讯类型' }],
-  board: [{ required: true, message: '请选择培训板块' }],
-  org: [{ required: true, message: '请选择所属机构' }]
-}
-const blank = () => ({
-  name: '', type: '方法培训', board: '', reportType: '', level: '', product: '', org: '业务研发中心',
-  author: '', form: '网络', fileType: 'PDF', intro: '', files: []
-})
-function openCreate() {
-  editing.value = null
-  Object.assign(draft, blank())
-  dialog.value = true
-}
-function openEdit(row) {
-  editing.value = row
-  Object.assign(draft, blank(), row, { files: (row.files || []).map((name) => ({ name })) })
-  dialog.value = true
-}
-async function submit() {
-  if (!(await formRef.value.validate().catch(() => false))) return
-  const data = { ...draft, files: draft.files.map((f) => f.name) }
-  if (editing.value) {
-    Object.assign(editing.value, data)
-    ElMessage.success('保存成功')
-  } else {
-    infos.unshift({
-      ...data,
-      id: `INFO${Date.now()}`,
-      publishTime: new Date().toISOString().slice(0, 10),
-      status: '发布',
-      views: 0,
-      downloads: 0,
-      cover: infos.length % 4
-    })
-    ElMessage.success('发布成功')
-  }
-  dialog.value = false
 }
 </script>
 

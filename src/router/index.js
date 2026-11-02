@@ -29,6 +29,8 @@ const routes = [
         { path: 'myHandled', component: () => import('@/views/experience/OptimSuggestions.vue'), props: { mode: 'handled' }, meta: { group: '优化建议', title: '我已处理' } },
         { path: 'manageExcel', component: () => import('@/views/experience/ManageReport.vue'), meta: { group: '优化建议', title: '管理报表' } },
         { path: 'suggestionDataBoard', component: () => import('@/views/experience/DataBoard.vue'), meta: { group: '优化建议', title: '数据看板' } },
+        { path: 'allView', component: () => import('@/views/experience/StatView.vue'), props: { mode: 'all' }, meta: { group: '统计视图', title: '整体视图', bare: true } },
+        { path: 'productView', component: () => import('@/views/experience/StatView.vue'), props: { mode: 'product' }, meta: { group: '统计视图', title: '产品维度', bare: true } },
         // 新增优化建议（路由为推测）；带 problemId 时为「待修改」的修改并重新提交
         {
           path: 'optimSuggestAdd',
@@ -51,6 +53,20 @@ const routes = [
         { path: 'myAllActivity', component: () => import('@/views/activity/ActivityList.vue'), props: { scope: 'mine' }, meta: { group: '体验活动', title: '我的体验活动' } },
         { path: 'experTaskManage', component: () => import('@/views/activity/TaskList.vue'), props: { scope: 'manage' }, meta: { group: '体验任务', title: '体验管理任务' } },
         { path: 'myExperTask', component: () => import('@/views/activity/TaskList.vue'), props: { scope: 'mine' }, meta: { group: '体验任务', title: '我的体验任务' } },
+        { path: 'noticePending', component: () => import('@/views/activity/NoticeList.vue'), props: { scope: 'pending' }, meta: { group: '待办工作', title: '体验公告' } },
+        { path: 'headOfficeAllNotice', component: () => import('@/views/activity/NoticeList.vue'), props: { scope: 'head' }, meta: { group: '体验公告', title: '总行体验公告' } },
+        { path: 'branchAllNotice', component: () => import('@/views/activity/NoticeList.vue'), props: { scope: 'branch' }, meta: { group: '体验公告', title: '分行体验公告' } },
+        { path: 'myAllNotice', component: () => import('@/views/activity/NoticeList.vue'), props: { scope: 'mine' }, meta: { group: '体验公告', title: '我的体验公告' } },
+        {
+          path: 'noticeAdd',
+          component: () => import('@/views/activity/NoticeAdd.vue'),
+          meta: {
+            group: '体验公告',
+            title: '新增',
+            dynamicEditTitle: true,
+            parent: (r) => ({ 1: '/headOfficeAllNotice', 2: '/branchAllNotice' })[r.query.routeType] || '/myAllNotice'
+          }
+        },
         {
           path: 'taskAdd',
           component: () => import('@/views/activity/TaskAdd.vue'),
@@ -74,6 +90,11 @@ const routes = [
         { path: 'methodTraining', component: () => import('@/views/info/MethodTraining.vue'), meta: { title: '方法培训' } },
         { path: 'excellentReport', component: () => import('@/views/info/ExcellentReport.vue'), meta: { title: '体验研究' } },
         { path: 'experInformation', component: () => import('@/views/info/InfoManage.vue'), meta: { title: '数据管理' } },
+        {
+          path: 'experInformationAdd',
+          component: () => import('@/views/info/InfoAdd.vue'),
+          meta: { title: '新增', crumbsWithSection: true, dynamicEditTitle: true, parent: () => '/experInformation' }
+        },
         {
           path: 'userJourneyManagementNew',
           component: () => import('@/views/info/journey/JourneyManage.vue'),

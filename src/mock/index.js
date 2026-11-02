@@ -3,6 +3,7 @@
 import { reactive } from 'vue'
 import { journeys } from './journey'
 import { suggestionTodo } from './suggest'
+import { notices } from './notices'
 
 function seeded(seed) {
   let s = seed
@@ -89,7 +90,8 @@ export const todoCounts = reactive({
   get activity() { return activities.filter((a) => a.pendingForMe).length },
   get task() { return tasks.filter((t) => t.pendingForMe).length },
   get journeyModify() { return journeys.filter((j) => j.status === '待修改').length },
-  get journeyExamine() { return journeys.filter((j) => j.status === '待审核').length }
+  get journeyExamine() { return journeys.filter((j) => j.status === '待审核').length },
+  get notice() { return notices.filter((n) => n.status === '待审批').length }
 })
 
 // 首页数据
@@ -183,7 +185,33 @@ export const activities = reactive(
 export const tasks = reactive([])
 
 // ===== 体验资讯 =====
-export const infoTypes = ['方法培训', '体验研究', '体验动态']
+export const infoTypes = ['工作体系', '方法培训', '体验研究', '体验动态']
+// 新增资讯的一级 / 二级分类。截图只看到「工作体系」和空的两级下拉，具体选项为演示补全
+export const infoCategories = {
+  工作体系: {
+    设计规范: ['视觉规范', '交互规范', '文案规范', '适老化规范'],
+    体验流程: ['需求阶段', '设计阶段', '研发阶段', '运营阶段'],
+    组织机制: ['体验官机制', '评审机制', '问题闭环'],
+    工具平台: ['灵犀旅程', '体验质检', '用户声音']
+  },
+  方法培训: {
+    用户体验: ['方法指引', '案例分享', '工作坊'],
+    视觉设计: ['规范资料', '案例分享'],
+    交互设计: ['方法指引', '案例分享'],
+    用户研究: ['方法指引', '案例分享'],
+    前端开发: ['组件库', '工程实践']
+  },
+  体验研究: {
+    用户研究报告: ['总行级', '分行级', '部门级'],
+    竞品分析报告: ['总行级', '分行级', '部门级'],
+    体验评估报告: ['总行级', '分行级', '部门级'],
+    行业洞察报告: ['总行级', '分行级', '部门级']
+  },
+  体验动态: {
+    总行动态: ['体验公告', '工作动态'],
+    分行动态: ['经验分享', '活动回顾']
+  }
+}
 export const infoOrgs = ['业务研发中心', '软件开发中心', '数据中心', '总行个人金融部', '总行网络金融部']
 export const trainingBoards = ['用户体验', '视觉设计', '交互设计', '用户研究', '前端开发']
 export const trainingForms = ['网络', '线下', '直播']
@@ -223,7 +251,22 @@ export const infos = reactive(
     downloads,
     cover: i % 4,
     intro: `${name}，面向全行产品经理、设计师与研发人员，介绍相关方法的适用场景、执行步骤与注意事项。`
-  }))
+  })).concat([
+    {
+      id: 'INFO9001', name: '个人手机银行体验设计工作体系（2026版）', type: '工作体系',
+      category1: '设计规范', category2: '交互规范', org: '业务研发中心', author: '系统管理员',
+      publishTime: '2026-09-18', finishTime: '2026-09-15', status: '发布', form: '网络', fileType: 'PDF',
+      views: 36, downloads: 12, cover: 0, files: [],
+      intro: '梳理个人手机银行从需求、设计、研发到运营的体验动作，明确每阶段要留下的界面说明和问题闭环记录。'
+    },
+    {
+      id: 'INFO9002', name: '用户体验问题闭环管理工作指引', type: '工作体系',
+      category1: '组织机制', category2: '问题闭环', org: '业务研发中心', author: '系统管理员',
+      publishTime: '2026-08-06', finishTime: '2026-08-01', status: '发布', form: '网络', fileType: 'PDF',
+      views: 21, downloads: 8, cover: 1, files: [],
+      intro: '说明体验问题从提出、采纳到版本关闭的责任岗位和时限，供产品和研发在统计视图之外对照执行。'
+    }
+  ])
 )
 
 // ===== 灵犀旅程：见 mock/journey.js =====
