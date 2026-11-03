@@ -81,7 +81,7 @@ export const problems = Array.from({ length: 96 }, (_, i) => {
 // 待办数量随演示操作实时变化；优化建议待办为当前用户作为当前处理人的数量
 export const todoCounts = reactive({
   get toModify() { return suggestionTodo.toModify },
-  get toHandle() { return suggestionTodo.toHandle },
+  get toApprove() { return suggestionTodo.toApprove },
   get toSort() { return suggestionTodo.toSort },
   get toReply() { return suggestionTodo.toReply },
   get toAudit() { return suggestionTodo.toAudit },

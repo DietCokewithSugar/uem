@@ -68,7 +68,7 @@ import Panel from '@/components/Panel.vue'
 import AsyncExport from '@/components/AsyncExport.vue'
 import KpiRow from './KpiRow.vue'
 import { funcMonitor as m, funcProblemRows } from '@/mock/voice'
-import { createSuggestion, findSuggestion, detailRoute, impacts } from '@/mock/suggest'
+import { createSuggestion, findSuggestion, detailRoute, impacts, VOICE_SOURCE } from '@/mock/suggest'
 import { productList } from '@/mock/system'
 
 const router = useRouter()
@@ -97,7 +97,7 @@ const exportCols = [
 ]
 const exportRows = computed(() => filtered.value.map((r) => ({ ...r, exampleText: r.examples.join('；') })))
 
-// 典型问题 → 优化建议：按产品路由至对应产品线（打通声音分析与问题处理闭环）
+// 典型问题 → 优化建议：来源固定为「客户：用户声音智能分析」，不经分行审批，直接按产品分类分配到待分拣（docs/优化建议.md 第 4 节）
 // 声音看板产品 → 产品维护中的产品名称及产品使用渠道（映射为推测）
 const productAlias = { 融e行基础业务: '个人手机银行基础业务', '融e行-投资理财': '实物贵金属', '融e行-信用卡': '个人信用卡', 云工行: '云网点' }
 const channelOf = { 企业手机银行: '手机APP-企业手机银行', 数字人民币: '手机APP-数字货币', 工银e生活: '手机APP-工银e生活', 境外个人手机银行: '手机APP-境外个人手机银行' }
@@ -110,7 +110,7 @@ function productOf(name) {
 async function toSuggestion(row) {
   const product = productOf(row.product)
   try {
-    await ElMessageBox.confirm(`将典型问题「${row.text}」转为优化建议？提交后按产品「${product}」流转至对应产品线处理。`, '转优化建议', { type: 'info' })
+    await ElMessageBox.confirm(`将典型问题「${row.text}」转为优化建议？提交后按产品「${product}」的分类自动分配到对应分拣岗。`, '转优化建议', { type: 'info' })
   } catch {
     return
   }
@@ -119,10 +119,10 @@ async function toSuggestion(row) {
     channels: [channelOf[product] || '手机APP-个人手机银行'],
     column: `${row.column}-${row.action}`,
     desc: `【现象】${row.text}（覆盖用户声音 ${row.voices} 条）\n【建议】${row.optimization}`,
-    source: '客户：app用户反馈',
+    source: VOICE_SOURCE,
     category: '功能流程',
     impact: impacts[2]
-  })
+  }, undefined, { direct: true })
   row.handled = '已转优化建议'
   row.suggestionSeq = s.seq
   ElMessage.success(`已转为优化建议，当前状态：${s.status}${s.currentHandler ? `，当前处理人：${s.currentHandler}` : ''}`)
@@ -130,7 +130,7 @@ async function toSuggestion(row) {
 // 查看建议：进入转出的优化建议详情（来源菜单记为全部列表）
 function viewSuggestion(row) {
   const s = row.suggestionSeq && findSuggestion(row.suggestionSeq)
-  router.push(s ? detailRoute(s, '全部列表', [s]) : '/optimSuggestions')
+  router.push(s ? detailRoute(s, '全部优化建议', [s]) : '/optimSuggestions')
 }
 </script>
 

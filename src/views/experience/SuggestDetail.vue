@@ -82,7 +82,7 @@ const router = useRouter()
 const s = computed(() => findSuggestion(route.query.problemId))
 const menu = computed(() => route.query.currentMenuName || '')
 
-const back = () => router.push(menuPathOf('experience', menu.value) || '/optimSuggestions')
+const back = () => router.push(menuPathOf('suggest', menu.value) || '/optimSuggestions')
 
 // 删除：仅系统管理员
 const isAdmin = computed(() => !!persons.find((p) => p.id === currentUser.id)?.roles.includes('系统管理员'))

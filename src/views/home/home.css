@@ -1,0 +1,45 @@
+/* 首页卡片共用样式（列表行、指标、标签、空状态）；类名以 hc- 开头，避免与页面样式冲突 */
+.hc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.hc-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 16px;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--uem-line-2);
+  color: inherit;
+}
+.hc-list > li:first-child .hc-row { border-top: 0; padding-top: 4px; }
+a.hc-row:hover .hc-row-title { color: var(--uem-red); }
+.hc-row-title { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--uem-fs); color: var(--uem-ink); transition: color 0.15s; }
+.hc-row-meta { grid-column: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--uem-fs-xs); color: var(--uem-ink-3); }
+.hc-row-side { grid-column: 2; grid-row: 1 / span 2; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+
+.hc-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--uem-radius-sm);
+  background: var(--uem-line-2);
+  color: var(--uem-ink-2);
+  font-size: var(--uem-fs-xs);
+  line-height: 20px;
+  white-space: nowrap;
+}
+.hc-tag.danger { background: var(--uem-danger-soft); color: var(--uem-danger); }
+.hc-tag.warn { background: var(--uem-warning-soft); color: var(--uem-warning); }
+.hc-tag.ok { background: var(--uem-success-soft); color: var(--uem-success); }
+.hc-tag.info { background: var(--uem-info-soft); color: var(--uem-info); }
+
+.hc-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+.hc-tile { padding: 12px 14px; border-radius: var(--uem-radius); background: var(--uem-surface-2); min-width: 0; }
+.hc-tile-label { font-size: var(--uem-fs-xs); color: var(--uem-ink-3); }
+.hc-tile-value { margin-top: 4px; font-size: var(--uem-fs-2xl); font-weight: 600; line-height: 1.2; color: var(--uem-ink); }
+.hc-tile-value small { margin-left: 2px; font-size: var(--uem-fs-sm); font-weight: 500; color: var(--uem-ink-3); }
+.hc-tile-note { margin-top: 4px; font-size: var(--uem-fs-xs); color: var(--uem-ink-3); }
+
+.hc-empty { flex: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; padding: 12px 0; color: var(--uem-ink-3); font-size: var(--uem-fs-sm); }
+.hc-empty b { color: var(--uem-ink-2); font-weight: 600; }
+.hc-foot { margin-top: auto; padding-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: var(--uem-fs-xs); color: var(--uem-ink-3); }
+.hc-scope { font-size: var(--uem-fs-xs); color: var(--uem-ink-3); }

@@ -33,11 +33,11 @@
         </div>
       </template>
 
-      <!-- 待处理（分行科技审核岗） -->
-      <template v-else-if="mode === '待处理'">
-        <div class="tip">分行员工提交的优化建议，审核后转产品线分拣岗{{ sorterName ? `（${sorterName}）` : '' }}分拣；与本行业务无关的可中止。</div>
+      <!-- 待审批（本行分行科技审核岗） -->
+      <template v-else-if="mode === '待审批'">
+        <div class="tip">本行员工提交的优化建议，{{ routeTip }}；与本行业务无关的可中止。</div>
         <div class="btns">
-          <el-button type="primary" @click="doTransferSort">转处理</el-button>
+          <el-button type="primary" @click="doApprove">审批通过</el-button>
           <el-button @click="doReturn">退回提交人</el-button>
           <el-button @click="doAbort">中止</el-button>
         </div>
@@ -234,7 +234,7 @@ import { fmtDate } from '@/mock/holidays'
 import {
   adoptResults, solutions, solutionOf, priorities, rejectReasons, satisfactions, isOverdue,
   handlersOf, sorterOf, businessHandlerOf,
-  transferToSort, returnToSubmitter, abortSuggestion, assignReplier, transferToEkey, replySuggestion, transferToBusiness,
+  approveBranch, dispatchText, returnToSubmitter, abortSuggestion, assignReplier, transferToEkey, replySuggestion, transferToBusiness,
   auditSuggestion, followUp, businessReply, ekeyComplete, ekeyReturn, evaluate, resubmit
 } from '@/mock/suggest'
 
@@ -243,7 +243,7 @@ const props = defineProps({ suggestion: { type: Object, required: true } })
 const s = computed(() => props.suggestion)
 const router = useRouter()
 
-const actionable = ['待修改', '待处理', '待分拣', '待答复', '待审核', '待跟进', '待业务部门答复']
+const actionable = ['待修改', '待审批', '待分拣', '待答复', '待审核', '待跟进', '待业务部门答复']
 const me = persons.find((p) => p.id === currentUser.id) || { name: currentUser.name, id: currentUser.id, org: currentUser.dept }
 // 当前处理人（提交人等不在人员维护中的，按记录信息构造）
 const handlerPerson = computed(() => {
@@ -306,11 +306,18 @@ function doResubmit() {
   done('已重新提交')
 }
 
-// ===== 待处理 / 待分拣：退回、中止 =====
+// ===== 待审批 / 待分拣：退回、中止 =====
 const sorterName = computed(() => sorterOf(s.value.productLine)?.name || '')
-function doTransferSort() {
-  transferToSort(s.value, actor.value)
-  done('已转处理')
+// 审批通过后的去向：按产品分类自动分配
+const routeTip = computed(() => {
+  const x = s.value
+  if (x.integrated) return '审批通过后作为研发一体化问题转 e键通'
+  const who = sorterName.value ? `（${sorterName.value}）` : ''
+  return x.unclassified ? `「${x.product}」暂无产品分类，审批通过后分配至用户体验部分拣岗${who}` : `审批通过后按产品分类分配至${x.bizDept}「${x.productLine}」产品线分拣岗${who}`
+})
+function doApprove() {
+  approveBranch(s.value, actor.value)
+  ElMessage.success(`审批通过，${dispatchText(s.value)}`)
 }
 async function doReturn() {
   const reason = await ask('退回提交人', '退回原因')

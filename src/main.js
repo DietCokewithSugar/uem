@@ -5,7 +5,11 @@ import 'element-plus/dist/index.css'
 import * as Icons from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
+import { restorePersona } from './config/session'
 import './styles/global.css'
+
+// 恢复上次选择的演示身份（顶栏「切换演示身份」），须在路由首次导航前完成
+restorePersona()
 
 const app = createApp(App)
 for (const [name, comp] of Object.entries(Icons)) app.component(name, comp)
