@@ -3,7 +3,7 @@
   <div class="uem-card">
     <el-tabs v-model="tab" class="tabs">
       <el-tab-pane label="用户声音看板报表" name="board" />
-      <el-tab-pane label="智能分析工具报表" name="tools" />
+      <el-tab-pane label="声音分析智能工具报表" name="tools" />
       <el-tab-pane label="时点和月度压力值数据" name="pressure" />
     </el-tabs>
     <div class="bar">
@@ -27,7 +27,7 @@ const tab = ref('board')
 const range = ref([])
 const descs = {
   board: '按产品、功能栏目统计用户声音数量、负面占比与平均情绪指数。',
-  tools: '统计各智能分析工具的使用次数、处理行数与处理状态。',
+  tools: '统计声音分析智能工具各模型的使用次数、处理行数与处理状态。',
   pressure: '导出时点（每 3 小时）UVSI 值与月度压力指数等级。'
 }
 const inRange = (d) => !range.value?.length || (d >= range.value[0] && d <= range.value[1])
@@ -48,7 +48,7 @@ function download() {
     cols = C('产品', '功能栏目', '声音数量', '负面声音数', '负面占比', '平均情绪指数')
     rows = Object.values(m).map((x) => [x.p, x.c, x.n, x.neg, `${Math.round((x.neg / x.n) * 100)}%`, (x.s / x.n).toFixed(2)])
   } else if (tab.value === 'tools') {
-    name = '智能分析工具报表'
+    name = '声音分析智能工具报表'
     cols = C('工具名称', '使用次数', '处理行数', '已完成任务')
     rows = toolDefs.map((t) => {
       const list = toolTasks.filter((k) => k.tool === t.key && inRange(k.time.slice(0, 10)))

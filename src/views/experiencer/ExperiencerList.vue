@@ -1,4 +1,4 @@
-<!-- 体验员管理：行内 / 行外 × 总行 / 分行
+<!-- 体验官管理：行内 / 行外 × 总行 / 分行
      总行可新增、下载模板、批量新增、修改删除；分行仅查询与导出（与截图一致） -->
 <template>
   <div>
@@ -57,7 +57,7 @@
 
     <ExperiencerEditDialog v-model="editVisible" :kind="kind" :row="editing" @save="save" />
 
-    <el-dialog v-model="importVisible" title="批量新增体验员" width="480px">
+    <el-dialog v-model="importVisible" title="批量新增体验官" width="480px">
       <el-upload drag action="#" :auto-upload="false" accept=".xls,.xlsx,.csv">
         <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
         <div>将按模板填写的文件拖到此处，或<em>点击上传</em></div>
@@ -173,7 +173,7 @@ function save(data) {
   ElMessage.success('保存成功')
 }
 async function remove(row) {
-  await ElMessageBox.confirm(`确认删除体验员「${row.name}」？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(`确认删除体验官「${row.name}」？`, '提示', { type: 'warning' })
   source().splice(source().indexOf(row), 1)
   ElMessage.success('删除成功')
 }

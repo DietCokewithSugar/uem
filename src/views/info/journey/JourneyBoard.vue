@@ -79,7 +79,7 @@ const maintain = () => router.push({ path: '/myjourneyAdd', query: { id: journey
 .zoom-tip { font-size: 12px; color: #888; white-space: nowrap; }
 .zoom { width: 120px; margin-right: 12px; }
 .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
-.kpi { background: #fff; border: 1px solid #f0d9d9; border-radius: 4px; padding: 28px 16px; font-size: 14px; color: #555; }
+.kpi { background: var(--uem-surface); border: 1px solid var(--uem-line); border-radius: var(--uem-radius-lg); padding: 28px 16px; font-size: 14px; color: #555; }
 .kpi b { color: #333; }
 .basic { display: flex; gap: 48px; font-size: 13px; color: #555; margin-bottom: 16px; flex-wrap: wrap; }
 .basic em { font-style: normal; color: #333; }

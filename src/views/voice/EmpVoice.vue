@@ -19,11 +19,11 @@
           <template #extra><el-tooltip content="注册用户：已登录过工银智涌的员工；专家用户：负责答复问题的业务专家"><el-icon class="tip"><InfoFilled /></el-icon></el-tooltip></template>
           <div class="usage">
             <div><div class="lbl">注册用户</div><div class="num">{{ d.registered }}<small>万人</small></div></div>
-            <EChart class="ring" :option="ring(d.regRatio, ['#e8545c', '#f2a33a'], '%')" />
+            <EChart class="ring" :option="ring(d.regRatio, ['#2a78d6', '#eb6834'], '%')" />
             <div><div class="lbl">专家用户</div><div class="num">{{ d.experts }}<small>人</small></div></div>
             <div class="rings">
-              <EChart class="ring sm" :option="ring(d.expertSplit, ['#4a8fe7', '#3fa89b'])" />
-              <EChart class="ring sm" :option="ring(d.deptSplit, ['#f2a33a', '#6b55c9'])" />
+              <EChart class="ring sm" :option="ring(d.expertSplit, ['#2a78d6', '#1baf7a'])" />
+              <EChart class="ring sm" :option="ring(d.deptSplit, ['#eda100', '#6250d6'])" />
             </div>
           </div>
         </Panel>
@@ -107,8 +107,8 @@ const barLine = (data) => ({
   xAxis: { type: 'category', data: months, axisLabel: { fontSize: 10, rotate: 40 } },
   yAxis: { type: 'value', axisLabel: { fontSize: 10 } },
   series: [
-    { type: 'bar', barWidth: 8, itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#e8545c' }, { offset: 1, color: '#f8c1c4' }] } }, data },
-    { type: 'line', symbol: 'none', smooth: true, lineStyle: { color: '#6b9ee3', width: 1 }, data }
+    { type: 'bar', barWidth: 8, itemStyle: { color: '#2a78d6', borderRadius: [3, 3, 0, 0] }, data },
+    { type: 'line', symbol: 'none', smooth: true, lineStyle: { color: '#868d98', width: 1 }, data }
   ]
 })
 
@@ -117,10 +117,10 @@ const mapOpt = computed(() => {
   const max = Math.max(...data.map((x) => x.value))
   return {
     tooltip: { trigger: 'item', formatter: (p) => `${p.name}：${p.value ?? 0}` },
-    visualMap: { min: 0, max, orient: 'horizontal', left: 'center', bottom: 0, itemWidth: 10, itemHeight: 260, calculable: true, inRange: { color: ['#fde2e3', '#e8545c', '#b0000a'] }, textStyle: { fontSize: 10 } },
+    visualMap: { min: 0, max, orient: 'horizontal', left: 'center', bottom: 0, itemWidth: 10, itemHeight: 260, calculable: true, inRange: { color: ['#dbe8f8', '#5b9be4', '#1d5bb0'] }, textStyle: { fontSize: 10 } },
     series: [{
       type: 'map', map: 'china', roam: false, top: 10, bottom: 50, label: { show: true, fontSize: 9, color: '#333' },
-      itemStyle: { borderColor: '#fff', areaColor: '#fbe3e4' }, emphasis: { itemStyle: { areaColor: '#c7000b' }, label: { color: '#fff' } },
+      itemStyle: { borderColor: '#fff', areaColor: '#eef0f3' }, emphasis: { itemStyle: { areaColor: '#164a8f' }, label: { color: '#fff' } },
       data
     }]
   }
@@ -146,14 +146,11 @@ const mapOpt = computed(() => {
 .map-panel :deep(.panel-body) { display: flex; flex-direction: column; }
 .map-top { display: flex; justify-content: space-between; }
 .rank-item { font-size: 13px; color: #444; margin-top: 6px; display: flex; align-items: center; gap: 8px; }
-.idx { width: 16px; text-align: center; color: #c7000b; font-size: 12px; }
-.idx.i0 { background: #f2a33a; color: #fff; border-radius: 50%; }
+.idx { width: 16px; text-align: center; color: var(--uem-ink-3); font-size: 12px; }
+.idx.i0 { color: var(--uem-ink); font-weight: 600; }
 .map { flex: 1; min-height: 460px; }
 .list-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; font-size: 13px; color: #333; }
-.badge { width: 16px; height: 16px; line-height: 16px; text-align: center; font-size: 11px; color: #fff; background: #333; border-radius: 2px; flex-shrink: 0; margin-top: 1px; }
-.badge.b0 { background: #e8545c; }
-.badge.b1 { background: #f08a5d; }
-.badge.b2 { background: #f2a33a; }
+.badge { width: 18px; height: 18px; line-height: 18px; text-align: center; font-size: 11px; font-weight: 600; color: var(--uem-ink-2); background: var(--uem-line-2); border-radius: var(--uem-radius-sm); flex-shrink: 0; margin-top: 1px; font-variant-numeric: tabular-nums; }
 .txt { flex: 1; line-height: 1.5; }
 .cnt { color: #999; font-size: 12px; display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; }
 .sub-title { font-weight: 600; font-size: 14px; margin: 4px 0 4px; }

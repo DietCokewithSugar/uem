@@ -181,7 +181,7 @@ const surnames = '赵钱孙李周吴郑王冯陈褚卫蒋沈韩杨朱秦许何�
 const givenChars = '子涵欣怡梓轩浩然宇航思远雨桐嘉怡俊杰诗琪明轩一诺若曦晨阳佳琪志强'.split('')
 const fakeName = () => pick(surnames) + pick(givenChars) + (chance(0.6) ? pick(givenChars) : '')
 
-const channelOfProduct = {
+export const channelOfProduct = {
   个人手机银行基础业务: ['手机APP-个人手机银行'], 数字人民币: ['手机APP-数字货币'], 工银e生活: ['手机APP-工银e生活'],
   企业网银基础业务: ['电脑端-企业网上银行'], 企业手机银行: ['手机APP-企业手机银行'], 柜面服务: ['线下-柜面'], 柜面通: ['线下-柜面'],
   工银网点通: ['线下-柜面'], 云网点: ['线下-柜面'], 智能柜员机: ['线下-智能柜员机'], 工银e办公: ['手机APP-工银e办公', '电脑端-工银e办公'],
@@ -555,7 +555,8 @@ export const findSuggestion = (key) => suggestions.find((s) => s.id === key || S
 const me = () => persons.find((p) => p.id === currentUser.id) || { name: currentUser.name, id: currentUser.id, org: currentUser.dept }
 const nowAt = () => timeText(new Date())
 
-// opt.direct：不经分行审批直接按产品分类分配（用户声音转入的建议直接进入待分拣）
+// opt.direct：不经分行审批直接按产品分类分配（用户声音转入的建议直接进入待分拣）；opt.ai：描述与字段由 AI 整理、提交人确认
+export const AI_MARK = 'AI 建议 · 人工确认'
 export function createSuggestion(form, actor = me(), opt = {}) {
   const t = new Date()
   const seq = Math.max(...suggestions.map((s) => s.seq)) + 1
@@ -565,7 +566,7 @@ export function createSuggestion(form, actor = me(), opt = {}) {
     source: form.source, activity: form.activity || '', category: form.category, impact: form.impact
   })
   s.vip = s.source === '客户：要客意见' || isVipPerson(actor.id)
-  log(s, t, actor, '提交', '', false)
+  log(s, t, actor, '提交', opt.ai ? `描述与字段由 AI 整理（${AI_MARK}）` : '', false)
   if (opt.direct) dispatch(s, timeText(t))
   else routeAfterSubmit(s, t)
   suggestions.unshift(s)
@@ -611,8 +612,8 @@ export function removeSuggestion(s) {
   if (i >= 0) suggestions.splice(i, 1)
 }
 // 待分拣：指派答复人 / 研发一体化问题转 e键通
-export function assignReplier(s, replier, actor = me()) {
-  log(s, nowAt(), actor, '指派答复人', `答复人：${replier.name}`)
+export function assignReplier(s, replier, actor = me(), ai = false) {
+  log(s, nowAt(), actor, '指派答复人', `答复人：${replier.name}${ai ? `；AI 推荐（${AI_MARK}）` : ''}`)
   Object.assign(s, { sorter: actor.name, sorterId: actor.id })
   enter(s, '待答复', nowAt(), replier)
 }
@@ -630,7 +631,7 @@ export function replySuggestion(s, r, actor = me()) {
     planTime: r.planTime || '', replier: actor.name, replierId: actor.id, replyTime: fmtDate(new Date())
   })
   if (s.solution === '科技自主解决') s.ekeyNo = ekeyNo(new Date())
-  log(s, nowAt(), actor, '答复', replyRemark(s))
+  log(s, nowAt(), actor, '答复', replyRemark(s) + (r.ai ? `参考AI答复草稿（${AI_MARK}）；` : ''))
   enter(s, '待审核', nowAt(), auditorOf(s))
 }
 // 待答复：转总行业务部门分析处理

@@ -1,4 +1,4 @@
-<!-- 体验问题 · 优化建议 · 新增 #/optimSuggestAdd；?problemId=<流水号> 且为本人提交的「待修改」建议时为修改并重新提交 -->
+<!-- 优化建议 · 提交优化建议 #/optimSuggestAdd；?problemId=<流水号> 且为本人提交的「待修改」建议时为修改并重新提交 -->
 <template>
   <div class="uem-card add-page">
     <!-- 修改模式提示退回意见（推测：截图未展示修改页） -->
@@ -6,6 +6,37 @@
       <template v-if="returnLog">退回意见：{{ returnLog.remark || '无' }}（{{ returnLog.operator }}，{{ returnLog.time }}）</template>
     </el-alert>
     <el-alert v-else-if="blockedTip" type="info" :closable="false" show-icon class="top-tip" :title="blockedTip" />
+
+    <!-- AI 整理：一句话描述或粘贴客户原话，整理成规范描述并识别各项信息（演示为规则模拟），核对后填入表单 -->
+    <section v-if="!editTarget" class="ai-intake uem-ai-panel" aria-label="AI 整理">
+      <div class="ai-head">
+        <span class="uem-ai-tag"><el-icon><MagicStick /></el-icon>AI 整理</span>
+        <span class="ai-sub">一句话描述问题或粘贴客户原话，AI 整理成【现象】【建议】并识别产品、渠道等信息，核对后填入表单</span>
+      </div>
+      <div class="ai-input">
+        <el-input id="ai-raw" v-model="ai.raw" type="textarea" :autosize="{ minRows: 2, maxRows: 5 }" maxlength="500" placeholder="例如：客户来电反映转账限额只能去网点改，手机银行里找不到调整的地方，希望线上就能改" aria-label="一句话描述" />
+        <el-button :loading="ai.loading" :disabled="!ai.raw.trim()" @click="runAi">{{ ai.result ? '重新整理' : 'AI 整理' }}</el-button>
+      </div>
+      <div v-if="ai.result" class="ai-result">
+        <p class="ai-desc">{{ aiText }}</p>
+        <dl class="ai-fields">
+          <div v-for="f in aiFields" :key="f.label">
+            <dt>{{ f.label }}</dt>
+            <dd>{{ f.value }}<span v-if="f.confidence" class="conf" :class="{ low: f.confidence < 0.6 }">{{ Math.round(f.confidence * 100) }}%</span></dd>
+          </div>
+        </dl>
+        <p v-if="ai.result.masked.length" class="ai-mask"><el-icon><Lock /></el-icon>已遮蔽 {{ ai.result.masked.length }} 处客户隐私信息（{{ [...new Set(ai.result.masked)].join('、') }}）</p>
+        <div v-if="aiSimilar.length" class="ai-sim">
+          <span>按语义找到 {{ aiSimilar.length }} 条相似建议：</span>
+          <template v-for="(x, i) in aiSimilar" :key="x.item.id"><span v-if="i">、</span><span class="uem-link" @click="openDetail(x.item)">{{ x.item.id }}</span>（{{ x.item.status }}）</template>
+        </div>
+        <div class="ai-actions">
+          <el-button type="primary" @click="applyAi">填入表单</el-button>
+          <el-button @click="ai.result = null">不使用</el-button>
+          <span class="uem-ai-basis">依据：产品目录、功能栏目和历史建议的分类；把握度低于 60% 的字段请重点核对</span>
+        </div>
+      </div>
+    </section>
 
     <el-form ref="formRef" :model="form" :rules="rules" label-width="128px" scroll-to-error class="add-form">
       <el-form-item label="描述及解决建议" prop="desc">
@@ -142,7 +173,7 @@ let savedDraft = null
 </script>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { activities } from '@/mock'
@@ -151,8 +182,10 @@ import { dictOptions, hasDictType } from '@/mock/dicts'
 import { featureActive, findSimilar } from '@/mock/problemFeatures'
 import {
   sourceGroups, sources, channelGroups, columnOptions, categories, impacts,
-  suggestions, findSuggestion, createSuggestion, resubmit, detailRoute
+  suggestions, findSuggestion, createSuggestion, resubmit, detailRoute, isBranchOrg
 } from '@/mock/suggest'
+import { draftSuggestion, draftText, similarSuggestions } from '@/mock/aiAssist'
+import { takeSuggestDraft } from '@/config/drafts'
 import { currentUser } from '@/config/user'
 import { nowText } from '@/mock/qc'
 
@@ -333,6 +366,55 @@ function openDetail(item) {
   router.push(detailRoute(item, '全部列表'))
 }
 
+// ===== AI 整理（演示为规则模拟；正式环境由行内大模型完成）=====
+const ai = reactive({ raw: '', loading: false, result: null, used: false })
+const aiText = computed(() => (ai.result ? draftText(ai.result) : ''))
+const aiFields = computed(() => {
+  const f = ai.result?.fields
+  if (!f) return []
+  return [
+    { label: '产品名称', value: f.product.value, confidence: f.product.confidence },
+    { label: '使用渠道', value: f.channels.value.map((c) => c.split('-')[1]).join('、'), confidence: f.channels.confidence },
+    { label: '功能栏目', value: f.column.value || '未识别', confidence: f.column.confidence },
+    { label: '分类', value: f.category.value, confidence: f.category.confidence },
+    { label: '影响程度', value: f.impact.value.slice(0, 1), confidence: f.impact.confidence },
+    { label: '来源', value: f.source.value, confidence: f.source.confidence }
+  ]
+})
+const aiSimilar = computed(() =>
+  ai.result ? similarSuggestions(aiText.value, editTarget ? suggestions.filter((x) => x !== editTarget) : suggestions, { product: ai.result.fields.product.value, column: ai.result.fields.column.value }) : []
+)
+function runAi() {
+  ai.loading = true
+  setTimeout(() => {
+    ai.result = draftSuggestion(ai.raw, { branch: isBranchOrg(currentUser.dept) })
+    ai.loading = false
+  }, 500)
+}
+function applyAi() {
+  const f = ai.result.fields
+  Object.assign(form, {
+    desc: aiText.value,
+    product: productOptions.value.includes(f.product.value) ? f.product.value : form.product,
+    channels: f.channels.value.filter((v) => channelValues.includes(v)),
+    column: f.column.value || form.column,
+    category: f.category.value,
+    impact: impactOptions.value.includes(f.impact.value) ? f.impact.value : form.impact,
+    source: sources.includes(f.source.value) ? f.source.value : form.source
+  })
+  ai.used = true
+  ElMessage.success('已填入表单，请核对各项信息后提交')
+  nextTick(() => formRef.value?.clearValidate())
+}
+// 从首页「提交优化建议」卡片带来的描述：自动整理
+onMounted(() => {
+  const draft = takeSuggestDraft()
+  if (draft && !editTarget) {
+    ai.raw = draft
+    runAi()
+  }
+})
+
 // ===== 提交 =====
 const submitting = ref(false)
 async function submit() {
@@ -355,19 +437,36 @@ function doSubmit() {
   data.channels = [...channelValues.filter((v) => form.channels.includes(v)), ...form.channels.filter((v) => !channelValues.includes(v))]
   let s = editTarget
   if (s) resubmit(s, data)
-  else s = createSuggestion(data)
+  else s = createSuggestion(data, undefined, { ai: ai.used })
   ElMessage.success(`提交成功，当前状态：${s.status}${s.currentHandler ? '，当前处理人：' + s.currentHandler : ''}`)
   router.replace(detailRoute(s, '我的提交', [s]))
 }
 </script>
 
 <style scoped>
-.add-page { padding: 28px 40px 32px 16px; }
+.add-page { padding: 24px 40px 32px 16px; }
+.ai-intake { margin: 0 0 24px 128px; display: flex; flex-direction: column; gap: 10px; }
+.ai-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ai-sub { font-size: var(--uem-fs-sm); color: var(--uem-ink-3); }
+.ai-input { display: flex; gap: 8px; align-items: flex-start; }
+.ai-input .el-input { flex: 1; }
+.ai-result { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; border-top: 1px solid var(--uem-line); }
+.ai-desc { margin: 0; white-space: pre-line; font-size: var(--uem-fs); line-height: 1.75; color: var(--uem-ink); }
+.ai-fields { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 20px; }
+.ai-fields div { display: flex; gap: 8px; font-size: var(--uem-fs-sm); min-width: 0; }
+.ai-fields dt { color: var(--uem-ink-3); flex-shrink: 0; }
+.ai-fields dd { margin: 0; color: var(--uem-ink); min-width: 0; }
+.conf { margin-left: 6px; font-size: var(--uem-fs-xs); color: var(--uem-ai); font-variant-numeric: tabular-nums; }
+.conf.low { color: var(--uem-warning); }
+.ai-mask { margin: 0; display: flex; align-items: center; gap: 6px; font-size: var(--uem-fs-sm); color: var(--uem-success); }
+.ai-sim { font-size: var(--uem-fs-sm); color: var(--uem-ink-2); }
+.ai-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ai-actions .uem-ai-basis { margin-left: 4px; }
 .top-tip { margin: 0 0 22px 128px; width: auto; }
-.add-form :deep(.el-form-item__label) { color: #555; }
+.add-form :deep(.el-form-item__label) { color: var(--uem-ink-2); }
 .similar-row { width: 100%; text-align: right; line-height: 22px; margin-top: 4px; }
-.similar-link { color: #3a6fd8; text-decoration: underline; cursor: pointer; font-size: 13px; }
-.similar-link:hover { color: #2858b8; }
+.similar-link { color: var(--uem-info); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: var(--uem-fs-sm); }
+.similar-link:hover { color: #234a9f; }
 
 .channels { display: block; width: 100%; line-height: normal; }
 .ch-group { display: flex; align-items: flex-start; }

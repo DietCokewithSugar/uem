@@ -43,7 +43,7 @@ const RangeTag = (p) => h('span', { class: 'range-tag' }, p.text)
 RangeTag.props = ['text']
 
 const distOpt = {
-  color: ['#e8545c', '#3fa89b', '#4a8fe7'],
+  color: ['#2a78d6', '#eb6834', '#1baf7a'],
   tooltip: { formatter: '{b}：{c}%' },
   legend: { orient: 'vertical', right: 0, bottom: 10, itemWidth: 8, itemHeight: 8, textStyle: { fontSize: 11 } },
   title: { text: '客户声音', subtext: `${d.total} 万条`, left: '34%', top: '38%', textAlign: 'center', textStyle: { fontSize: 13, color: '#333', fontWeight: 400 }, subtextStyle: { fontSize: 18, color: '#c7000b', fontWeight: 600 } },
@@ -54,20 +54,20 @@ const trendOpt = {
   tooltip: { trigger: 'axis' },
   xAxis: { type: 'category', data: d.trend.map((x) => x[0]), axisLabel: { rotate: 40, fontSize: 10 } },
   yAxis: { type: 'value', axisLabel: { fontSize: 10 } },
-  series: [{ type: 'bar', barWidth: 18, itemStyle: { color: '#e8545c' }, data: d.trend.map((x) => x[1]) }]
+  series: [{ type: 'bar', barWidth: 18, itemStyle: { color: '#2a78d6', borderRadius: [3, 3, 0, 0] }, data: d.trend.map((x) => x[1]) }]
 }
 const gaugeOpt = {
   series: [{
     type: 'gauge', min: -100, max: 100, startAngle: 180, endAngle: 0, radius: '95%', center: ['50%', '70%'], splitNumber: 2,
-    progress: { show: true, width: 14, itemStyle: { color: '#e8545c' } }, axisLine: { lineStyle: { width: 14, color: [[1, '#c9ccd1']] } },
+    progress: { show: true, width: 14, itemStyle: { color: '#2a78d6' } }, axisLine: { lineStyle: { width: 14, color: [[1, '#c9ccd1']] } },
     axisTick: { show: false }, splitLine: { show: false }, pointer: { show: false },
     axisLabel: { distance: -40, fontSize: 11, color: '#666', formatter: (v) => `${v}分` },
-    detail: { offsetCenter: [0, '-10%'], fontSize: 24, fontWeight: 600, color: '#c7000b', formatter: '{value}' },
+    detail: { offsetCenter: [0, '-10%'], fontSize: 24, fontWeight: 600, color: '#1f2329', formatter: '{value}' },
     title: { offsetCenter: [0, '35%'], fontSize: 11, color: '#999' },
     data: [{ value: d.emotionScore, name: '兴农通问卷调研' }]
   }]
 }
-const cloudColors = ['#c7000b', '#4a8fe7', '#3fa89b', '#f2a33a', '#9474d6', '#e8545c']
+const cloudColors = ['#2a78d6', '#eb6834', '#1baf7a', '#b37800', '#6250d6', '#4e5561']
 const cloudOpt = {
   tooltip: {},
   series: [{
@@ -83,9 +83,6 @@ const cloudOpt = {
 .h220 { height: 220px; }
 :deep(.range-tag) { font-size: 11px; color: #999; border: 1px solid #eee; border-radius: 3px; padding: 2px 8px; }
 .talk { display: flex; gap: 8px; font-size: 13px; color: #333; padding: 7px 0; line-height: 1.5; }
-.badge { width: 16px; height: 16px; line-height: 16px; text-align: center; font-size: 11px; color: #fff; background: #333; border-radius: 2px; flex-shrink: 0; margin-top: 2px; }
-.badge.b0 { background: #e8545c; }
-.badge.b1 { background: #f08a5d; }
-.badge.b2 { background: #f2a33a; }
+.badge { width: 18px; height: 18px; line-height: 18px; text-align: center; font-size: 11px; font-weight: 600; color: var(--uem-ink-2); background: var(--uem-line-2); border-radius: var(--uem-radius-sm); flex-shrink: 0; margin-top: 2px; font-variant-numeric: tabular-nums; }
 @media (max-width: 1400px) { .dash { grid-template-columns: 1fr 1fr; } }
 </style>

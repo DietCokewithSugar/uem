@@ -106,7 +106,7 @@ const cols = [
 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--uem-red); }
 .charts { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; margin-top: 16px; }
 .h300 { height: 300px; }
-.rt-problems { margin-top: 16px; border-radius: 6px; padding: 14px 18px; background: linear-gradient(120deg, #eef4fd, #e3edfb); }
+.rt-problems { margin-top: 12px; border-radius: var(--uem-radius-lg); padding: 14px 18px; background: var(--uem-surface); border: 1px solid var(--uem-line); }
 .p-title { display: flex; align-items: center; gap: 6px; color: #2f5fbf; font-weight: 600; font-size: 15px; margin-bottom: 10px; }
 .p-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .p-card { background: rgba(255, 255, 255, 0.85); border-radius: 6px; padding: 12px 16px; font-size: 13px; color: #3a5ea8; min-height: 72px; display: flex; flex-direction: column; justify-content: space-between; }

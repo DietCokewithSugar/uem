@@ -1,6 +1,6 @@
-<!-- 新增 / 修改体验员 -->
+<!-- 新增 / 修改体验官 -->
 <template>
-  <el-dialog :model-value="modelValue" :title="row ? '修改体验员' : '新增体验员'" width="760px" @update:model-value="$emit('update:modelValue', $event)">
+  <el-dialog :model-value="modelValue" :title="row ? '修改体验官' : '新增体验官'" width="760px" @update:model-value="$emit('update:modelValue', $event)">
     <el-form ref="formRef" :model="d" :rules="rules" label-width="150px" class="form">
       <template v-if="kind === 'inside'">
         <el-form-item label="统一认证号" prop="id"><el-input v-model="d.id" :disabled="!!row" maxlength="9" placeholder="9 位数字" /></el-form-item>
@@ -70,7 +70,7 @@ watch(
     const blank = {
       id: props.kind === 'outside' ? `W${Date.now().toString().slice(-8)}` : '', name: '', gender: '', age: 30, region: [], org: [],
       jobLevel: '', workTime: '', isOutlet: '否', channels: [], businesses: [], peer: '',
-      education: '', industry: '', attr: '', type: '普通体验员', star: '', rating: '', status: '在库'
+      education: '', industry: '', attr: '', type: '普通体验官', star: '', rating: '', status: '在库'
     }
     Object.assign(d, blank, props.row ? JSON.parse(JSON.stringify(props.row)) : {})
     keptGender.value = d.gender && !enabledGenders.value.includes(d.gender) ? d.gender : ''

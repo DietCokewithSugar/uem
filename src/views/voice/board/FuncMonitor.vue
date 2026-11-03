@@ -136,23 +136,23 @@ function viewSuggestion(row) {
 
 <style scoped>
 .block { margin-top: 16px; }
-.journey-name { font-size: 13px; color: #333; margin-bottom: 12px; font-weight: 600; }
+.journey-name { font-size: var(--uem-fs-sm); color: var(--uem-ink); margin-bottom: 12px; font-weight: 600; }
 .j-tab { color: var(--uem-red); border-bottom: 2px solid var(--uem-red); padding: 0 8px 4px; margin-left: 8px; font-weight: 400; }
 .map-scroll { overflow-x: auto; padding-bottom: 8px; }
 .map { display: grid; gap: 8px; min-width: max-content; }
-.row-label { display: flex; align-items: center; justify-content: center; font-weight: 600; color: #444; background: #fbf0f0; border-radius: 4px; font-size: 13px; }
+.row-label { display: flex; align-items: center; justify-content: center; font-weight: 600; color: var(--uem-ink-2); background: var(--uem-surface-2); border: 1px solid var(--uem-line-2); border-radius: var(--uem-radius); font-size: var(--uem-fs-sm); }
 .vertical { flex-direction: column; gap: 6px; padding: 8px 0; }
 .stage {
-  background: #fde2e3; color: #333; font-weight: 600; font-size: 13px; height: 40px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 22px;
+  background: #e9eef6; color: var(--uem-ink); font-weight: 600; font-size: var(--uem-fs-sm); height: 40px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 22px;
   clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%);
 }
-.stage.first { clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%); background: #f9cfd1; }
-.cell { position: relative; background: #fff; border: 1px solid #f3dede; border-right: 3px solid #f08a8f; border-radius: 4px; padding: 26px 10px 8px; font-size: 12px; color: #444; line-height: 1.6; max-height: 210px; overflow-y: auto; }
-.cell.opt { padding-top: 8px; border-right-color: #f2a33a; }
+.stage.first { clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%); background: #dfe7f2; }
+.cell { position: relative; background: var(--uem-surface); border: 1px solid var(--uem-line); border-radius: var(--uem-radius); padding: 26px 10px 8px; font-size: 12px; color: #444; line-height: 1.6; max-height: 210px; overflow-y: auto; }
+.cell.opt { padding-top: 8px; background: var(--uem-surface-2); }
 .cell ol { margin: 0; padding-left: 16px; }
-.count { position: absolute; top: 0; right: 0; background: #fde2e3; color: var(--uem-red); font-size: 11px; padding: 2px 8px; border-radius: 0 0 0 4px; }
-.filters { display: grid; grid-template-columns: auto 1fr auto 1fr auto 1fr auto auto; gap: 12px; align-items: center; font-size: 13px; color: #555; margin-bottom: 16px; }
+.count { position: absolute; top: 0; right: 0; background: var(--uem-line-2); color: var(--uem-ink-2); font-size: 11px; padding: 2px 8px; border-radius: 0 var(--uem-radius) 0 var(--uem-radius); }
+.filters { display: grid; grid-template-columns: auto 1fr auto 1fr auto 1fr auto auto; gap: 12px; align-items: center; font-size: var(--uem-fs-sm); color: var(--uem-ink-2); margin-bottom: 16px; }
 .filters .el-button + .el-button { margin-left: 0; }
-.example { font-size: 12px; color: #555; line-height: 1.6; }
+.example { font-size: var(--uem-fs-xs); color: var(--uem-ink-2); line-height: 1.6; }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

@@ -73,7 +73,7 @@ const gauge = computed(() => ({
   }]
 }))
 
-const imageColors = ['#e8545c', '#4a8fe7', '#5bc0b5', '#f2c43a', '#5a63d6', '#7cc99a', '#e8545c', '#f2c43a']
+const imageColors = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948']
 const imageOpt = computed(() => ({
   grid: { left: 10, right: 10, top: 20, bottom: 10 },
   tooltip: { formatter: (p) => `${p.name}：${p.value}` },
@@ -102,7 +102,7 @@ const radar = (d) => ({
 .brand { padding: 16px 20px 30px; }
 .row3 { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 .panel { background: #fff; border-radius: 4px; padding: 16px 20px; }
-.panel-head { display: flex; justify-content: space-between; align-items: center; margin: -16px -20px 12px; padding: 14px 20px; background: linear-gradient(90deg, #fdf1f0, #fff); }
+.panel-head { display: flex; justify-content: space-between; align-items: center; margin: -4px 0 12px; }
 .panel-head b { font-size: 15px; color: #333; font-weight: 600; }
 .panel-head small { color: #999; font-size: 11px; margin-left: 12px; }
 .nps { display: flex; align-items: center; }
@@ -116,7 +116,7 @@ const radar = (d) => ({
 .age-name { width: 70px; flex-shrink: 0; padding-top: 2px; }
 .age-bar-wrap { flex: 1; }
 .age-bar { height: 12px; }
-.age-bar > div { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #7cd3c8, #4a7fe0); }
+.age-bar > div { height: 100%; border-radius: 6px; background: #2a78d6; }
 .age-val { font-size: 11px; color: #777; }
 .image { height: 220px; }
 .dims { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
