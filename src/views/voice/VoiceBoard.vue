@@ -6,15 +6,15 @@
         <span v-for="t in tabs" :key="t.key" class="tab" :class="{ active: tab === t.key }" @click="tab = t.key">{{ t.label }}<el-icon><component :is="t.icon" /></el-icon></span>
       </div>
       <div v-if="tab !== 'realtime'" class="selects">
-        <el-select v-if="tab === 'overview'" v-model="product" size="small" class="red"><el-option v-for="p in productOpts" :key="p" :label="p" :value="p" /></el-select>
+        <el-select v-if="tab === 'overview'" v-model="product" size="small" ><el-option v-for="p in productOpts" :key="p" :label="p" :value="p" /></el-select>
         <template v-else>
-          <el-select v-model="funcProduct" size="small" class="red"><el-option v-for="p in [funcMonitor.product]" :key="p" :label="p" :value="p" /></el-select>
-          <el-select v-model="funcColumn" size="small" class="red"><el-option v-for="c in funcMonitor.columns" :key="c" :label="c" :value="c" /></el-select>
+          <el-select v-model="funcProduct" size="small" ><el-option v-for="p in [funcMonitor.product]" :key="p" :label="p" :value="p" /></el-select>
+          <el-select v-model="funcColumn" size="small" ><el-option v-for="c in funcMonitor.columns" :key="c" :label="c" :value="c" /></el-select>
         </template>
-        <el-select v-model="month" size="small" class="red month"><el-option v-for="m in boardMonths" :key="m" :label="m" :value="m" /></el-select>
+        <el-select v-model="month" size="small" class="month"><el-option v-for="m in boardMonths" :key="m" :label="m" :value="m" /></el-select>
       </div>
     </div>
-    <div class="ai-note">本页内容使用AI分析计算</div>
+    <div class="ai-note"><span class="uem-ai-tag"><el-icon><MagicStick /></el-icon>本页内容由 AI 分析计算</span></div>
 
     <!-- 用户声音总览 -->
     <template v-if="tab === 'overview'">
@@ -25,7 +25,7 @@
         <el-carousel height="190px" indicator-position="outside" :autoplay="false" arrow="never">
           <el-carousel-item v-for="(chunk, ci) in problemPages" :key="ci">
             <div class="p-grid">
-              <div v-for="p in chunk" :key="p" class="p-item" @click="filterByProblem(p)">• {{ p }}</div>
+              <div v-for="p in chunk" :key="p" class="p-item" @click="filterByProblem(p)">{{ p }}</div>
             </div>
           </el-carousel-item>
         </el-carousel>
@@ -34,8 +34,8 @@
       <div class="charts">
         <Panel title="有效用户声音总数变化趋势"><EChart class="h260" :option="areaOpt" /></Panel>
         <Panel title="用户声音压力指数变化趋势"><EChart class="h260" :option="levelOpt(d.pressureTrend, pressureLevels, true)" /></Panel>
-        <Panel title="各产品用户声音数量"><EChart class="h260" :option="barOpt(d.byProduct, '#4a8fe7')" /></Panel>
-        <Panel title="用户声音维度分布"><EChart class="h260" :option="barOpt(d.byDim, '#4a8fe7')" /></Panel>
+        <Panel title="各产品用户声音数量"><EChart class="h260" :option="productRank" /></Panel>
+        <Panel title="用户声音维度分布"><EChart class="h260" :option="barOpt(d.byDim)" /></Panel>
         <Panel title="用户声音情绪指数变化趋势"><EChart class="h260" :option="levelOpt(d.emotionTrend, emoLevels)" /></Panel>
         <Panel title="各产品用户声音情绪指数"><EChart class="h260" :option="emoProductOpt" /></Panel>
       </div>
@@ -56,6 +56,7 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 import EChart from '@/components/EChart.vue'
+import { BLUE, STATUS, rankBarOption } from '@/config/charts'
 import Panel from '@/components/Panel.vue'
 import KpiRow from './board/KpiRow.vue'
 import BoardVoiceDetail from './board/BoardVoiceDetail.vue'
@@ -84,68 +85,71 @@ const filterByProblem = async () => {
   detailRef.value?.$el.scrollIntoView({ behavior: 'smooth' })
 }
 
+// 声音总数趋势：折线 + 浅色平涂，不用渐变
 const areaOpt = {
-  grid: { left: 50, right: 20, top: 20, bottom: 30 },
-  tooltip: { trigger: 'axis' },
+  grid: { left: 50, right: 36, top: 20, bottom: 30 },
+  tooltip: { trigger: 'axis', formatter: (p) => `${p[0].axisValue}：${p[0].value} 条` },
   xAxis: { type: 'category', boundaryGap: false, data: boardMonths },
   yAxis: { type: 'value' },
-  series: [{ type: 'line', smooth: true, symbolSize: 6, lineStyle: { color: '#f2c46b' }, itemStyle: { color: '#f2c46b' }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#fbe1a6' }, { offset: 1, color: '#fff8e8' }] } }, data: d.validTrend }]
+  series: [{ type: 'line', symbol: 'circle', symbolSize: 6, lineStyle: { color: BLUE, width: 2 }, itemStyle: { color: BLUE }, areaStyle: { color: 'rgba(42, 120, 214, 0.08)' }, data: d.validTrend }]
 }
-// 等级折线：越负面越红，用表情标注
-const face = (lv, max) => (lv >= max - 1 ? '😊' : lv === Math.floor(max / 2) ? '😐' : '😟')
-const levelOpt = (data, levels, reverse = false) => ({
-  grid: { left: 80, right: 20, top: 30, bottom: 30 },
-  tooltip: { trigger: 'axis', formatter: (p) => `${p[0].axisValue}：${levels[p[0].value]}` },
-  xAxis: { type: 'category', data: boardMonths },
-  yAxis: { type: 'value', min: 0, max: levels.length - 1, interval: 1, axisLabel: { formatter: (v) => levels[v] } },
-  series: [{
-    type: 'line', smooth: true, symbolSize: 18, lineStyle: { color: '#ccc' },
-    itemStyle: { color: (p) => ((reverse ? p.value >= 3 : p.value <= 1) ? '#e8545c' : '#f2a33a') },
-    label: { show: true, formatter: (p) => (reverse ? (p.value >= 3 ? '😣' : '😟') : face(p.value, levels.length)), fontSize: 14 },
-    data
-  }]
-})
-const barOpt = (list, color) => ({
+// 等级折线：纵轴就是等级名称；落在风险区间（压力为中高度及以上、情绪为中度负面及以下）的点用警示色
+const levelOpt = (data, levels, reverse = false) => {
+  const risky = (v) => (reverse ? v >= 3 : v <= 1)
+  return {
+    grid: { left: 84, right: 24, top: 24, bottom: 30 },
+    tooltip: { trigger: 'axis', formatter: (p) => `${p[0].axisValue}：${levels[p[0].value]}` },
+    xAxis: { type: 'category', data: boardMonths },
+    yAxis: { type: 'value', min: 0, max: levels.length - 1, interval: 1, axisLabel: { formatter: (v) => levels[v] } },
+    series: [{
+      type: 'line', symbol: 'circle', symbolSize: 8, lineStyle: { color: BLUE, width: 2 },
+      itemStyle: { color: (p) => (risky(p.value) ? STATUS.critical : BLUE), borderColor: '#fff', borderWidth: 2 },
+      data
+    }]
+  }
+}
+// 产品名称较长，用横向排行；维度名称短，用纵向柱图
+const productRank = rankBarOption(d.byProduct.map(([name, value]) => ({ name, value })), { limit: 8, labelWidth: 120 })
+const barOpt = (list) => ({
   grid: { left: 50, right: 10, top: 20, bottom: 60 },
-  tooltip: { trigger: 'axis' },
+  tooltip: { trigger: 'axis', formatter: (p) => `${p[0].axisValue}：${p[0].value} 条` },
   dataZoom: list.length > 10 ? [{ type: 'slider', height: 8, bottom: 4, end: 70, showDetail: false }] : [],
   xAxis: { type: 'category', data: list.map((x) => x[0]), axisLabel: { interval: 0, fontSize: 10, width: 60, overflow: 'break' } },
   yAxis: { type: 'value' },
-  series: [{ type: 'bar', barWidth: 14, itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color }, { offset: 1, color: '#d6e6fb' }] } }, data: list.map((x) => x[1]) }]
+  series: [{ type: 'bar', barWidth: 14, itemStyle: { color: BLUE, borderRadius: [4, 4, 0, 0] }, data: list.map((x) => x[1]) }]
 })
 const emoProductOpt = {
-  grid: { left: 80, right: 20, top: 20, bottom: 70 },
+  grid: { left: 84, right: 20, top: 20, bottom: 70 },
   tooltip: { formatter: (p) => `${p.name}：${emoLevels[p.value[1]]}` },
   xAxis: { type: 'category', data: d.emotionByProduct.map((x) => x[0]), axisLabel: { interval: 0, fontSize: 10, rotate: 35 } },
   yAxis: { type: 'value', min: 0, max: 4, interval: 1, axisLabel: { formatter: (v) => emoLevels[v] } },
   series: [{
-    type: 'scatter', symbolSize: 18,
-    itemStyle: { color: (p) => (p.value[1] === 0 ? '#e8545c' : '#7cc9b8') },
-    label: { show: true, formatter: (p) => (p.value[1] === 0 ? '😣' : '😊'), fontSize: 14 },
+    type: 'scatter', symbolSize: 10,
+    itemStyle: { color: (p) => (p.value[1] <= 1 ? STATUS.critical : BLUE), borderColor: '#fff', borderWidth: 2 },
     data: d.emotionByProduct.map(([n, v]) => [n, v])
   }]
 }
-
 </script>
 
 <style scoped>
-.board { padding: 0 20px 30px; }
-.top { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0d9d9; background: linear-gradient(90deg, #fdf1f0, transparent); margin: 0 -20px; padding: 10px 20px; }
-.tabs { display: flex; gap: 32px; }
-.tab { font-size: 15px; font-weight: 600; color: #333; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding-bottom: 4px; }
-.tab.active { color: var(--uem-red); border-bottom: 2px solid var(--uem-red); }
-.selects { display: flex; gap: 10px; }
+.board { padding: 0 0 24px; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 4px; border-bottom: 1px solid var(--uem-line); }
+.tabs { display: flex; gap: 28px; }
+.tab { position: relative; font-size: var(--uem-fs); font-weight: 600; color: var(--uem-ink-3); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 8px 0 10px; transition: color 0.15s; }
+.tab:hover { color: var(--uem-ink); }
+.tab.active { color: var(--uem-ink); }
+.tab.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--uem-red); border-radius: 1px; }
+.selects { display: flex; gap: 8px; }
 .selects .el-select { width: 180px; }
 .selects .month { width: 120px; }
-.red :deep(.el-select__wrapper) { background: var(--uem-red); box-shadow: none; }
-.red :deep(.el-select__placeholder), .red :deep(.el-select__caret) { color: #fff; }
-.ai-note { text-align: right; font-size: 11px; color: #999; margin: 8px 0; }
-.problems { margin-top: 16px; border-radius: 6px; padding: 14px 18px 4px; background: linear-gradient(120deg, #eef4fd, #e3edfb); }
-.p-title { display: flex; align-items: center; gap: 6px; color: #2f5fbf; font-weight: 600; font-size: 15px; margin-bottom: 10px; }
-.p-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.p-item { background: rgba(255, 255, 255, 0.85); border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #3a5ea8; cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.p-item:hover { background: #fff; }
-.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+.ai-note { display: flex; justify-content: flex-end; font-size: var(--uem-fs-xs); color: var(--uem-ink-3); margin: 8px 0; }
+.problems { margin-top: 12px; border-radius: var(--uem-radius-lg); padding: 14px 18px 4px; background: var(--uem-surface); border: 1px solid var(--uem-line); }
+.p-title { display: flex; align-items: center; gap: 6px; color: var(--uem-ink); font-weight: 600; font-size: var(--uem-fs); margin-bottom: 10px; }
+.p-title .el-icon { color: var(--uem-ai); }
+.p-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.p-item { background: var(--uem-surface-2); border: 1px solid var(--uem-line-2); border-radius: var(--uem-radius); padding: 9px 12px; font-size: var(--uem-fs-sm); color: var(--uem-ink); cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; transition: border-color 0.15s; }
+.p-item:hover { border-color: #cfd4db; color: var(--uem-red); }
+.charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
 .h260 { height: 260px; }
 .note { margin-bottom: 12px; }
 </style>

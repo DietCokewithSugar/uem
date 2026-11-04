@@ -67,13 +67,13 @@ function submit() {
 <style scoped>
 .toolbar { display: flex; align-items: center; gap: 10px; }
 .toolbar .el-button + .el-button { margin-left: 0; }
-.zoom-tip { font-size: 12px; color: #888; white-space: nowrap; }
+.zoom-tip { font-size: 12px; color: var(--uem-ink-3); white-space: nowrap; }
 .zoom { width: 120px; margin-right: 12px; }
-.basic { display: flex; flex-wrap: wrap; gap: 24px; margin-bottom: 16px; font-size: 13px; color: #555; }
+.basic { display: flex; flex-wrap: wrap; gap: 24px; margin-bottom: 16px; font-size: 13px; color: var(--uem-ink-2); }
 .basic label { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 .basic .el-input, .basic .el-select { width: 180px; }
 .arrow-switch { display: flex; justify-content: flex-end; margin-bottom: 4px; }
 .review-note { margin-bottom: 12px; }
 .preview-title { margin: 0 0 16px; }
-.preview-title small { font-weight: 400; color: #888; font-size: 13px; margin-left: 8px; }
+.preview-title small { font-weight: 400; color: var(--uem-ink-3); font-size: 13px; margin-left: 8px; }
 </style>

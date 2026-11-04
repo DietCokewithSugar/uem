@@ -1,9 +1,14 @@
 // 优化建议（平台核心功能）：字典、演示数据与流程流转
 // 依据：优化建议系统流程图、新增页、详情页（含操作日志）、管理报表、数据看板截图；截图中看不到的规则标注「推测」
 //
-// 流程（非研发一体化问题，业务研发中心产品经理处理）：
-//   提交 →（分行员工提交：分行科技审核岗「待处理」，转处理【推测】）→ 产品线分拣岗「待分拣」指派答复人
-//   → 产品线处理岗「待答复」答复（明确是否采纳及解决方式）→ 产品线审核岗「待审核」通过 → 按解决方式流转：
+// 提交与分配（docs/优化建议.md 第 4 节）：
+//   分行员工提交 → 本行分行科技审核岗「待审批」→ 审批通过后按产品分类自动分配；
+//   总行等其他人员提交 → 直接按产品分类自动分配，无需审批。
+//   自动分配：研发一体化产品转 e键通；已分类产品进入对应研发部室产品线分拣岗「待分拣」；
+//   平台中没有产品分类的产品，统一进入用户体验部分拣岗「待分拣」。
+// 处理（非研发一体化问题，业务研发中心产品经理处理；分拣、答复、审核为三个独立岗位）：
+//   产品线分拣岗「待分拣」指派答复人 → 产品线处理岗「待答复」答复（明确是否采纳及解决方式）
+//   → 产品线审核岗「待审核」通过（不通过退回答复人）→ 按解决方式流转：
 //     不采纳 → 已完成
 //     科技自主解决 → 待开发中心处理（转 e键通跟进解决，同步问题解决情况）→ 已完成（开发中心）
 //     业务科技协同解决（需求整合）→ 已纳入需求整合池（同步 BRDM）
@@ -11,11 +16,11 @@
 //     业务科技协同解决（创意需求）→ 已纳入e企创（同步工银e企创）
 //     业务自主解决 → 待跟进 → 已完成
 //   答复环节可转总行业务部门分析处理：待业务部门答复 → 已完成（业务部门）
-// 研发一体化问题（产品由软件开发中心负责）：提交后直接转 e键通，待开发中心处理
+// 研发一体化问题（产品由软件开发中心负责）：分配时直接转 e键通，待开发中心处理
 import { reactive } from 'vue'
 import { persons, productList, branchOrgs } from './system'
 import { isWorkday, fmtDate } from './holidays'
-import { currentUser } from '@/config/user'
+import { currentUser, SEED_USER } from '@/config/user'
 
 function seeded(seed) {
   let s = seed
@@ -45,6 +50,8 @@ export const sourceGroups = [
   { label: '员工心声', prefix: '员工', items: ['分行优化建议', '工银i服务', '行内调研', '工银众测', '日常走查', '设计还原度走查'] }
 ]
 export const sources = sourceGroups.flatMap((g) => g.items.map((i) => `${g.prefix}：${i}`))
+// 用户声音看板中典型问题转入的优化建议：来源固定为此值，不在提交页的来源选项中（docs/优化建议.md 第 2 节）
+export const VOICE_SOURCE = '客户：用户声音智能分析'
 
 // 产品使用渠道（新增页复选框分组），保存为「分组-渠道」
 export const channelGroups = [
@@ -98,11 +105,11 @@ export const rejectReasons = ['不符合监管或行内制度要求', '与产品
 export const satisfactions = ['满意', '基本满意', '不满意']
 
 // 状态：待办阶段 + 终态；track 区分已完成的处理方（center 业务研发中心 / business 总行业务部门 / dev 开发中心）
-export const statusList = ['待修改', '待处理', '待分拣', '待答复', '待审核', '待跟进', '待业务部门答复', '待开发中心处理', '已完成', '已纳入需求整合池', '已纳入e企创', '已中止']
+export const statusList = ['待修改', '待审批', '待分拣', '待答复', '待审核', '待跟进', '待业务部门答复', '待开发中心处理', '已完成', '已纳入需求整合池', '已纳入e企创', '已中止']
 export const pendingStatuses = statusList.slice(0, 8)
 export const roleOfStatus = {
   待修改: '提交人',
-  待处理: '分行科技审核岗',
+  待审批: '分行科技审核岗',
   待分拣: '产品线分拣岗',
   待答复: '产品线处理岗',
   待审核: '产品线审核岗',
@@ -112,7 +119,7 @@ export const roleOfStatus = {
 }
 
 // 逾期规则（推测）：各环节允许的工作日数；待跟进以计划落实时间为准
-export const slaDays = { 待处理: 1, 待分拣: 1, 待答复: 3, 待审核: 1, 待业务部门答复: 5 }
+export const slaDays = { 待审批: 1, 待分拣: 1, 待答复: 3, 待审核: 1, 待业务部门答复: 5 }
 
 // ===== 工作日（依据「后台管理 · 节假日」）=====
 const asDate = (v) => (v instanceof Date ? new Date(v) : new Date(String(v).replace(' ', 'T')))
@@ -145,12 +152,23 @@ export const isOverdue = (s) =>
 // ===== 路由：产品 → 业研部门 / 产品线 → 处理人员（人员维护中的岗位与数据范围）=====
 const active = (p) => p && p.status !== '冻结'
 const holds = (p, role, key, val) => active(p) && p.roles.includes(role) && (!key || p.scopes?.[role]?.[key] === val)
+// 未分类产品（平台中没有业研部门与产品线的产品）统一由用户体验部分拣岗处理
+export const UX_DEPT = '用户体验部'
+export const UX_LINE = '用户体验'
 export function routeOfProduct(name) {
   const p = productList.find((x) => x.name === name)
-  return { bizDept: p?.rdDept || '', productLine: p?.rdLine || '', integrated: !!p && !p.rdDept && p.outer === '软件开发中心', headDept: p?.bizDept || '' }
+  const integrated = !!p && !p.rdDept && p.outer === '软件开发中心'
+  const unclassified = !integrated && !(p?.rdDept && p?.rdLine)
+  return {
+    bizDept: unclassified ? UX_DEPT : p?.rdDept || '',
+    productLine: unclassified ? UX_LINE : p?.rdLine || '',
+    integrated,
+    unclassified,
+    headDept: p?.bizDept || ''
+  }
 }
 export const isBranchOrg = (org) => branchOrgs.includes(org) || /分行|支行/.test(org || '')
-export const branchReviewerOf = (org) => persons.find((p) => holds(p, '分行科技审核岗') && p.org === org) || persons.find((p) => p.id === currentUser.id)
+export const branchReviewerOf = (org) => persons.find((p) => holds(p, '分行科技审核岗') && p.org === org) || persons.find((p) => p.id === SEED_USER.id)
 export const sorterOf = (line) => persons.find((p) => holds(p, '产品线分拣岗', 'productLine', line))
 export const handlersOf = (line) => persons.filter((p) => holds(p, '产品线处理岗', 'productLine', line))
 export const auditorOf = (s) =>
@@ -163,7 +181,7 @@ const surnames = '赵钱孙李周吴郑王冯陈褚卫蒋沈韩杨朱秦许何�
 const givenChars = '子涵欣怡梓轩浩然宇航思远雨桐嘉怡俊杰诗琪明轩一诺若曦晨阳佳琪志强'.split('')
 const fakeName = () => pick(surnames) + pick(givenChars) + (chance(0.6) ? pick(givenChars) : '')
 
-const channelOfProduct = {
+export const channelOfProduct = {
   个人手机银行基础业务: ['手机APP-个人手机银行'], 数字人民币: ['手机APP-数字货币'], 工银e生活: ['手机APP-工银e生活'],
   企业网银基础业务: ['电脑端-企业网上银行'], 企业手机银行: ['手机APP-企业手机银行'], 柜面服务: ['线下-柜面'], 柜面通: ['线下-柜面'],
   工银网点通: ['线下-柜面'], 云网点: ['线下-柜面'], 智能柜员机: ['线下-智能柜员机'], 工银e办公: ['手机APP-工银e办公', '电脑端-工银e办公'],
@@ -291,47 +309,64 @@ function enter(s, status, at, handler) {
   s.currentHandlerId = handler?.id || ''
 }
 
+// 按产品分类自动分配：研发一体化 → e键通；已分类 → 对应研发部室产品线分拣岗；未分类 → 用户体验部分拣岗
+function dispatch(s, at) {
+  if (s.integrated) {
+    s.track = 'dev'
+    s.ekeyNo = ekeyNo(asDate(at))
+    enter(s, '待开发中心处理', at)
+    return log(s, at, '系统', '转e键通', `研发一体化问题，已转e键通，单号：${s.ekeyNo}。`, false)
+  }
+  enter(s, '待分拣', at, sorterOf(s.productLine))
+  log(
+    s, at, '系统', '自动分配',
+    s.unclassified ? `产品「${s.product}」暂无产品分类，分配至${UX_DEPT}分拣岗统一处理` : `按产品分类分配至${s.bizDept}「${s.productLine}」产品线分拣岗`,
+    false
+  )
+}
+
 // 生成一条演示数据的完整流转（截至 now 未发生的环节保持待办状态）
 function simulate(s, now, opt = {}) {
   const at0 = asDate(s.stageAt)
   const submitter = { name: s.submitter, id: s.submitterId }
   log(s, at0, submitter, '提交', '', false)
+  let t = at0
+  if (isBranchOrg(s.submitOrg)) {
+    const reviewer = opt.branchReviewer || branchReviewerOf(s.submitOrg)
+    enter(s, '待审批', t, reviewer)
+    if (opt.stop === '待审批') return
+    const t1 = nextStep(t, 0, 2)
+    if (t1 > now) return
+    if (opt.stop === '待修改') {
+      log(s, t1, reviewer, '退回提交人', opt.returnReason || '', false)
+      return enter(s, '待修改', t1, submitter)
+    }
+    if (chance(0.02)) {
+      log(s, t1, reviewer, '中止', '与本行业务无关', false)
+      return enter(s, '已中止', t1)
+    }
+    log(s, t1, reviewer, '审批通过', '', false)
+    t = t1
+  }
   if (s.integrated) {
-    enter(s, '待开发中心处理', at0)
-    s.track = 'dev'
-    s.ekeyNo = ekeyNo(at0)
-    log(s, at0, '系统', '转e键通', `研发一体化问题，已转e键通，单号：${s.ekeyNo}。`, false)
-    const done = nextStep(at0, 5, 30)
+    dispatch(s, t)
+    const done = nextStep(t, 5, 30)
     if (done > now || opt.stop === '待开发中心处理') return
     log(s, done, 'e键通', '开发中心处理完成', 'e键通同步：问题已解决并投产。', false)
     s.implemented = '是'
     s.actualTime = fmtDate(done)
     return enter(s, '已完成', done)
   }
-  let t = at0
-  if (isBranchOrg(s.submitOrg)) {
-    const reviewer = opt.branchReviewer || branchReviewerOf(s.submitOrg)
-    enter(s, '待处理', t, reviewer)
-    if (opt.stop === '待处理') return
-    const t1 = nextStep(t, 0, 2)
-    if (t1 > now) return
-    if (chance(0.02)) {
-      log(s, t1, reviewer, '中止', '与本行业务无关', false)
-      return enter(s, '已中止', t1)
-    }
-    log(s, t1, reviewer, '转处理', '', false)
-    t = t1
-  }
   return sortAndReply(s, t, now, opt)
 }
 
 function sortAndReply(s, t, now, opt, round = 0) {
+  dispatch(s, t)
   const sorter = sorterOf(s.productLine)
-  enter(s, '待分拣', t, sorter)
   if (opt.stop === '待分拣') return
   const t1 = nextStep(t, 0, 2)
   if (t1 > now) return
-  const repliers = handlersOf(s.productLine).filter((p) => opt.replier ? p.id === opt.replier.id : p.id !== currentUser.id)
+  const repliers = handlersOf(s.productLine).filter((p) => opt.replier ? p.id === opt.replier.id : p.id !== SEED_USER.id)
   const replier = opt.replier || pick(repliers.length ? repliers : handlersOf(s.productLine))
   if (!replier) return
   log(s, t1, sorter, '指派答复人')
@@ -439,7 +474,7 @@ function generate() {
   const span = (end - start) / 864e5
   const weights = productWeights()
   const branchStaff = branchOrgs.map((org, i) => Array.from({ length: 4 }, (_, k) => ({ name: fakeName(), id: `0018${pad(2001 + i * 10 + k, 5)}`, org })))
-  const centerStaff = persons.filter((p) => p.org.startsWith('业务研发中心') && p.id !== currentUser.id)
+  const centerStaff = persons.filter((p) => p.org.startsWith('业务研发中心') && p.id !== SEED_USER.id)
   const plans = []
   const N = 2200
   for (let i = 0; i < N; i++) {
@@ -448,24 +483,59 @@ function generate() {
     if (d > end) d.setTime(end.getTime())
     plans.push({ at: workTime(d, 9, 17) })
   }
-  // 当前用户的待办（与截图中的数量一致）：待处理 17、待答复 7、待跟进 1
-  const me = persons.find((p) => p.id === currentUser.id)
+  // 各演示身份的待办（config/personas.js）。系统管理员的数量与截图一致：待审批（原待处理）17、待答复 7、待跟进 1
+  const byId = (id) => persons.find((p) => p.id === id)
+  const me = byId(SEED_USER.id)
+  const business = byId('001700101')
+  const branchUser = byId('001820001')
+  const approver = byId('001801001')
   const uxProducts = ['用户体验管理平台', '工银问卷']
+  const mobile = ['个人手机银行基础业务', '数字人民币', '工银e生活']
+  // 演示身份的待办按「今天」往前推若干个工作日生成，任何时候打开都能看到今天到期、剩余几天和逾期的分布
+  const daysAgo = (n) => {
+    const d = new Date(now)
+    d.setHours(0, 0, 0, 0)
+    for (let k = 0; k < n; ) {
+      d.setDate(d.getDate() - 1)
+      if (isWorkday(d)) k++
+    }
+    return d
+  }
+  const ago = (n) => workTime(daysAgo(n), 9, 12)
+  const times = (n, f) => Array.from({ length: n }, (_, k) => f(k))
   const forced = [
-    ...Array.from({ length: 17 }, (_, k) => ({ at: workTime(addWorkdays(new Date(2026, 9, 1), Math.floor(k / 5)), 9, 17), branch: true, opt: { stop: '待处理', branchReviewer: me } })),
-    ...Array.from({ length: 7 }, (_, k) => ({ at: workTime(addWorkdays(new Date(2026, 8, 25), k), 9, 16), product: uxProducts[k % 2], opt: { stop: '待答复', replier: me } })),
-    { at: workTime(new Date(2026, 8, 8), 10, 15), product: '用户体验管理平台', opt: { stop: '待跟进', replier: me, adopt: true, solution: '业务科技协同解决（需求项）' } }
+    ...times(17, (k) => ({ at: ago(1 + Math.floor(k / 6)), branch: true, opt: { stop: '待审批', branchReviewer: me } })),
+    ...times(7, (k) => ({ at: ago(3 + (k % 4)), product: uxProducts[k % 2], opt: { stop: '待答复', replier: me } })),
+    { at: ago(25), product: '用户体验管理平台', opt: { stop: '待跟进', replier: me, adopt: true, solution: '业务科技协同解决（需求项）' } },
+    // 领导（个人手机银行产品线审核岗）：待审核 4
+    ...times(4, (k) => ({ at: ago(6 + k), product: mobile[k % 3], opt: { stop: '待审核', adopt: k !== 2 } })),
+    // 业务人员（个人手机银行产品线分拣岗、处理岗）：待分拣 3、待答复 4、待跟进 2
+    ...times(3, (k) => ({ at: ago(1 + (k % 2)), product: mobile[k % 3], opt: { stop: '待分拣' } })),
+    ...times(4, (k) => ({ at: ago(3 + k), product: mobile[(k + 1) % 3], opt: { stop: '待答复', replier: business } })),
+    ...times(2, (k) => ({ at: ago(25 + k * 5), product: mobile[k], opt: { stop: '待跟进', replier: business, adopt: true, solution: '业务科技协同解决（需求项）' } })),
+    // 分行用户（钱晓雯）：被退回待修改 1、待审批 2，以及处理中、已完成的历史提交
+    { at: ago(4), submitter: branchUser, product: '个人手机银行基础业务', opt: { stop: '待修改', branchReviewer: approver, returnReason: '请补充出现问题的具体操作步骤和页面截图' } },
+    ...times(2, (k) => ({ at: ago(1 + k), submitter: branchUser, product: ['柜面服务', '智能柜员机'][k], opt: { stop: '待审批', branchReviewer: approver } })),
+    { at: ago(10), submitter: branchUser, product: '柜面通', opt: { stop: '待答复', branchReviewer: approver } },
+    { at: ago(40), submitter: branchUser, product: '个人手机银行基础业务', opt: { stop: '待跟进', branchReviewer: approver, adopt: true, solution: '业务科技协同解决（需求项）' } },
+    { at: ago(90), submitter: branchUser, product: '工银e生活', opt: { branchReviewer: approver, adopt: false } },
+    // 分行审批岗（上海分行营业部）：本行其他员工提交的待审批 3
+    ...times(3, (k) => ({ at: ago(1 + (k % 2)), org: '上海分行营业部', opt: { stop: '待审批', branchReviewer: approver } })),
+    // 体验管理岗（用户体验部分拣岗）：未分类产品 2 条 + 用户体验产品线 1 条待分拣
+    ...times(3, (k) => ({ at: ago(1 + (k % 2)), product: ['远程银行', '网点排队叫号', '工银问卷'][k], opt: { stop: '待分拣' } }))
   ]
   plans.push(...forced)
   plans.sort((a, b) => a.at - b.at)
   let seq = 419180
   const list = plans.map((p) => {
     seq += between(1, 2)
-    let product = p.product || (p.branch ? weighted(weights.filter(([n]) => !routeOfProduct(n).integrated && routeOfProduct(n).productLine !== '用户体验')) : weighted(weights))
-    // 用户体验产品线的随机数据只取较早日期，避免占用当前用户的待分拣
-    if (!p.product && routeOfProduct(product).productLine === '用户体验' && now - p.at < 30 * 864e5) product = '工银e办公'
-    const fromBranch = p.branch || (!p.product && chance(0.66))
-    const submitter = fromBranch ? pick(pick(branchStaff)) : p.product ? pick(centerStaff.filter((x) => x.org.includes('用户体验部')).concat(centerStaff.slice(0, 3))) : pick(centerStaff)
+    let product = p.product || (p.branch || p.org ? weighted(weights.filter(([n]) => !routeOfProduct(n).integrated && routeOfProduct(n).productLine !== '用户体验')) : weighted(weights))
+    // 用户体验、个人手机银行产品线的随机数据只取较早日期，避免占用演示身份的待办
+    const reserved = ['用户体验', '个人手机银行'].includes(routeOfProduct(product).productLine)
+    if (!p.product && reserved && now - p.at < 30 * 864e5) product = '工银e办公'
+    const fromBranch = p.branch || !!p.org || !!p.submitter || (!p.product && chance(0.66))
+    const orgStaff = p.org ? branchStaff[branchOrgs.indexOf(p.org)] : null
+    const submitter = p.submitter || (orgStaff ? pick(orgStaff) : fromBranch ? pick(pick(branchStaff)) : p.product ? pick(centerStaff.filter((x) => x.org.includes('用户体验部')).concat(centerStaff.slice(0, 3))) : pick(centerStaff))
     const s = blank(seq, p.at, product, submitter)
     s.source = fromBranch ? weighted([['员工：分行优化建议', 70], ['客户：95588工单', 8], ['客户：app用户反馈', 8], ['员工：工银i服务', 6], ['客户：要客意见', 3], ['员工：行内调研', 5]])
       : weighted([['员工：日常走查', 40], ['员工：设计还原度走查', 12], ['客户：app用户反馈', 14], ['客户：应用商店评论', 8], ['客户：体验活动', 8], ['员工：工银众测', 6], ['客户：第三方测评', 5], ['员工：行内调研', 4], ['客户：要客意见', 3]])
@@ -485,7 +555,9 @@ export const findSuggestion = (key) => suggestions.find((s) => s.id === key || S
 const me = () => persons.find((p) => p.id === currentUser.id) || { name: currentUser.name, id: currentUser.id, org: currentUser.dept }
 const nowAt = () => timeText(new Date())
 
-export function createSuggestion(form, actor = me()) {
+// opt.direct：不经分行审批直接按产品分类分配（用户声音转入的建议直接进入待分拣）；opt.ai：描述与字段由 AI 整理、提交人确认
+export const AI_MARK = 'AI 建议 · 人工确认'
+export function createSuggestion(form, actor = me(), opt = {}) {
   const t = new Date()
   const seq = Math.max(...suggestions.map((s) => s.seq)) + 1
   const s = blank(seq, t, form.product, { name: actor.name, id: actor.id, org: actor.org })
@@ -494,20 +566,16 @@ export function createSuggestion(form, actor = me()) {
     source: form.source, activity: form.activity || '', category: form.category, impact: form.impact
   })
   s.vip = s.source === '客户：要客意见' || isVipPerson(actor.id)
-  log(s, t, actor, '提交', '', false)
-  routeAfterSubmit(s, t)
+  log(s, t, actor, '提交', opt.ai ? `描述与字段由 AI 整理（${AI_MARK}）` : '', false)
+  if (opt.direct) dispatch(s, timeText(t))
+  else routeAfterSubmit(s, t)
   suggestions.unshift(s)
   return s
 }
+// 提交后：分行员工提交进入本行分行科技审核岗「待审批」；其余直接按产品分类自动分配
 function routeAfterSubmit(s, t) {
-  if (s.integrated) {
-    s.track = 'dev'
-    s.ekeyNo = ekeyNo(t)
-    enter(s, '待开发中心处理', t)
-    return log(s, t, '系统', '转e键通', `研发一体化问题，已转e键通，单号：${s.ekeyNo}。`, false)
-  }
-  if (isBranchOrg(s.submitOrg)) return enter(s, '待处理', t, branchReviewerOf(s.submitOrg))
-  enter(s, '待分拣', t, sorterOf(s.productLine))
+  if (isBranchOrg(s.submitOrg)) return enter(s, '待审批', t, branchReviewerOf(s.submitOrg))
+  dispatch(s, timeText(t))
 }
 
 // 待修改 → 修改后重新提交
@@ -522,17 +590,21 @@ export function resubmit(s, form, actor = me()) {
   log(s, t, actor, '修改并提交', '', false)
   routeAfterSubmit(s, t)
 }
-// 待处理（分行科技审核岗）：转处理 → 待分拣
-export function transferToSort(s, actor = me()) {
-  log(s, nowAt(), actor, '转处理', '', false)
-  enter(s, '待分拣', nowAt(), sorterOf(s.productLine))
+// 待审批（分行科技审核岗）：审批通过 → 按产品分类自动分配
+export function approveBranch(s, actor = me()) {
+  const at = nowAt()
+  log(s, at, actor, '审批通过', '', false)
+  dispatch(s, at)
 }
+// 分配结果说明（审批通过、提交后的提示语）
+export const dispatchText = (s) =>
+  s.status === '待开发中心处理' ? '研发一体化问题，已转 e键通' : s.unclassified ? `产品暂无分类，已分配至${UX_DEPT}分拣岗` : `已分配至${s.bizDept}「${s.productLine}」产品线分拣岗`
 export function returnToSubmitter(s, reason, actor = me()) {
-  log(s, nowAt(), actor, '退回提交人', reason || '', s.status !== '待处理')
+  log(s, nowAt(), actor, '退回提交人', reason || '', s.status !== '待审批')
   enter(s, '待修改', nowAt(), { name: s.submitter, id: s.submitterId })
 }
 export function abortSuggestion(s, reason, actor = me()) {
-  log(s, nowAt(), actor, '中止', reason || '', s.status !== '待处理')
+  log(s, nowAt(), actor, '中止', reason || '', s.status !== '待审批')
   enter(s, '已中止', nowAt())
 }
 export function removeSuggestion(s) {
@@ -540,8 +612,8 @@ export function removeSuggestion(s) {
   if (i >= 0) suggestions.splice(i, 1)
 }
 // 待分拣：指派答复人 / 研发一体化问题转 e键通
-export function assignReplier(s, replier, actor = me()) {
-  log(s, nowAt(), actor, '指派答复人', `答复人：${replier.name}`)
+export function assignReplier(s, replier, actor = me(), ai = false) {
+  log(s, nowAt(), actor, '指派答复人', `答复人：${replier.name}${ai ? `；AI 推荐（${AI_MARK}）` : ''}`)
   Object.assign(s, { sorter: actor.name, sorterId: actor.id })
   enter(s, '待答复', nowAt(), replier)
 }
@@ -559,7 +631,7 @@ export function replySuggestion(s, r, actor = me()) {
     planTime: r.planTime || '', replier: actor.name, replierId: actor.id, replyTime: fmtDate(new Date())
   })
   if (s.solution === '科技自主解决') s.ekeyNo = ekeyNo(new Date())
-  log(s, nowAt(), actor, '答复', replyRemark(s))
+  log(s, nowAt(), actor, '答复', replyRemark(s) + (r.ai ? `参考AI答复草稿（${AI_MARK}）；` : ''))
   enter(s, '待审核', nowAt(), auditorOf(s))
 }
 // 待答复：转总行业务部门分析处理
@@ -619,14 +691,15 @@ export function ekeyReturn(s, reason) {
   log(s, nowAt(), 'e键通', 'e键通退回', reason || '退回重新分拣', false)
   Object.assign(s, { track: '', adoptResult: '', solution: '', replyOpinion: '', priority: '', ekeyNo: '', replyTime: '' })
   enter(s, '待分拣', nowAt(), sorterOf(s.productLine))
+  if (!s.productLine) Object.assign(s, { bizDept: UX_DEPT, productLine: UX_LINE, unclassified: true, currentHandler: sorterOf(UX_LINE)?.name || '', currentHandlerId: sorterOf(UX_LINE)?.id || '' })
 }
 
 // ===== 统计口径（管理报表、数据看板共用）=====
-// 各环节处理时长（工作日）：分拣 = 进入待分拣（提交或转处理）→ 指派答复人；答复 = 指派答复人 → 首次答复；审核 = 最后一次答复 → 通过
+// 各环节处理时长（工作日）：分拣 = 进入待分拣（自动分配）→ 指派答复人；答复 = 指派答复人 → 首次答复；审核 = 最后一次答复 → 通过
 export function stageDurations(s) {
   const logs = [...s.logs].reverse()
   const first = (action, after = '') => logs.find((l) => l.action === action && l.time >= after)
-  const enterSort = first('转处理') || first('提交')
+  const enterSort = first('自动分配') || first('审批通过') || first('转处理') || first('提交')
   const assign = enterSort && first('指派答复人', enterSort.time)
   const reply = assign && first('答复', assign.time)
   const lastReply = [...logs].reverse().find((l) => l.action === '答复')
@@ -658,7 +731,7 @@ export const detailRoute = (s, menu, list) => {
 const mine = (status) => suggestions.filter((s) => s.status === status && s.currentHandlerId === currentUser.id).length
 export const suggestionTodo = {
   get toModify() { return mine('待修改') },
-  get toHandle() { return mine('待处理') },
+  get toApprove() { return mine('待审批') },
   get toSort() { return mine('待分拣') },
   get toReply() { return mine('待答复') },
   get toAudit() { return mine('待审核') },

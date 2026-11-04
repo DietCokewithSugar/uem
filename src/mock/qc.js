@@ -1,7 +1,7 @@
 // 体验质检智能体演示数据
 // 报告内容由前端模板拼装，用于展示形态；正式环境由大模型按「提示词管理」中的提示词生成
 import { reactive } from 'vue'
-import { currentUser } from '@/config/user'
+import { SEED_USER } from '@/config/user'
 
 function seeded(seed) {
   let s = seed
@@ -116,7 +116,7 @@ const etsCriteriaText = ETS.map((dim) => `${dim.code}.${dim.name}\n${dim.items.m
 // ===== 提示词 =====
 export const qcPrompts = reactive([
   {
-    id: 1, name: '质检工具（文件分析）', updateTime: '2026-10-23', updater: currentUser.name, limit: 10000,
+    id: 1, name: '质检工具（文件分析）', updateTime: '2026-10-23', updater: SEED_USER.name, limit: 10000,
     // 生产环境步骤二「使用AI提炼场景」使用的提示词。%s 替换为本次素材说明。
     content: `你是资深体验研究员，请根据我输入的UI设计素材提炼业务场景。从UI设计图中提取UI设计图可能的产品分类，评测目标，关键任务流，用户痛点以及成功标准。
 
@@ -140,11 +140,11 @@ export const qcPrompts = reactive([
 }`
   },
   {
-    id: 2, name: '质检工具（ETS维度）', updateTime: '2026-07-28', updater: currentUser.name, limit: 10000,
+    id: 2, name: '质检工具（ETS维度）', updateTime: '2026-07-28', updater: SEED_USER.name, limit: 10000,
     content: '请依据八个体验维度（功能流程、信息认知、交互设计、系统性能、信息安全、视觉设计、智能化、运营服务）输出维度解读。系统性能需说明静态截图无法评估真实性能。问题严重级别使用一级问题、二级问题、三级问题，并写清位置、问题描述、优化建议和站在用户视角的原因。'
   },
   {
-    id: 3, name: '质检工具（设计质控专家）', updateTime: '2026-07-28', updater: currentUser.name, limit: 10000,
+    id: 3, name: '质检工具（设计质控专家）', updateTime: '2026-07-28', updater: SEED_USER.name, limit: 10000,
     content: '你是设计质控专家，请依据全行界面设计规范，检查：字号与字重层级、主次按钮样式、间距栅格、图标风格、品牌色使用、文案标点与术语。对每个问题给出「问题描述、所在位置、违反的规范条目、修改建议、严重程度（高/中/低）」。'
   },
   {
@@ -160,7 +160,7 @@ export const qcPrompts = reactive([
     content: '针对每个评估维度输出详细解读：现状描述、对用户的影响、优化建议。按维度得分从低到高排序，优先展示问题最突出的维度。'
   },
   {
-    id: 7, name: '质检工具（AB方案对比-方案解析）', updateTime: '2026-10-23', updater: currentUser.name, limit: 10000,
+    id: 7, name: '质检工具（AB方案对比-方案解析）', updateTime: '2026-10-23', updater: SEED_USER.name, limit: 10000,
     // 生成 AB 报告前，A方案、B方案各调用一次。%s 依次替换为步骤一填写的补充信息、步骤二确认的共用业务场景与目标。
     content: `你是资深体验研究员。A方案和B方案是同一业务场景下的两套UI设计，二者共用同一个业务需求，是并列的备选方案，不是修改前和修改后，也不存在先后或基线关系。
 本次只解析其中一套方案的设计图，方案标记只能是A方案或B方案。
@@ -179,7 +179,7 @@ export const qcPrompts = reactive([
 }`
   },
   {
-    id: 8, name: '质检工具（AB方案对比-角色评估）', updateTime: '2026-10-23', updater: currentUser.name, limit: 20000,
+    id: 8, name: '质检工具（AB方案对比-角色评估）', updateTime: '2026-10-23', updater: SEED_USER.name, limit: 20000,
     // 每个评测角色调用一次。%s 依次替换为角色设定、共用业务场景、A方案和B方案的解析结果。
     content: `你是用户体验评测师，请代入以下评测角色：%s
 
@@ -208,7 +208,7 @@ ${etsCriteriaText}
 }`
   },
   {
-    id: 9, name: '质检工具（AB方案对比-综合报告）', updateTime: '2026-10-23', updater: currentUser.name, limit: 20000,
+    id: 9, name: '质检工具（AB方案对比-综合报告）', updateTime: '2026-10-23', updater: SEED_USER.name, limit: 20000,
     // 所有角色评估完成后调用一次。%s 替换为各角色「AB方案对比-角色评估」的 JSON 结果数组。优化建议不经模型归纳，由系统直接汇总各角色的建议。
     content: `你是用户体验评测师。以下是多个评测角色对同一业务场景下A方案、B方案两套UI设计的评估结果：%s
 
@@ -800,7 +800,7 @@ const history = Array.from({ length: 42 }, (_, i) => {
   d.setHours(d.getHours() - Math.floor(i * 30 + rand() * 20))
   const date = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`
   const rpt = generateReport({ title: `体验质检智能体报告${date}`, roleIds: [1, 4], materials: [{ kind: thumbKinds[i % 8] }] }, rand)
-  return { ...rpt, id: `QC${1000 + i}`, createTime: nowText(d), creator: i % 3 ? '周可欣' : currentUser.name }
+  return { ...rpt, id: `QC${1000 + i}`, createTime: nowText(d), creator: i % 3 ? '周可欣' : SEED_USER.name }
 })
 
 export const qcReports = reactive([standardShowcase(), abShowcase(), ...history])

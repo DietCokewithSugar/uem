@@ -61,7 +61,7 @@ const progressCols = [
 progressCols.push(S('total', '合计', leavesOf(progressCols).map((c) => c.key), 80))
 
 // 逾期规则（推测，与 slaDays 一致）
-export const overdueRule = `待处理、待分拣超过 ${slaDays.待分拣} 个工作日，待答复超过 ${slaDays.待答复} 个工作日，待审核超过 ${slaDays.待审核} 个工作日，待业务部门答复超过 ${slaDays.待业务部门答复} 个工作日；待跟进超过计划落实时间；工作日按「后台管理 · 节假日」计算`
+export const overdueRule = `待审批、待分拣超过 ${slaDays.待分拣} 个工作日，待答复超过 ${slaDays.待答复} 个工作日，待审核超过 ${slaDays.待审核} 个工作日，待业务部门答复超过 ${slaDays.待业务部门答复} 个工作日；待跟进超过计划落实时间；工作日按「后台管理 · 节假日」计算`
 const overdueCols = [
   M('sortLate', '分拣逾期数', late('待分拣'), 'handler'),
   M('replyLate', '答复逾期数', late('待答复'), 'handler'),
@@ -180,7 +180,7 @@ export function personReport(key, range) {
 function stageOperators(s) {
   const logs = [...s.logs].reverse()
   const first = (action, after = '') => logs.find((l) => l.action === action && l.time >= after)
-  const enterSort = first('转处理') || first('提交')
+  const enterSort = first('自动分配') || first('审批通过') || first('转处理') || first('提交')
   const assign = enterSort && first('指派答复人', enterSort.time)
   const reply = assign && first('答复', assign.time)
   const lastReply = [...logs].reverse().find((l) => l.action === '答复')

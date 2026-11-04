@@ -49,5 +49,5 @@ const onRemove = (_, list) => emit('update:modelValue', list)
 </script>
 
 <style scoped>
-.tip { color: #888; font-size: 12px; line-height: 1.6; }
+.tip { color: var(--uem-ink-3); font-size: 12px; line-height: 1.6; }
 </style>

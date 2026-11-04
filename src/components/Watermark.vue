@@ -16,7 +16,7 @@ const img = computed(() => {
   ctx.translate(180, 110)
   ctx.rotate(-Math.PI / 7)
   ctx.font = '13px sans-serif'
-  ctx.fillStyle = 'rgba(0,0,0,0.06)'
+  ctx.fillStyle = 'rgba(0,0,0,0.045)'
   ctx.textAlign = 'center'
   ctx.fillText(props.text, 0, 0)
   return c.toDataURL()

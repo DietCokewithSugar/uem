@@ -1,6 +1,6 @@
 // 系统管理演示数据：人员、角色、产品、轮播图；人员均为虚构
 import { reactive } from 'vue'
-import { currentUser } from '@/config/user'
+import { SEED_USER } from '@/config/user'
 import { staff } from './journey'
 
 // ===== 角色目录（与「人员维护 · 新增」页一致）=====
@@ -45,7 +45,7 @@ export const scopeLabels = { productLine: '请选择产品线', bizDept: '请选
 export const headDepts = ['总行网络金融部', '总行运行管理部', '总行个人金融部', '总行金融科技部', '业务管理部', '业务运营二部']
 export const channels = ['手机银行', '网上银行', '工银e生活', '网点智能设备', '网点柜面']
 
-// 分行（提出机构）：分行员工提交的优化建议先由分行科技审核岗处理（待处理）
+// 分行（提出机构）：分行员工提交的优化建议先由本行分行科技审核岗审批（待审批）
 export const branchOrgs = [
   '上海分行营业部', '上海分行金融科技部', '浦东开发区支行', '长宁支行', '闸北支行', '松江支行营业厅',
   '河南分行运行管理部', '江西分行营业部', '江苏分行个人金融部', '广东分行运行管理部', '北京分行营业部',
@@ -58,9 +58,18 @@ const nameA = '方李胡陶王杨陆周吴郑'.split('')
 const nameB = ['晓明', '知远', '博文', '雨晴', '玮程', '妍', '晋川', '坤', '鹏飞', '思睿', '嘉宁', '子墨']
 export const persons = reactive([
   {
-    id: currentUser.id, name: currentUser.name, org: currentUser.dept, vip: false, status: '激活',
-    roles: ['系统管理员', '后台管理员', '分行科技审核岗', '产品线分拣岗', '产品线处理岗', '优化建议批量导出权限', '优化建议数据看板', '体验任务审核岗', '体验任务录入岗', '体验评价维护岗', '体验资讯审批岗', '体验资讯录入岗', '智能分析关键维护岗', '质检智能体管理岗', '灵犀旅程管理岗'],
-    scopes: { 产品线分拣岗: { productLine: '用户体验' }, 产品线处理岗: { productLine: '用户体验' } }
+    id: SEED_USER.id, name: SEED_USER.name, org: SEED_USER.dept, vip: false, status: '激活',
+    roles: ['系统管理员', '后台管理员', '分行科技审核岗', '产品线处理岗', '优化建议批量导出权限', '优化建议数据看板', '体验任务审核岗', '体验任务录入岗', '体验评价维护岗', '体验资讯审批岗', '体验资讯录入岗', '智能分析关键维护岗', '质检智能体管理岗', '灵犀旅程管理岗'],
+    scopes: { 产品线处理岗: { productLine: '用户体验' } }
+  },
+  // 演示身份「领导」：业务研发四部负责人，审核个人手机银行产品线的答复，查看统计视图、报表与全量声音看板
+  {
+    id: '001700110', name: '韦明哲', org: '业务研发中心业务研发四部', vip: false, status: '激活',
+    roles: ['优化建议批量导出权限', '统计视图查看权限', '管理报表查看权限', '优化建议数据看板', '智能分析查看岗', '体验监测白名单', '总行体验活动审批岗', '总行体验公告审批岗'],
+    scopes: {
+      管理报表查看权限: { bizDept: '业务研发四部' }, 智能分析查看岗: { productDomain: '全领域' }, 体验监测白名单: { channel: '手机银行' },
+      总行体验活动审批岗: { bizDept: '业务研发四部' }
+    }
   },
   ...staff.slice(1).map((s) => ({ id: s.id, name: s.name, org: s.dept, vip: false, status: '激活', roles: ['灵犀旅程管理岗', '质检智能体使用岗'], scopes: {} })),
   ...Array.from({ length: 30 }, (_, i) => ({
@@ -119,17 +128,23 @@ export const productList = reactive([
   P('境外个人手机银行', '境外业务研发部', '境外渠道', '', '', '2025-06-20'),
   P('数据服务平台', '大数据应用部', '数据应用', '', '', '2025-04-28'),
   P('统一认证平台', '平台研发部', '平台基础', '', '', '2025-01-16'),
-  P('企业手机银行', '业务研发四部', '对公网络金融', '', '', '2025-08-29', '冻结')
+  P('企业手机银行', '业务研发四部', '对公网络金融', '', '', '2025-08-29', '冻结'),
+  // 暂无产品分类：该产品的优化建议统一由用户体验部分拣岗处理
+  P('远程银行', '', '', '', '', '2026-08-12'),
+  P('网点排队叫号', '', '', '', '', '2026-07-03')
 ])
 
 // ===== 优化建议处理人员 =====
-// 每条业研产品线：一名产品线分拣岗（兼产品线审核岗）负责指派答复人和审核答复，两名产品线处理岗负责答复与跟进；
-// 各部门第一条产品线的分拣岗兼「产品线审核岗（要客）」。分行科技审核岗按分行配置。人员均为虚构
+// 每条业研产品线：一名产品线分拣岗负责指派答复人，一名产品线审核岗审核答复（分拣岗不兼任审核岗），
+// 两到三名产品线处理岗负责答复与跟进；各部门第一条产品线的审核岗兼「产品线审核岗（要客）」。
+// 用户体验部的分拣岗同时负责平台中未分类产品的建议。分行科技审核岗按分行配置。人员均为虚构
 const lineStaffNames = '韩立言 宋知夏 唐书瑶 秦以安 罗承泽 江映雪 苏念北 程亦凡 叶南乔 贺文澜 白景行 顾清和 沈星野 陶然之 傅砚秋 杜若衡 骆行舟 魏听澜 柏子期 钱慕白 姜书衡 邵云帆 霍思齐 葛安然 袁知微 钟一鸣 卢晚晴 范景澄 方以宁 季长风 严若初 曹映秋 简沐阳 黎知远 梅亦安 冉清越 龚书言 尹承宇 庞知夏 连星河 裴云舒 盛清和 雷奕辰 邹晓岚 甘若曦 华景川 薛予安 祝南星 蓝亦舟 闻知秋 温景行 戴书瑜 牛若川 管一诺 '.trim().split(' ')
 let nameIdx = 0
 const nextName = () => lineStaffNames[nameIdx++ % lineStaffNames.length]
 const leadOf = { 个人手机银行: '001700101', 养老金: '001700103', 内控与办公管理: '001700104', 运管参数及实物管理: '001700105', 财富管理: '001700108', 个人结算: '001700109' }
-const extraHandlerOf = { 个人手机银行: ['001700102'], 用户体验: [currentUser.id, '001700107'] }
+const extraHandlerOf = { 个人手机银行: ['001700101', '001700102'] }
+// 各产品线的审核岗（与分拣岗分设，见 docs/优化建议.md 第 4 节）；未列出的产品线由新增人员担任
+const auditorOf = { 个人手机银行: '001700110' }
 let staffSeq = 3001
 const newStaff = (dept) => {
   const p = { id: `00170${staffSeq++}`, name: nextName(), org: `业务研发中心${dept}`, vip: false, status: '激活', roles: [], scopes: {} }
@@ -143,24 +158,37 @@ const grant = (p, role, scope) => {
 for (const dept of rdDepts) {
   deptLines[dept].forEach((line, li) => {
     if (line === '用户体验') {
-      // 用户体验部：当前用户为分拣岗、处理岗；孙若曦为审核岗
+      // 用户体验部：何晨阳为分拣岗（兼管未分类产品），孙若曦为审核岗，系统管理员与何晨阳为处理岗
       const auditor = persons.find((x) => x.id === '001700106')
       grant(auditor, '产品线审核岗', { bizDept: dept, productLine: line })
       grant(auditor, '产品线审核岗（要客）', { bizDept: dept })
-      grant(auditor, '产品线处理岗', { productLine: line })
-      grant(persons.find((x) => x.id === '001700107'), '产品线处理岗', { productLine: line })
+      const ux = persons.find((x) => x.id === '001700107')
+      grant(ux, '产品线分拣岗', { productLine: line })
+      grant(ux, '产品线处理岗', { productLine: line })
       return
     }
     const lead = persons.find((x) => x.id === leadOf[line]) || newStaff(dept)
     grant(lead, '产品线分拣岗', { productLine: line })
-    grant(lead, '产品线审核岗', { bizDept: dept, productLine: line })
-    if (li === 0) grant(lead, '产品线审核岗（要客）', { bizDept: dept })
+    const auditor = persons.find((x) => x.id === auditorOf[line]) || newStaff(dept)
+    grant(auditor, '产品线审核岗', { bizDept: dept, productLine: line })
+    if (li === 0) grant(auditor, '产品线审核岗（要客）', { bizDept: dept })
     const extra = (extraHandlerOf[line] || []).map((id) => persons.find((x) => x.id === id))
     for (const h of [...extra, ...Array.from({ length: 2 }, () => newStaff(dept))].slice(0, 3)) grant(h, '产品线处理岗', { productLine: line })
   })
 }
-// 分行科技审核岗：每家分行一名
+// 分行科技审核岗：每家分行一名，审批本行员工提交的优化建议
 branchOrgs.forEach((org, i) => persons.push({ id: `00180${1001 + i}`, name: nextName(), org, vip: false, status: '激活', roles: ['分行科技审核岗'], scopes: {} }))
+
+// ===== 演示身份的岗位（见 config/personas.js）=====
+// 业务人员：个人手机银行产品线的分拣岗、处理岗（上面已授予），查看本领域的声音看板
+const business = persons.find((x) => x.id === '001700101')
+grant(business, '智能分析查看岗', { productDomain: '网络金融' })
+// 体验管理岗（用户体验部）：维护旅程、活动、资讯和体验员，管理质检智能体
+const uxStaff = persons.find((x) => x.id === '001700107')
+;['体验资讯录入岗', '体验任务录入岗', '总行体验公告录入岗', '总行体验员录入岗', '质检智能体管理岗'].forEach((r) => grant(uxStaff, r))
+grant(uxStaff, '总行体验活动录入岗', { bizDept: '用户体验部' })
+// 分行用户：上海分行营业部的普通员工，不持有平台岗位
+persons.push({ id: '001820001', name: '钱晓雯', org: '上海分行营业部', vip: false, status: '激活', roles: [], scopes: {} })
 
 // ===== 轮播图维护（首页横幅）=====
 const C = (title, time, status, sort, theme) => ({ id: title, title, time, status, sort, theme, link: '', src: '' })

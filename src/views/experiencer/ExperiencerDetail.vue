@@ -1,6 +1,6 @@
-<!-- 体验员详情：基本信息 + 活动参与记录 -->
+<!-- 体验官详情：基本信息 + 活动参与记录 -->
 <template>
-  <el-drawer :model-value="!!row" :title="row ? `体验员：${row.name}` : ''" size="560px" @close="$emit('close')">
+  <el-drawer :model-value="!!row" :title="row ? `体验官：${row.name}` : ''" size="560px" @close="$emit('close')">
     <template v-if="row">
       <el-descriptions :column="2" border>
         <el-descriptions-item :label="row.kind === '行外' ? '编号' : '统一认证号'">{{ row.id }}</el-descriptions-item>

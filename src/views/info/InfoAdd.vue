@@ -147,7 +147,7 @@ async function submit() {
 .form-page { padding: 28px 24px 40px; }
 .form { max-width: 760px; margin: 12px auto 0; }
 .upload-line { display: flex; align-items: flex-start; gap: 8px; }
-.hint { margin-top: 8px; color: #909399; cursor: help; }
+.hint { margin-top: 8px; color: var(--uem-ink-3); cursor: help; }
 .submit-row { display: flex; justify-content: center; margin-top: 8px; }
 .publish { min-width: 88px; }
 </style>

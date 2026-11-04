@@ -6,12 +6,6 @@ export const PRODUCT_SHOWCASE = '个人手机银行基础业务'
 export const PRODUCT_RANGE = ['2026-01-01', '2026-11-02']
 export const ALL_RANGE = ['2026-10-01', '2026-10-27']
 
-export const LEVEL_COLOR = { 一级: '#ef6d78', 二级: '#f0a3a8', 三级: '#2ec4b6' }
-export const STAGE_COLOR = { 需求阶段: '#ef6d78', 测试阶段: '#2ec4b6' }
-export const SOURCE_COLORS = ['#5b8ff9', '#5ad8a6', '#f6bd16', '#e8684a', '#6dc8ec', '#9270ca', '#ff9d4d', '#269a99', '#ff99c3', '#5d7092', '#73d13d', '#b37feb']
-export const BAR_RED = '#e85d68'
-export const BAR_BLUE = '#5b8ff9'
-
 // 采纳率 / 解决率：截图为截断到两位小数（263/284 → 92.60%，不是四舍五入的 92.61%）
 export const truncRate = (part, total) => (total ? (Math.floor((part / total) * 10000) / 100).toFixed(2) : '0.00')
 

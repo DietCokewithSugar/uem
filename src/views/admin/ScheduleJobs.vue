@@ -230,7 +230,7 @@ async function save() {
 </script>
 
 <style scoped>
-.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: #555; }
+.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: var(--uem-ink-2); }
 .filter .el-button + .el-button { margin-left: 0; }
 .gap { flex: 1; }
 .jobs :deep(.cell) { padding: 0 8px; word-break: normal; overflow-wrap: anywhere; }
@@ -238,17 +238,17 @@ async function save() {
 .ops .el-button + .el-button { margin-left: 0; }
 .cron-cell { cursor: default; line-height: 1.5; }
 .cron-cell code, .mono :deep(input) { font-family: Menlo, Consolas, 'Courier New', monospace; }
-.cron-cell code { font-size: 13px; color: #333; }
+.cron-cell code { font-size: 13px; color: var(--uem-ink); }
 .next { font-size: 12px; color: #3c9a5f; white-space: nowrap; }
 .tip-title { color: #ccc; margin-bottom: 4px; }
 .on { color: #3c9a5f; }
-.off, .muted { color: #999; }
+.off, .muted { color: var(--uem-ink-3); }
 .fail { color: var(--uem-red); }
 .presets { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; margin-top: 6px; line-height: 20px; }
-.preview { width: 100%; margin-top: 8px; padding: 8px 12px; background: #f7f8fa; border-radius: 4px; font-size: 12px; line-height: 20px; color: #555; }
+.preview { width: 100%; margin-top: 8px; padding: 8px 12px; background: #f7f8fa; border-radius: 4px; font-size: 12px; line-height: 20px; color: var(--uem-ink-2); }
 .preview.error { background: var(--uem-red-light); color: var(--uem-red); display: flex; align-items: center; gap: 6px; }
-.preview-title { color: #888; }
-.preview-time { font-family: Menlo, Consolas, 'Courier New', monospace; color: #333; }
+.preview-title { color: var(--uem-ink-3); }
+.preview-time { font-family: Menlo, Consolas, 'Courier New', monospace; color: var(--uem-ink); }
 .paused { margin-bottom: 12px; }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

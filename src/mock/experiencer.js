@@ -1,4 +1,4 @@
-// 体验员演示数据：姓名、统一认证号均为虚构
+// 体验官演示数据：姓名、统一认证号均为虚构
 import { reactive } from 'vue'
 
 function seeded(seed) {
@@ -56,14 +56,14 @@ export const personStatus = ['在库', '冻结', '退出']
 export const educations = ['高中及以下', '大专', '本科', '硕士', '博士']
 export const industries = ['金融', '互联网', '制造业', '教育', '医疗', '政府机关', '个体经营', '学生', '退休']
 export const outsideAttrs = ['个人客户', '对公客户', '潜在客户']
-export const outsideTypes = ['普通体验员', '专项体验员']
+export const outsideTypes = ['普通体验官', '专项体验官']
 export const stars = ['一星', '二星', '三星', '四星', '五星']
 export const ratings = ['A', 'B', 'C', 'D']
 
 const code9 = () => String(int(1000000, 1999999)).padStart(9, '0')
 const ym = (y0, y1) => `${int(y0, y1)}-${String(int(1, 12)).padStart(2, '0')}`
 
-// 体验员活动记录（详情抽屉展示）
+// 体验官活动记录（详情抽屉展示）
 const activityNames = ['手机银行搜索体验走查', '个人养老金开户可用性测试', '企业手机银行经营入口调研', '贵金属购买流程众测', '适老化专区体验评估']
 const makeActivities = (n) =>
   Array.from({ length: n }, () => ({ name: pick(activityNames), time: `2026-${String(int(1, 9)).padStart(2, '0')}-${String(int(1, 28)).padStart(2, '0')}`, score: int(60, 100) }))

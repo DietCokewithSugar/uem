@@ -67,7 +67,7 @@ function download() {
 </script>
 
 <style scoped>
-.bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: #555; }
+.bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: var(--uem-ink-2); }
 .bar .el-button + .el-button { margin-left: 0; }
 .gap { flex: 1; }
 .title { font-weight: 600; margin-bottom: 10px; }

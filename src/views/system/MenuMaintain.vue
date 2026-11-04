@@ -115,16 +115,16 @@ async function save() {
 
 <style scoped>
 .card-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
-.card-title { font-size: 16px; font-weight: 600; color: #333; }
+.card-title { font-size: 16px; font-weight: 600; color: var(--uem-ink); }
 .tip { color: var(--uem-red); font-size: 12px; }
-.frozen { color: #999; }
+.frozen { color: var(--uem-ink-3); }
 .state { margin-left: 6px; }
-.hint { color: #999; font-size: 12px; margin-left: 10px; }
-.sub { padding: 4px 24px 4px 132px; font-size: 13px; color: #555; }
-.sub-label { color: #999; font-size: 12px; margin-bottom: 6px; }
+.hint { color: var(--uem-ink-3); font-size: 12px; margin-left: 10px; }
+.sub { padding: 4px 24px 4px 132px; font-size: 13px; color: var(--uem-ink-2); }
+.sub-label { color: var(--uem-ink-3); font-size: 12px; margin-bottom: 6px; }
 .sub-row { display: flex; align-items: flex-start; gap: 12px; padding: 6px 0; border-bottom: 1px dashed #f0f0f0; }
 .sub-row:last-child { border-bottom: none; }
-.sub-title { width: 120px; flex-shrink: 0; line-height: 24px; color: #333; }
+.sub-title { width: 120px; flex-shrink: 0; line-height: 24px; color: var(--uem-ink); }
 .sub-children { display: flex; flex-wrap: wrap; gap: 6px; }
-.sub-leaf, .sub-empty { color: #999; line-height: 24px; }
+.sub-leaf, .sub-empty { color: var(--uem-ink-3); line-height: 24px; }
 </style>

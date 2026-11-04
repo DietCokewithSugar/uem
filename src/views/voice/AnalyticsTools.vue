@@ -1,13 +1,16 @@
-<!-- 分析工具 #/analyticsTools：上传用户声音文件，由智能模型批量处理 -->
+<!-- 声音分析智能工具 #/analyticsTools：上传用户声音文件，由智能模型批量处理（所有人可用） -->
 <template>
-  <div class="tools">
-    <div v-for="t in toolDefs" :key="t.key" class="tool" :class="t.theme" @click="open(t)">
-      <div class="icon"><el-icon><component :is="t.icon" /></el-icon></div>
-      <div class="info">
-        <div class="name">{{ t.name }}</div>
-        <div class="desc">{{ t.desc }}</div>
-      </div>
-      <div class="deco" />
+  <div>
+    <p class="intro">选择一个分析模型，下载模板、导入声音数据后由模型批量处理，完成后下载结果。手机号、证件号和卡号会自动脱敏。</p>
+    <div class="tools">
+      <button v-for="t in toolDefs" :key="t.key" type="button" class="tool" @click="open(t)">
+        <span class="icon"><el-icon><component :is="t.icon" /></el-icon></span>
+        <span class="info">
+          <span class="name">{{ t.name }}</span>
+          <span class="desc">{{ t.desc }}</span>
+        </span>
+        <el-icon class="go"><ArrowRight /></el-icon>
+      </button>
     </div>
 
     <el-dialog v-model="visible" :title="`${current?.name.replace(/（.*）/, '')}模型`" width="860px">
@@ -134,30 +137,39 @@ async function remove(t) {
 </script>
 
 <style scoped>
-.tools { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 8px 20px; }
-.tool { position: relative; overflow: hidden; display: flex; align-items: center; gap: 20px; padding: 26px 24px; border-radius: 8px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-.tool:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06); }
-.icon { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 26px; flex-shrink: 0; }
-.info { position: relative; z-index: 1; padding-right: 90px; }
-.name { font-size: 17px; color: #333; margin-bottom: 8px; }
-.desc { font-size: 12px; color: #888; }
-.deco { position: absolute; right: -10px; bottom: -20px; width: 120px; height: 90px; border-radius: 50%; opacity: 0.35; }
-.green { background: linear-gradient(90deg, #edf8f0, #dff3e6); } .green .icon, .green .deco { background: linear-gradient(135deg, #5fcf7f, #34a853); }
-.teal { background: linear-gradient(90deg, #eaf7f8, #d9f0f2); } .teal .icon, .teal .deco { background: linear-gradient(135deg, #49c6d6, #2f9fc4); }
-.blue { background: linear-gradient(90deg, #ecf3fc, #dce9f8); } .blue .icon, .blue .deco { background: linear-gradient(135deg, #5aa6f0, #2f6fe0); }
-.purple { background: linear-gradient(90deg, #f1effb, #e4e0f6); } .purple .icon, .purple .deco { background: linear-gradient(135deg, #9b8af0, #6b55c9); }
-.red { background: linear-gradient(90deg, #fdeeee, #f9dfdf); } .red .icon, .red .deco { background: linear-gradient(135deg, #f58a8a, #e8545c); }
-.orange { background: linear-gradient(90deg, #fdf3e6, #f9e6cc); } .orange .icon, .orange .deco { background: linear-gradient(135deg, #f7b955, #f08a3c); }
-h4 { margin: 14px 0 6px; display: flex; align-items: center; gap: 8px; }
-.dot { width: 10px; height: 10px; border-radius: 50%; background: #f08a8f; display: inline-block; }
-.txt { color: #555; font-size: 13px; margin: 0 0 4px 18px; line-height: 1.8; }
+.intro { margin: 0 0 16px; max-width: 72ch; font-size: var(--uem-fs); color: var(--uem-ink-2); line-height: 1.7; }
+.tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.tool {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 16px 16px 18px;
+  border: 1px solid var(--uem-line);
+  border-radius: var(--uem-radius-lg);
+  background: var(--uem-surface);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.tool:hover { border-color: #cfd4db; box-shadow: var(--uem-shadow-sm); }
+.tool:hover .name { color: var(--uem-red); }
+.icon { width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center; border-radius: var(--uem-radius); background: var(--uem-surface-2); color: var(--uem-ink-2); font-size: 17px; }
+.info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.name { font-size: var(--uem-fs-md); font-weight: 600; color: var(--uem-ink); transition: color 0.15s; }
+.desc { font-size: var(--uem-fs-sm); color: var(--uem-ink-3); line-height: 1.6; }
+.go { color: var(--uem-ink-4); margin-top: 8px; }
+h4 { margin: 16px 0 6px; font-size: var(--uem-fs); font-weight: 600; color: var(--uem-ink); }
+.dot { display: none; }
+.txt { color: var(--uem-ink-2); font-size: var(--uem-fs-sm); margin: 0 0 4px; line-height: 1.8; }
 .guide { padding-left: 18px; }
-.warn { color: var(--uem-red); font-size: 13px; margin: 4px 0 0 18px; }
-.hint { color: #888; font-size: 12px; margin: 8px 0 0 18px; }
-.btns { display: flex; align-items: center; gap: 10px; margin: 16px 0 12px 18px; }
+.warn { color: var(--uem-warning); font-size: var(--uem-fs-sm); margin: 4px 0 0; }
+.hint { color: var(--uem-ink-3); font-size: var(--uem-fs-xs); margin: 8px 0 0; }
+.btns { display: flex; align-items: center; gap: 8px; margin: 16px 0 12px; flex-wrap: wrap; }
 .btns .el-button + .el-button { margin-left: 0; }
 .inline { display: inline-block; }
-.quota { color: #999; font-size: 12px; margin-left: auto; }
-.ok { color: #3c9a5f; }
-.wait { color: #e6a23c; }
+.quota { color: var(--uem-ink-3); font-size: var(--uem-fs-xs); margin-left: auto; }
+.ok { color: var(--uem-success); }
+.wait { color: var(--uem-warning); }
+@media (max-width: 1280px) { .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
