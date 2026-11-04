@@ -108,7 +108,7 @@ function save() {
 .tip { margin-left: 4px; color: #b0b0b0; cursor: help; vertical-align: middle; }
 .tip:hover { color: var(--uem-red); }
 .on { color: #3c9a5f; }
-.off { color: #999; }
-.hint { color: #888; font-size: 12px; margin: -6px 0 0 60px; }
+.off { color: var(--uem-ink-3); }
+.hint { color: var(--uem-ink-3); font-size: 12px; margin: -6px 0 0 60px; }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

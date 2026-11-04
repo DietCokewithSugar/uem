@@ -88,5 +88,5 @@ async function submit() {
 
 <style scoped>
 .form { max-height: 60vh; overflow-y: auto; padding-right: 12px; }
-.muted { color: #999; }
+.muted { color: var(--uem-ink-3); }
 </style>

@@ -27,6 +27,15 @@ describe('功能权限', () => {
     for (const f of ['suggest.export', 'suggest.stat', 'voice.board']) expect(can(f)).toBe(true)
   })
 
+  it('全量声音看板只给产品领域为「全领域」的人；其他智能分析查看岗只看本领域的声音异动', () => {
+    loginAs('001700101') // 业务人员：智能分析查看岗 · 网络金融
+    expect(can('voice.alert')).toBe(true)
+    expect(can('voice.board')).toBe(false)
+    expect(visibleMenus('voice').map((m) => m.title)).not.toContain('声音看板')
+    loginAs('001700110') // 领导：智能分析查看岗 · 全领域
+    expect(can('voice.board')).toBe(true)
+  })
+
   it('系统管理员可使用全部功能', () => {
     loginAs('001700001')
     for (const f of Object.keys(FEATURES)) expect(can(f)).toBe(true)

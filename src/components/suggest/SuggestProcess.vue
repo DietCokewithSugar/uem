@@ -542,27 +542,27 @@ async function doEvaluate() {
 .ai-draft-text { margin: 0; font-size: var(--uem-fs-sm); color: var(--uem-ink); line-height: 1.7; }
 .demo-line {
   display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px;
-  margin-bottom: 16px; padding: 9px 14px; background: #f7f8fa; border-radius: 4px; color: #888; font-size: 13px;
+  margin-bottom: 16px; padding: 9px 14px; background: #f7f8fa; border-radius: 4px; color: var(--uem-ink-3); font-size: 13px;
 }
 .demo-line .el-icon { color: #b0b3b8; }
-.muted { color: #aaa; font-size: 12px; }
+.muted { color: var(--uem-ink-3); font-size: 12px; }
 .proc { margin-bottom: 16px; border: 1px solid var(--uem-line); border-radius: var(--uem-radius-lg); }
 .proc-head {
   display: flex; align-items: center; flex-wrap: wrap; gap: 4px 14px;
   padding: 12px 16px; background: var(--uem-surface-2); border-bottom: 1px solid var(--uem-line); border-radius: var(--uem-radius-lg) var(--uem-radius-lg) 0 0;
 }
-.title { font-size: 15px; font-weight: 600; color: #333; }
-.step { font-size: 13px; color: #888; }
+.title { font-size: 15px; font-weight: 600; color: var(--uem-ink); }
+.step { font-size: 13px; color: var(--uem-ink-3); }
 .acting { margin-left: auto; font-size: 12px; color: #b26a00; background: #fdf6ec; padding: 2px 10px; border-radius: 10px; }
 .proc-body { padding: 16px 16px 2px; }
 .pform { max-width: 960px; }
-.tip { margin-bottom: 14px; padding: 8px 12px; background: #f7f8fa; border-radius: 4px; font-size: 13px; color: #666; line-height: 1.6; }
+.tip { margin-bottom: 14px; padding: 8px 12px; background: #f7f8fa; border-radius: 4px; font-size: 13px; color: var(--uem-ink-2); line-height: 1.6; }
 .warn { color: var(--uem-red); }
 .btns { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 14px; }
 .btns .el-button + .el-button { margin-left: 0; }
-.opt-desc { margin-left: 12px; color: #999; font-size: 12px; }
+.opt-desc { margin-left: 12px; color: var(--uem-ink-3); font-size: 12px; }
 .summary { margin-bottom: 14px; }
-.summary :deep(.el-descriptions__label) { width: 110px; background: #f5f7fa; color: #666; font-weight: normal; }
+.summary :deep(.el-descriptions__label) { width: 110px; background: #f5f7fa; color: var(--uem-ink-2); font-weight: normal; }
 .pre { white-space: pre-wrap; }
-.dlg-tip { font-size: 12px; color: #888; padding-left: 90px; }
+.dlg-tip { font-size: 12px; color: var(--uem-ink-3); padding-left: 90px; }
 </style>

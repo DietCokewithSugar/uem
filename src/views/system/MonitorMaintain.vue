@@ -116,6 +116,6 @@ async function save() {
 <style scoped>
 .uem-toolbar { align-items: center; }
 .hint { color: var(--uem-red); font-size: 12px; margin-left: 4px; }
-.frozen { color: #999; }
+.frozen { color: var(--uem-ink-3); }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

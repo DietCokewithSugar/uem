@@ -201,14 +201,14 @@ async function save() {
 </script>
 
 <style scoped>
-.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: #555; }
+.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: var(--uem-ink-2); }
 .filter .label { margin-left: 20px; }
 .filter .el-button + .el-button { margin-left: 0; }
 .gap { flex: 1; }
 .apis :deep(.cell) { word-break: normal; overflow-wrap: anywhere; }
 .ids { cursor: default; }
 .on { color: #3c9a5f; }
-.off, .muted { color: #999; }
-.rule-tip { margin: -4px 0 0 100px; font-size: 12px; line-height: 18px; color: #999; }
+.off, .muted { color: var(--uem-ink-3); }
+.rule-tip { margin: -4px 0 0 100px; font-size: 12px; line-height: 18px; color: var(--uem-ink-3); }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

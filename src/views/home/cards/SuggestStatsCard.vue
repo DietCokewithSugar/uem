@@ -38,9 +38,9 @@ const option = computed(() => ({
     data: rows.value.map((r) => `${Number(r.month.slice(5))}月`),
     axisTick: { show: false },
     axisLine: { lineStyle: { color: '#e3e6ea' } },
-    axisLabel: { color: '#868d98', fontSize: 11 }
+    axisLabel: { color: '#6b7280', fontSize: 11 }
   },
-  yAxis: { type: 'value', splitLine: { lineStyle: { color: '#eef0f3' } }, axisLabel: { color: '#868d98', fontSize: 11 } },
+  yAxis: { type: 'value', splitLine: { lineStyle: { color: '#eef0f3' } }, axisLabel: { color: '#6b7280', fontSize: 11 } },
   series: [
     { name: '总行', type: 'bar', stack: 'n', barMaxWidth: 20, itemStyle: { color: SERIES[0], borderColor: '#fff', borderWidth: 1 }, data: rows.value.map((r) => r.head) },
     { name: '分行', type: 'bar', stack: 'n', barMaxWidth: 20, itemStyle: { color: SERIES[1], borderRadius: [3, 3, 0, 0], borderColor: '#fff', borderWidth: 1 }, data: rows.value.map((r) => r.branch) }

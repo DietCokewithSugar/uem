@@ -4,29 +4,27 @@
 
 <script>
 import * as echarts from 'echarts'
+import { SERIES, INK, INK_2, INK_3, LINE, LINE_2, FONT } from '@/config/charts'
 
-// 图表主题：分类色取自数据可视化默认色板（已校验色盲可辨），文字与坐标轴使用中性色；
-// 红色只用于风险与警示，不作为普通数据色。页面中显式指定的颜色优先。
-const INK_3 = '#868d98'
-const LINE = '#e3e6ea'
-const LINE_2 = '#eef0f3'
+// 图表主题：分类色、文字和坐标轴颜色都来自 config/charts.js；页面中显式指定的颜色优先
 echarts.registerTheme('uem', {
-  color: ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'],
+  color: SERIES,
   backgroundColor: 'transparent',
-  textStyle: { fontFamily: "-apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif", color: '#4e5561' },
-  title: { textStyle: { color: '#1f2329', fontWeight: 600 }, subtextStyle: { color: INK_3 } },
-  legend: { textStyle: { color: '#4e5561' } },
+  textStyle: { fontFamily: FONT, color: INK_2 },
+  title: { textStyle: { color: INK, fontWeight: 600 }, subtextStyle: { color: INK_3 } },
+  legend: { textStyle: { color: INK_2 } },
   tooltip: {
     backgroundColor: '#ffffff',
     borderColor: LINE,
     borderWidth: 1,
-    textStyle: { color: '#1f2329', fontSize: 12 },
+    textStyle: { color: INK, fontSize: 12 },
     extraCssText: 'box-shadow: 0 6px 16px -4px rgba(16,24,40,.12); border-radius: 6px;'
   },
   categoryAxis: { axisLine: { lineStyle: { color: LINE } }, axisTick: { show: false }, axisLabel: { color: INK_3 }, splitLine: { lineStyle: { color: LINE_2 } } },
-  valueAxis: { axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: INK_3 }, splitLine: { lineStyle: { color: LINE_2 } } },
-  line: { symbolSize: 6, lineStyle: { width: 2 } },
-  bar: { barMaxWidth: 24 }
+  valueAxis: { axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: INK_3 }, splitLine: { lineStyle: { color: LINE_2 } }, nameTextStyle: { color: INK_3 } },
+  line: { symbolSize: 8, lineStyle: { width: 2 } },
+  bar: { barMaxWidth: 24 },
+  radar: { axisName: { color: INK_2 }, splitLine: { lineStyle: { color: LINE } }, axisLine: { lineStyle: { color: LINE } }, splitArea: { show: false } }
 })
 </script>
 

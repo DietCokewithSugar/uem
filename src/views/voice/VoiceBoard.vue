@@ -34,8 +34,8 @@
       <div class="charts">
         <Panel title="有效用户声音总数变化趋势"><EChart class="h260" :option="areaOpt" /></Panel>
         <Panel title="用户声音压力指数变化趋势"><EChart class="h260" :option="levelOpt(d.pressureTrend, pressureLevels, true)" /></Panel>
-        <Panel title="各产品用户声音数量"><EChart class="h260" :option="barOpt(d.byProduct, '#2a78d6')" /></Panel>
-        <Panel title="用户声音维度分布"><EChart class="h260" :option="barOpt(d.byDim, '#2a78d6')" /></Panel>
+        <Panel title="各产品用户声音数量"><EChart class="h260" :option="productRank" /></Panel>
+        <Panel title="用户声音维度分布"><EChart class="h260" :option="barOpt(d.byDim)" /></Panel>
         <Panel title="用户声音情绪指数变化趋势"><EChart class="h260" :option="levelOpt(d.emotionTrend, emoLevels)" /></Panel>
         <Panel title="各产品用户声音情绪指数"><EChart class="h260" :option="emoProductOpt" /></Panel>
       </div>
@@ -56,6 +56,7 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 import EChart from '@/components/EChart.vue'
+import { BLUE, STATUS, rankBarOption } from '@/config/charts'
 import Panel from '@/components/Panel.vue'
 import KpiRow from './board/KpiRow.vue'
 import BoardVoiceDetail from './board/BoardVoiceDetail.vue'
@@ -84,48 +85,50 @@ const filterByProblem = async () => {
   detailRef.value?.$el.scrollIntoView({ behavior: 'smooth' })
 }
 
+// 声音总数趋势：折线 + 浅色平涂，不用渐变
 const areaOpt = {
-  grid: { left: 50, right: 20, top: 20, bottom: 30 },
-  tooltip: { trigger: 'axis' },
+  grid: { left: 50, right: 36, top: 20, bottom: 30 },
+  tooltip: { trigger: 'axis', formatter: (p) => `${p[0].axisValue}：${p[0].value} 条` },
   xAxis: { type: 'category', boundaryGap: false, data: boardMonths },
   yAxis: { type: 'value' },
-  series: [{ type: 'line', smooth: true, symbolSize: 6, lineStyle: { color: '#f2c46b' }, itemStyle: { color: '#f2c46b' }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#fbe1a6' }, { offset: 1, color: '#fff8e8' }] } }, data: d.validTrend }]
+  series: [{ type: 'line', symbol: 'circle', symbolSize: 6, lineStyle: { color: BLUE, width: 2 }, itemStyle: { color: BLUE }, areaStyle: { color: 'rgba(42, 120, 214, 0.08)' }, data: d.validTrend }]
 }
-// 等级折线：越负面越红，用表情标注
-const face = (lv, max) => (lv >= max - 1 ? '😊' : lv === Math.floor(max / 2) ? '😐' : '😟')
-const levelOpt = (data, levels, reverse = false) => ({
-  grid: { left: 80, right: 20, top: 30, bottom: 30 },
-  tooltip: { trigger: 'axis', formatter: (p) => `${p[0].axisValue}：${levels[p[0].value]}` },
-  xAxis: { type: 'category', data: boardMonths },
-  yAxis: { type: 'value', min: 0, max: levels.length - 1, interval: 1, axisLabel: { formatter: (v) => levels[v] } },
-  series: [{
-    type: 'line', smooth: true, symbolSize: 18, lineStyle: { color: '#ccc' },
-    itemStyle: { color: (p) => ((reverse ? p.value >= 3 : p.value <= 1) ? '#e8545c' : '#f2a33a') },
-    label: { show: true, formatter: (p) => (reverse ? (p.value >= 3 ? '😣' : '😟') : face(p.value, levels.length)), fontSize: 14 },
-    data
-  }]
-})
-const barOpt = (list, color) => ({
+// 等级折线：纵轴就是等级名称；落在风险区间（压力为中高度及以上、情绪为中度负面及以下）的点用警示色
+const levelOpt = (data, levels, reverse = false) => {
+  const risky = (v) => (reverse ? v >= 3 : v <= 1)
+  return {
+    grid: { left: 84, right: 24, top: 24, bottom: 30 },
+    tooltip: { trigger: 'axis', formatter: (p) => `${p[0].axisValue}：${levels[p[0].value]}` },
+    xAxis: { type: 'category', data: boardMonths },
+    yAxis: { type: 'value', min: 0, max: levels.length - 1, interval: 1, axisLabel: { formatter: (v) => levels[v] } },
+    series: [{
+      type: 'line', symbol: 'circle', symbolSize: 8, lineStyle: { color: BLUE, width: 2 },
+      itemStyle: { color: (p) => (risky(p.value) ? STATUS.critical : BLUE), borderColor: '#fff', borderWidth: 2 },
+      data
+    }]
+  }
+}
+// 产品名称较长，用横向排行；维度名称短，用纵向柱图
+const productRank = rankBarOption(d.byProduct.map(([name, value]) => ({ name, value })), { limit: 8, labelWidth: 120 })
+const barOpt = (list) => ({
   grid: { left: 50, right: 10, top: 20, bottom: 60 },
-  tooltip: { trigger: 'axis' },
+  tooltip: { trigger: 'axis', formatter: (p) => `${p[0].axisValue}：${p[0].value} 条` },
   dataZoom: list.length > 10 ? [{ type: 'slider', height: 8, bottom: 4, end: 70, showDetail: false }] : [],
   xAxis: { type: 'category', data: list.map((x) => x[0]), axisLabel: { interval: 0, fontSize: 10, width: 60, overflow: 'break' } },
   yAxis: { type: 'value' },
-  series: [{ type: 'bar', barWidth: 14, itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color }, { offset: 1, color: '#d6e6fb' }] } }, data: list.map((x) => x[1]) }]
+  series: [{ type: 'bar', barWidth: 14, itemStyle: { color: BLUE, borderRadius: [4, 4, 0, 0] }, data: list.map((x) => x[1]) }]
 })
 const emoProductOpt = {
-  grid: { left: 80, right: 20, top: 20, bottom: 70 },
+  grid: { left: 84, right: 20, top: 20, bottom: 70 },
   tooltip: { formatter: (p) => `${p.name}：${emoLevels[p.value[1]]}` },
   xAxis: { type: 'category', data: d.emotionByProduct.map((x) => x[0]), axisLabel: { interval: 0, fontSize: 10, rotate: 35 } },
   yAxis: { type: 'value', min: 0, max: 4, interval: 1, axisLabel: { formatter: (v) => emoLevels[v] } },
   series: [{
-    type: 'scatter', symbolSize: 18,
-    itemStyle: { color: (p) => (p.value[1] === 0 ? '#e8545c' : '#7cc9b8') },
-    label: { show: true, formatter: (p) => (p.value[1] === 0 ? '😣' : '😊'), fontSize: 14 },
+    type: 'scatter', symbolSize: 10,
+    itemStyle: { color: (p) => (p.value[1] <= 1 ? STATUS.critical : BLUE), borderColor: '#fff', borderWidth: 2 },
     data: d.emotionByProduct.map(([n, v]) => [n, v])
   }]
 }
-
 </script>
 
 <style scoped>

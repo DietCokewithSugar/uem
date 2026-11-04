@@ -32,7 +32,6 @@
       <div class="kpi kpi-red">
         <div class="k-title">体验问题数量</div>
         <div class="num">{{ data.problem.total }}<small>条</small></div>
-        <Bird class="bird" />
       </div>
       <div class="kpi kpi-red kpi-split">
         <div v-for="m in problemMetrics" :key="m.key" class="metric">
@@ -53,7 +52,6 @@
       <div class="kpi kpi-blue">
         <div class="k-title">优化建议数量</div>
         <div class="num">{{ data.suggestion.total }}<small>条</small></div>
-        <Bird class="bird" />
       </div>
       <div class="kpi kpi-blue kpi-adopt">
         <div>
@@ -82,7 +80,7 @@
       </div>
       <div v-if="mode === 'all'" class="chart-card">
         <div class="c-title">优化建议所属产品情况</div>
-        <EChart class="chart bubble-chart" :option="bubbleOption" />
+        <EChart class="chart" :option="suggestProductOption" />
       </div>
       <div v-if="mode === 'all'" class="chart-card">
         <div class="c-title">优化建议热词TOP10</div>
@@ -94,7 +92,7 @@
       </div>
       <div v-if="mode === 'product'" class="chart-card">
         <div class="c-title">优化建议来源</div>
-        <EChart class="chart" :option="sourceOption" />
+        <EChart class="chart tall" :option="sourceOption" />
       </div>
     </div>
 
@@ -109,7 +107,7 @@
       </div>
       <div v-if="mode === 'all'" class="chart-card">
         <div class="c-title">优化建议来源</div>
-        <EChart class="chart" :option="sourceOption" />
+        <EChart class="chart tall" :option="sourceOption" />
       </div>
     </div>
 
@@ -131,7 +129,8 @@ import { reactive, ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import EChart from '@/components/EChart.vue'
 import { products } from '@/mock'
-import { snapshot, truncRate, LEVEL_COLOR, STAGE_COLOR, SOURCE_COLORS, BAR_RED, BAR_BLUE, PRODUCT_SHOWCASE, PRODUCT_RANGE, ALL_RANGE } from '@/mock/statView'
+import { snapshot, truncRate, PRODUCT_SHOWCASE, PRODUCT_RANGE, ALL_RANGE } from '@/mock/statView'
+import { BLUE, ORDINAL, INK_3, LINE, LINE_2, rankBarOption } from '@/config/charts'
 
 const props = defineProps({ mode: { type: String, default: 'all' } })
 
@@ -180,103 +179,29 @@ const openReason = (key) => {
   reasonOpen.value = true
 }
 
-const axis = { axisLine: { lineStyle: { color: '#e5e8ee' } }, axisTick: { show: false }, axisLabel: { color: '#888', fontSize: 11 } }
-const valueAxis = { type: 'value', minInterval: 1, axisLabel: { color: '#999', fontSize: 11 }, splitLine: { lineStyle: { color: '#f0f2f5' } } }
-const tip = { trigger: 'item', formatter: (p) => `${p.name}：${p.value} 条（${p.percent}%）` }
+// 分级、发现阶段：类别少且有先后，用横向条形并标出数量与占比；分级越严重颜色越深
+const LEVELS = ['一级', '二级', '三级']
+const levelOption = computed(() => rankBarOption(data.value.problem.levels, { sort: false, keepZero: true, showPct: true, labelWidth: 48, colorOf: (n) => ORDINAL[LEVELS.indexOf(n)] ?? BLUE }))
+const stageOption = computed(() => rankBarOption(data.value.problem.stages, { sort: false, keepZero: true, showPct: true, labelWidth: 64 }))
+// 来源、产品、热词：按数量排行，一组数据一种颜色
+const sourceOption = computed(() => rankBarOption(data.value.suggestion.sources, { limit: 12, labelWidth: 132 }))
+const problemProductOption = computed(() => rankBarOption(data.value.problem.products, { limit: 10, labelWidth: 84 }))
+const suggestProductOption = computed(() => rankBarOption(data.value.suggestion.products, { limit: 10, labelWidth: 84 }))
+const wordOption = computed(() => rankBarOption(data.value.suggestion.words, { unit: '次', limit: 10, labelWidth: 48 }))
 
-function pieOption(list, colorOf, { radius, center, legend }) {
-  const rows = list.filter((d) => d.value > 0).map((d) => ({ name: d.name, value: d.value, itemStyle: { color: colorOf(d.name) } }))
+// 版本分布：版本号本身有先后，保留纵向柱图
+const versionOption = computed(() => {
+  const list = data.value.problem.versions
   return {
-    tooltip: tip,
-    legend,
-    series: [{
-      type: 'pie',
-      radius,
-      center,
-      avoidLabelOverlap: true,
-      label: { formatter: '{c}', color: '#555', fontSize: 13 },
-      labelLine: { length: 8, length2: 6 },
-      data: rows
-    }]
-  }
-}
-const legendBottom = { bottom: 0, icon: 'circle', itemWidth: 8, itemHeight: 8, textStyle: { color: '#666', fontSize: 12 } }
-const legendRight = { orient: 'vertical', right: 4, top: 'middle', icon: 'circle', itemWidth: 8, itemHeight: 8, itemGap: 5, textStyle: { color: '#666', fontSize: 11 } }
-
-const levelOption = computed(() => pieOption(data.value.problem.levels, (n) => LEVEL_COLOR[n], { radius: '58%', center: ['50%', '44%'], legend: legendBottom }))
-const stageOption = computed(() =>
-  pieOption(data.value.problem.stages, (n) => STAGE_COLOR[n], {
-    radius: ['46%', '68%'],
-    center: ['40%', '50%'],
-    legend: { ...legendRight, top: 'middle', bottom: undefined }
-  })
-)
-const sourceOption = computed(() =>
-  pieOption(data.value.suggestion.sources, (n) => SOURCE_COLORS[data.value.suggestion.sources.findIndex((s) => s.name === n) % SOURCE_COLORS.length], {
-    radius: ['42%', '64%'],
-    center: ['34%', '50%'],
-    legend: legendRight
-  })
-)
-
-function vBar(list, color) {
-  return {
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (ps) => `${ps[0].axisValue}：${ps[0].value} 条` },
-    grid: { left: 36, right: 12, top: 24, bottom: list.length > 6 ? 64 : 36 },
-    xAxis: { type: 'category', data: list.map((d) => d.name), ...axis, axisLabel: { ...axis.axisLabel, interval: 0, rotate: list.length > 6 ? 32 : 0 } },
-    yAxis: valueAxis,
-    series: [{ type: 'bar', data: list.map((d) => d.value), barMaxWidth: 16, itemStyle: { color, borderRadius: [3, 3, 0, 0] } }]
-  }
-}
-const problemProductOption = computed(() => vBar(data.value.problem.products, BAR_RED))
-const versionOption = computed(() => vBar(data.value.problem.versions, BAR_RED))
-const wordOption = computed(() => {
-  const list = data.value.suggestion.words
-  return {
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (ps) => `${ps[0].axisValue}：${ps[0].value}` },
-    grid: { left: 48, right: 28, top: 12, bottom: 24 },
-    xAxis: { ...valueAxis, type: 'value' },
-    yAxis: { type: 'category', data: list.map((d) => d.name), inverse: true, ...axis, axisLabel: { ...axis.axisLabel, color: '#555' } },
-    series: [{ type: 'bar', data: list.map((d) => d.value), barMaxWidth: 12, itemStyle: { color: BAR_BLUE, borderRadius: [0, 3, 3, 0] } }]
-  }
-})
-const bubbleOption = computed(() => {
-  const list = data.value.suggestion.products
-  const cols = 3
-  return {
-    tooltip: { formatter: (p) => `${p.data.name}：${p.data.value} 条` },
-    grid: { left: 4, right: 4, top: 16, bottom: 8 },
-    xAxis: { show: false, min: 0, max: 100 },
-    yAxis: { show: false, min: 0, max: 100 },
-    series: [{
-      type: 'scatter',
-      data: list.map((b, i) => {
-        const col = i % cols
-        const row = Math.floor(i / cols)
-        const rows = Math.ceil(list.length / cols)
-        return {
-          name: b.name,
-          value: [16 + (col * 68) / Math.max(cols - 1, 1), 86 - (row * 72) / Math.max(rows - 1, 1), b.value]
-        }
-      }),
-      symbolSize: (val) => Math.max(58, Math.min(74, 36 + Math.sqrt(val[2]) * 4)),
-      itemStyle: { color: (p) => SOURCE_COLORS[p.dataIndex % SOURCE_COLORS.length], opacity: 0.92 },
-      label: { show: true, formatter: '{b}', color: '#fff', fontSize: 10 }
-    }]
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(31, 35, 41, 0.04)' } }, formatter: (ps) => `版本 ${ps[0].axisValue}：${ps[0].value} 条` },
+    grid: { left: 36, right: 12, top: 24, bottom: 28 },
+    xAxis: { type: 'category', data: list.map((d) => d.name), axisLine: { lineStyle: { color: LINE } }, axisTick: { show: false }, axisLabel: { color: INK_3, fontSize: 11, interval: 0 } },
+    yAxis: { type: 'value', minInterval: 1, axisLabel: { color: INK_3, fontSize: 11 }, splitLine: { lineStyle: { color: LINE_2 } } },
+    series: [{ type: 'bar', data: list.map((d) => d.value), barMaxWidth: 16, itemStyle: { color: BLUE, borderRadius: [4, 4, 0, 0] } }]
   }
 })
 </script>
 
-<script>
-// 卡片右侧的白色飞鸟，对应截图里的装饰图形
-const Bird = {
-  template: `<svg class="bird-svg" viewBox="0 0 120 120" aria-hidden="true">
-    <path fill="rgba(255,255,255,.92)" d="M18 68c22-6 36-30 46-52 1 22 12 36 32 42-20 6-34 20-42 40-8-12-22-22-36-30z"/>
-    <path fill="rgba(255,255,255,.55)" d="M64 20c10 16 14 32 8 48 14-6 28-6 42 2-16 2-30 12-38 28 4-22 0-42-12-78z"/>
-  </svg>`
-}
-export default { components: { Bird } }
-</script>
 
 <style scoped>
 .stat { padding: 0; }
@@ -296,11 +221,9 @@ export default { components: { Bird } }
   position: relative; min-height: 140px; border-radius: var(--uem-radius-lg);
   padding: 16px 18px 14px; background: var(--uem-surface); border: 1px solid var(--uem-line); color: var(--uem-ink);
 }
-.kpi-red, .kpi-blue { background: var(--uem-surface); }
 .k-title { font-size: var(--uem-fs-sm); color: var(--uem-ink-2); }
 .num { margin-top: 16px; font-size: var(--uem-fs-3xl); font-weight: 600; line-height: 1.1; }
 .num small { margin-left: 3px; font-size: var(--uem-fs-sm); font-weight: 500; color: var(--uem-ink-3); }
-.bird { display: none; }
 .kpi-split { display: flex; flex-direction: column; justify-content: space-between; gap: 12px; padding-bottom: 12px; }
 .kpi-split .metric + .metric { padding-top: 12px; border-top: 1px solid var(--uem-line-2); }
 .kpi-split .num { margin-top: 6px; font-size: var(--uem-fs-2xl); }
@@ -329,9 +252,8 @@ export default { components: { Bird } }
 .charts-1 { grid-template-columns: 1fr; }
 .chart-card { background: var(--uem-surface); border: 1px solid var(--uem-line); border-radius: var(--uem-radius-lg); padding: 14px 14px 4px; min-width: 0; }
 .c-title { font-size: var(--uem-fs); font-weight: 600; color: var(--uem-ink); padding: 0 4px; }
-.chart { height: 250px; }
-.bubble-chart { height: 300px; }
-.tall { height: 280px; }
+.chart { height: 260px; }
+.tall { height: 300px; }
 .empty-reason { margin: 8px 0 16px; color: var(--uem-ink-3); }
 
 @media (max-width: 1280px) {

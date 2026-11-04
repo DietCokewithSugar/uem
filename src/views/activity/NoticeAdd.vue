@@ -163,12 +163,12 @@ async function submit() {
 .form { max-width: 820px; margin: 8px auto 0; }
 .time-row { display: flex; align-items: center; gap: 8px; width: 100%; }
 .time-row .el-date-editor { flex: 1; }
-.dash { color: #999; }
+.dash { color: var(--uem-ink-3); }
 .upload-block { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; }
 .upload-line { display: flex; align-items: center; gap: 8px; }
-.hint { color: #909399; cursor: help; }
-.file-name { color: #666; font-size: 13px; }
-.tip { margin: 0; color: #888; font-size: 12px; line-height: 1.6; }
+.hint { color: var(--uem-ink-3); cursor: help; }
+.file-name { color: var(--uem-ink-2); font-size: 13px; }
+.tip { margin: 0; color: var(--uem-ink-3); font-size: 12px; line-height: 1.6; }
 .branches { width: min(100%, 420px); }
 .submit-row { display: flex; justify-content: center; margin-top: 12px; }
 .publish { min-width: 88px; }

@@ -31,7 +31,9 @@ export const FEATURES = {
   'suggest.report': ['管理报表查看权限'],
   'suggest.board': ['优化建议数据看板'],
   'problem.export': ['体验问题批量导出权限'],
-  // 用户声音：声音分析智能工具对所有人开放；全量声音数据与看板单独授权
+  // 用户声音：声音分析智能工具对所有人开放；声音异动按岗位上的产品领域显示；
+  // 全量声音看板单独控制：除智能分析查看岗外，产品领域须为「全领域」（见 SCOPE_RULES）
+  'voice.alert': ['智能分析查看岗'],
   'voice.board': ['智能分析查看岗'],
   'voice.view': ['智能分析查看岗', '客户声音维护岗', '智能分析关键维护岗', '智能分析一般维护岗'],
   'voice.data': ['智能分析关键维护岗', '智能分析一般维护岗', '客户声音维护岗'],
@@ -59,6 +61,10 @@ export const FEATURES = {
   admin: ['后台管理员']
 }
 
+// 除岗位外还要看数据范围的功能
+const SCOPE_RULES = {
+  'voice.board': () => scopeOf('智能分析查看岗', 'productDomain') === '全领域'
+}
 export function can(feature) {
   if (!feature) return true
   const list = Array.isArray(feature) ? feature : [feature]
@@ -66,7 +72,8 @@ export function can(feature) {
   // 多个功能：任一可用即可
   return list.some((f) => {
     const roles = FEATURES[f]
-    return !roles || hasRole(...roles)
+    if (roles && !hasRole(...roles)) return false
+    return !SCOPE_RULES[f] || SCOPE_RULES[f]()
   })
 }
 

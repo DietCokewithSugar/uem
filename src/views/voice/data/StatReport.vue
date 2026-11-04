@@ -70,8 +70,8 @@ function download() {
 <style scoped>
 .tabs { max-width: 600px; margin: 0 auto; }
 .tabs :deep(.el-tabs__nav-wrap::after) { display: none; }
-.bar { display: flex; align-items: center; gap: 12px; justify-content: center; margin-top: 16px; font-size: 14px; color: #555; }
+.bar { display: flex; align-items: center; gap: 12px; justify-content: center; margin-top: 16px; font-size: 14px; color: var(--uem-ink-2); }
 .bar .el-button + .el-button { margin-left: 0; }
 .range { max-width: 560px; }
-.desc { text-align: center; color: #999; font-size: 12px; margin-top: 16px; }
+.desc { text-align: center; color: var(--uem-ink-3); font-size: 12px; margin-top: 16px; }
 </style>

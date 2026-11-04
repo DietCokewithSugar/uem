@@ -122,6 +122,6 @@ function reuse(row) {
 .tabs :deep(.el-tabs__header) { margin: 0; }
 .pager { margin-top: 16px; justify-content: flex-end; }
 .shots { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-.shot { width: 200px; text-align: center; font-size: 12px; color: #666; }
+.shot { width: 200px; text-align: center; font-size: 12px; color: var(--uem-ink-2); }
 .shot-img { height: 120px; border: 1px solid #eee; margin-bottom: 4px; }
 </style>

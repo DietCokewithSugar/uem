@@ -18,9 +18,10 @@ import { skills } from '@/mock/skills'
 </script>
 
 <style scoped>
-.skills { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.skill { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--uem-line); border-radius: var(--uem-radius); transition: border-color 0.15s; }
-.skill:hover { border-color: #cfd4db; }
+.skills { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.skills li + li { border-top: 1px solid var(--uem-line-2); }
+.skill { display: flex; flex-direction: column; gap: 2px; padding: 10px 0; }
+.skills li:first-child .skill { padding-top: 2px; }
 .skill:hover .name { color: var(--uem-red); }
 .name { display: flex; align-items: center; gap: 8px; font-size: var(--uem-fs); font-weight: 600; color: var(--uem-ink); transition: color 0.15s; }
 .desc { font-size: var(--uem-fs-xs); color: var(--uem-ink-3); line-height: 1.5; }

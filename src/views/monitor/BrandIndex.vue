@@ -6,7 +6,10 @@
         <div class="panel-head"><b>工行整体净推荐值</b><MonthPick v-model="m1" /></div>
         <div class="nps">
           <div class="nps-num"><span>总体NPS</span><b>{{ d1.nps.toFixed(2) }}%</b></div>
-          <EChart class="gauge" :option="gauge" />
+          <div class="gauge-wrap">
+            <EChart class="gauge" :option="gauge" />
+            <div class="gauge-scale" aria-hidden="true"><span>-100%</span><span>100%</span></div>
+          </div>
         </div>
         <p class="note">*NPS（净推荐值，Net Promoter Score）是目前业界衡量客户体验满意度的重要指标。与传统指标相比，NPS能更有效地表达客户满意度、忠诚度，在很大程度上预测客户未来能带来的价值。NPS通过计算推荐者与贬损者在整体中占比的差值获得。</p>
       </div>
@@ -15,10 +18,8 @@
         <div class="ages">
           <div v-for="[name, v] in d2.byAge" :key="name" class="age">
             <span class="age-name">{{ name }}</span>
-            <div class="age-bar-wrap">
-              <div class="age-bar"><div :style="{ width: Math.max(0, v) * 1.6 + '%' }" /></div>
-              <span class="age-val">{{ v.toFixed(2) }}%</span>
-            </div>
+            <div class="age-track"><div class="age-fill" :style="{ width: Math.max(0, Math.min(100, v)) + '%' }" /></div>
+            <span class="age-val">{{ v.toFixed(2) }}%</span>
           </div>
         </div>
       </div>
@@ -48,6 +49,7 @@ import { ref, computed, h } from 'vue'
 import { ElSelect, ElOption } from 'element-plus'
 import EChart from '@/components/EChart.vue'
 import { brandData, months } from '@/mock/monitor'
+import { BLUE, INK_2, LINE_2, rankBarOption } from '@/config/charts'
 
 const MonthPick = (props, { emit }) =>
   h(ElSelect, { modelValue: props.modelValue, size: 'small', style: 'width: 110px', 'onUpdate:modelValue': (v) => emit('update:modelValue', v) }, () =>
@@ -62,66 +64,57 @@ const d2 = computed(() => brandData[m2.value])
 const d3 = computed(() => brandData[m3.value])
 const d4 = computed(() => brandData[m4.value])
 
+// 仪表盘只作为数值的位置参考（-100% ～ 100%）；两端刻度用页面文字标在弧线下方，避免被裁切或重叠
 const gauge = computed(() => ({
   series: [{
-    type: 'gauge', min: -100, max: 100, startAngle: 180, endAngle: 0, radius: '100%', center: ['50%', '72%'],
-    progress: { show: true, width: 12, itemStyle: { color: '#5aa6e0' } },
-    axisLine: { lineStyle: { width: 12, color: [[1, '#cfd3d9']] } },
+    type: 'gauge', min: -100, max: 100, startAngle: 180, endAngle: 0, radius: '88%', center: ['50%', '72%'],
+    progress: { show: true, width: 12, itemStyle: { color: BLUE } },
+    axisLine: { lineStyle: { width: 12, color: [[1, LINE_2]] } },
     axisTick: { show: false }, splitLine: { show: false }, pointer: { show: false },
-    axisLabel: { distance: -36, fontSize: 11, color: '#666', formatter: (v) => ([-100, 0, 100].includes(v) ? `${v}%` : '') },
+    axisLabel: { show: false },
     splitNumber: 2, detail: { show: false }, data: [{ value: d1.value.nps }]
   }]
 }))
 
-const imageColors = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948']
-const imageOpt = computed(() => ({
-  grid: { left: 10, right: 10, top: 20, bottom: 10 },
-  tooltip: { formatter: (p) => `${p.name}：${p.value}` },
-  xAxis: { type: 'category', show: false, data: d3.value.image.map((x) => x[0]) },
-  yAxis: { type: 'value', show: false, max: 110 },
-  series: [{
-    type: 'bar', barWidth: 14,
-    label: { show: true, position: 'top', formatter: '{b}', color: 'inherit', fontSize: 13 },
-    data: d3.value.image.map(([, v], i) => ({
-      value: v,
-      itemStyle: { borderRadius: 7, color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: imageColors[i] }, { offset: 1, color: imageColors[i] + '10' }] } },
-      label: { color: imageColors[i] }
-    }))
-  }]
-}))
+// 体验形象：按得分排行，一种颜色
+const imageOpt = computed(() => rankBarOption(d3.value.image.map(([name, value]) => ({ name, value })), { unit: '', share: false, labelWidth: 48 }))
 
+// 各维度满意度：每张雷达图只有一组数据，统一用第 1 色，浅色填充
 const radar = (d) => ({
-  tooltip: {},
-  legend: { bottom: 0, right: 0, itemWidth: 8, itemHeight: 8, textStyle: { fontSize: 10, color: '#999' }, data: [m4.value] },
-  radar: { indicator: d.items.map(([name]) => ({ name, max: 5, min: 3 })), radius: '50%', axisName: { color: '#666', fontSize: 11 }, splitArea: { show: false } },
-  series: [{ type: 'radar', name: m4.value, symbol: 'none', lineStyle: { color: d.color }, areaStyle: { color: d.color, opacity: 0.85 }, data: [{ value: d.items.map((x) => x[1]), name: m4.value }] }]
+  tooltip: { trigger: 'item' },
+  radar: { indicator: d.items.map(([name]) => ({ name, max: 5, min: 3 })), radius: '56%', axisName: { color: INK_2, fontSize: 11 } },
+  series: [{
+    type: 'radar', name: d.name, symbol: 'circle', symbolSize: 4,
+    lineStyle: { color: BLUE, width: 2 }, itemStyle: { color: BLUE }, areaStyle: { color: BLUE, opacity: 0.12 },
+    data: [{ value: d.items.map((x) => x[1]), name: m4.value }]
+  }]
 })
 </script>
 
 <style scoped>
-.brand { padding: 16px 20px 30px; }
-.row3 { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-.panel { background: #fff; border-radius: 4px; padding: 16px 20px; }
-.panel-head { display: flex; justify-content: space-between; align-items: center; margin: -4px 0 12px; }
-.panel-head b { font-size: 15px; color: #333; font-weight: 600; }
-.panel-head small { color: #999; font-size: 11px; margin-left: 12px; }
+.brand { display: flex; flex-direction: column; gap: 16px; }
+.row3 { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 16px; }
+.panel { display: flex; flex-direction: column; min-width: 0; background: var(--uem-surface); border: 1px solid var(--uem-line); border-radius: var(--uem-radius-lg); padding: 16px 20px; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+.panel-head b { font-size: var(--uem-fs-md); color: var(--uem-ink); font-weight: 600; }
+.panel-head small { color: var(--uem-ink-3); font-size: var(--uem-fs-xs); margin-left: 12px; }
 .nps { display: flex; align-items: center; }
 .nps-num { flex: 1; text-align: center; }
-.nps-num span { display: block; color: #666; font-size: 15px; }
-.nps-num b { font-size: 32px; font-family: Georgia, serif; color: #333; }
-.gauge { flex: 1; height: 150px; }
-.note { font-size: 11px; color: #999; line-height: 1.6; margin: 8px 0 0; }
-.ages { padding: 6px 0; }
-.age { display: flex; gap: 12px; margin-bottom: 10px; font-size: 12px; color: #666; }
-.age-name { width: 70px; flex-shrink: 0; padding-top: 2px; }
-.age-bar-wrap { flex: 1; }
-.age-bar { height: 12px; }
-.age-bar > div { height: 100%; border-radius: 6px; background: #2a78d6; }
-.age-val { font-size: 11px; color: #777; }
-.image { height: 220px; }
-.dims { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.dim-title { text-align: center; color: #555; font-size: 14px; }
-.dim-title b { font-size: 18px; color: #333; margin-left: 10px; font-family: Georgia, serif; }
+.nps-num span { display: block; color: var(--uem-ink-2); font-size: var(--uem-fs-sm); }
+.nps-num b { display: block; margin-top: 4px; font-size: 32px; font-weight: 600; line-height: 1.2; color: var(--uem-ink); }
+.gauge-wrap { flex: 1; position: relative; min-width: 0; }
+.gauge { height: 150px; }
+.gauge-scale { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); width: 156px; display: flex; justify-content: space-between; font-size: var(--uem-fs-xs); color: var(--uem-ink-3); }
+.note { font-size: var(--uem-fs-xs); color: var(--uem-ink-3); line-height: 1.6; margin: 8px 0 0; }
+.ages { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; gap: 12px; }
+.age { display: grid; grid-template-columns: 72px minmax(0, 1fr) 60px; align-items: center; gap: 12px; font-size: var(--uem-fs-sm); color: var(--uem-ink-2); }
+.age-track { height: 8px; border-radius: 4px; background: var(--uem-line-2); overflow: hidden; }
+.age-fill { height: 100%; border-radius: 4px; background: #2a78d6; }
+.age-val { text-align: right; color: var(--uem-ink); font-variant-numeric: tabular-nums; }
+.image { flex: 1; min-height: 220px; }
+.dims { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.dim-title { text-align: center; color: var(--uem-ink-2); font-size: var(--uem-fs); }
+.dim-title b { margin-left: 8px; font-size: var(--uem-fs-lg); font-weight: 600; color: var(--uem-ink); }
 .radar { height: 240px; }
 @media (max-width: 1280px) { .row3, .dims { grid-template-columns: 1fr 1fr; } }
 </style>

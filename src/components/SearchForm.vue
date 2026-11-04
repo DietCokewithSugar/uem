@@ -74,7 +74,7 @@ const shownFields = computed(() => (expanded.value ? props.fields : props.fields
 .grid :deep(.el-form-item) { margin-bottom: 18px; }
 .grid .span2 { grid-column: span 2; max-width: calc(100% - 0px); }
 .numrange { display: flex; gap: 6px; align-items: center; width: 100%; }
-.numrange span { color: #999; }
+.numrange span { color: var(--uem-ink-3); }
 .actions { display: flex; align-items: flex-start; gap: 8px; white-space: nowrap; }
 .actions .el-button + .el-button { margin-left: 0; }
 .toggle { color: var(--uem-red); cursor: pointer; font-size: 13px; line-height: 32px; display: inline-flex; align-items: center; gap: 2px; }

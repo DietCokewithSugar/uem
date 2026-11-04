@@ -32,8 +32,9 @@ a.hc-row:hover .hc-row-title { color: var(--uem-red); }
 .hc-tag.ok { background: var(--uem-success-soft); color: var(--uem-success); }
 .hc-tag.info { background: var(--uem-info-soft); color: var(--uem-info); }
 
-.hc-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
-.hc-tile { padding: 12px 14px; border-radius: var(--uem-radius); background: var(--uem-surface-2); min-width: 0; }
+.hc-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px 0; }
+.hc-tile { padding: 2px 16px; border-left: 1px solid var(--uem-line-2); min-width: 0; }
+.hc-tile:first-child { padding-left: 0; border-left: 0; }
 .hc-tile-label { font-size: var(--uem-fs-xs); color: var(--uem-ink-3); }
 .hc-tile-value { margin-top: 4px; font-size: var(--uem-fs-2xl); font-weight: 600; line-height: 1.2; color: var(--uem-ink); }
 .hc-tile-value small { margin-left: 2px; font-size: var(--uem-fs-sm); font-weight: 500; color: var(--uem-ink-3); }

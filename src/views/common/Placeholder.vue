@@ -22,5 +22,5 @@ const desc = computed(() => {
 <style scoped>
 .placeholder { background: #fff; border-radius: 4px; padding: 60px 0; }
 .placeholder.standalone { margin: 20px; min-height: calc(100vh - 190px); }
-.tip { color: #999; font-size: 13px; margin: 0; }
+.tip { color: var(--uem-ink-3); font-size: 13px; margin: 0; }
 </style>

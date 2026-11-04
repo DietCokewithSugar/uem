@@ -93,7 +93,7 @@ const logout = () => ElMessage.info('演示环境不支持退出登录，可在�
 .side-collapsed .brand { min-width: 0; }
 .brand-logo { height: 28px; width: auto; display: block; }
 .brand-divider { width: 1px; height: 18px; background: var(--uem-line); }
-.brand-name { font-size: var(--uem-fs-md); font-weight: 600; color: var(--uem-ink); letter-spacing: 0.02em; white-space: nowrap; }
+.brand-name { font-size: var(--uem-fs-md); font-weight: 600; color: var(--uem-ink); white-space: nowrap; }
 .brand-tag {
   padding: 0 6px;
   border: 1px solid var(--uem-red-line);

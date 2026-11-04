@@ -89,6 +89,6 @@ const doExport = () =>
 .grid :deep(.el-form-item) { margin-bottom: 14px; }
 .actions { display: flex; gap: 8px; align-items: flex-start; }
 .actions .el-button + .el-button { margin-left: 0; }
-.frozen { color: #999; }
+.frozen { color: var(--uem-ink-3); }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

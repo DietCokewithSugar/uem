@@ -184,6 +184,7 @@ import { ref, reactive, computed, markRaw } from 'vue'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
 import EChart from '@/components/EChart.vue'
+import { SERIES, BLUE, INK, INK_2, INK_3, LINE, LINE_2 } from '@/config/charts'
 import { exportCsv } from '@/components/exportCsv'
 import { exportTasks } from '@/mock/experiencer'
 import { nowText } from '@/mock/qc'
@@ -193,8 +194,9 @@ import {
   monthlyAdopt, rejectSplit, solutionSplit, monthlySolved, exportColumns, exportRows
 } from '@/mock/suggestBoard'
 
-// 截图配色
-const C = { red: '#e5575e', teal: '#3fb1a3', blue: '#5b8ff9', lightBlue: '#9cc3f5', amber: '#f6bd16', purple: '#7262fd', orange: '#f08a5d', pink: '#f3a3a6' }
+// 配色见 config/charts.js：总行（业务研发中心）固定第 1 色、分行固定第 2 色，与首页卡片一致
+const HEAD = SERIES[0]
+const BRANCH = SERIES[1]
 
 // ===== 年度（概览）=====
 const years = computed(() => boardYears())
@@ -229,10 +231,9 @@ const rc = computed(() => counts(rangeData.value))
 const rangeMonths = computed(() => monthsBetween(applied.value[0], applied.value[1]))
 
 // ===== 图表通用 =====
-const axisColor = { axisLine: { lineStyle: { color: '#dcdfe6' } }, axisTick: { show: false }, axisLabel: { color: '#666', fontSize: 11 } }
-const valueAxis = (extra = {}) => ({ type: 'value', minInterval: 1, axisLabel: { color: '#999', fontSize: 11 }, splitLine: { lineStyle: { color: '#f0f2f5' } }, nameTextStyle: { color: '#999', fontSize: 11 }, ...extra })
-const rateAxis = { type: 'value', min: 0, max: 100, interval: 20, axisLabel: { color: '#999', fontSize: 11, formatter: '{value}%' }, splitLine: { show: false }, name: '采纳率', nameTextStyle: { color: '#999', fontSize: 11 } }
-const legendBase = { top: 0, left: 'center', itemWidth: 12, itemHeight: 8, itemGap: 18, textStyle: { color: '#555', fontSize: 12 } }
+const axisColor = { axisLine: { lineStyle: { color: LINE } }, axisTick: { show: false }, axisLabel: { color: INK_3, fontSize: 11 } }
+const valueAxis = (extra = {}) => ({ type: 'value', minInterval: 1, axisLabel: { color: INK_3, fontSize: 11 }, splitLine: { lineStyle: { color: LINE_2 } }, nameTextStyle: { color: INK_3, fontSize: 11 }, ...extra })
+const legendBase = { top: 0, left: 'center', itemWidth: 12, itemHeight: 8, itemGap: 18, textStyle: { color: INK_2, fontSize: 12 } }
 const fmtVal = (p) => (p.value == null ? '-' : p.seriesName.includes('率') ? `${p.value}%` : `${p.value} 条`)
 const axisTip = (extra) => ({
   trigger: 'axis',
@@ -243,8 +244,30 @@ const axisTip = (extra) => ({
 const monthAxis = (months) => ({ type: 'category', data: months, ...axisColor, axisLabel: { ...axisColor.axisLabel, interval: 0, rotate: months.length > 12 ? 30 : 0 } })
 const gridBottom = (months) => (months.length > 12 ? 44 : 28)
 const barEnd = [4, 4, 0, 0]
-const grad = (top, bottom) => ({ type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: top }, { offset: 1, color: bottom }] })
-const rateLine = (data) => ({ name: '采纳率', type: 'line', yAxisIndex: 1, data, symbol: 'circle', symbolSize: 7, connectNulls: false, itemStyle: { color: C.red, borderColor: '#fff', borderWidth: 1.5 }, lineStyle: { width: 2, color: C.red } })
+// 数量和采纳率不共用左右两个纵轴：上方柱图看数量，下方小图看采纳率，两图共用月份轴，提示框一起显示
+function withRatePanel(opt, months, rates) {
+  const bottom = gridBottom(months)
+  return {
+    ...opt,
+    axisPointer: { link: [{ xAxisIndex: 'all' }] },
+    grid: [
+      { left: 52, right: 24, top: 48, bottom: bottom + 96 },
+      { left: 52, right: 24, height: 56, bottom }
+    ],
+    xAxis: [
+      { ...monthAxis(months), gridIndex: 0, axisLabel: { show: false } },
+      { ...monthAxis(months), gridIndex: 1 }
+    ],
+    yAxis: [
+      { ...opt.yAxis, gridIndex: 0 },
+      { type: 'value', gridIndex: 1, min: 0, max: 100, interval: 50, name: '采纳率', nameGap: 10, nameTextStyle: { color: INK_3, fontSize: 11 }, axisLabel: { color: INK_3, fontSize: 11, formatter: '{value}%' }, splitLine: { lineStyle: { color: LINE_2 } } }
+    ],
+    series: [
+      ...opt.series,
+      { name: '采纳率', type: 'line', xAxisIndex: 1, yAxisIndex: 1, data: rates, symbol: 'circle', symbolSize: 6, connectNulls: false, itemStyle: { color: INK_2 }, lineStyle: { width: 2, color: INK_2 } }
+    ]
+  }
+}
 
 // 概览：各月提交量（总行 / 分行堆叠）+ 采纳率
 const submitOpt = computed(() => {
@@ -252,7 +275,7 @@ const submitOpt = computed(() => {
   const head = rows.reduce((n, r) => n + r.head, 0)
   const branch = rows.reduce((n, r) => n + r.branch, 0)
   const totals = { 提交总量: head + branch, 总行提交量: head, 分行提交量: branch }
-  return {
+  return withRatePanel({
     tooltip: axisTip((i) => `提交总量：${rows[i].total} 条（采纳 ${rows[i].adopted} / 已分析 ${rows[i].analyzed}）`),
     legend: {
       ...legendBase,
@@ -261,16 +284,13 @@ const submitOpt = computed(() => {
       selectedMode: true,
       formatter: (n) => (n === '采纳率' ? `采纳率${ov.value.adoptRate}%` : `${n}${totals[n]}条`)
     },
-    grid: { left: 52, right: 56, top: 48, bottom: gridBottom(rows) },
-    xAxis: monthAxis(rows.map((r) => r.month)),
-    yAxis: [valueAxis({ name: '提交量（条）' }), rateAxis],
+    yAxis: valueAxis({ name: '提交量（条）' }),
     series: [
       { name: '提交总量', type: 'bar', data: [], tooltip: { show: false } },
-      { name: '总行提交量', type: 'bar', stack: 'submit', barMaxWidth: 26, itemStyle: { color: C.amber, borderColor: '#fff', borderWidth: 1 }, data: rows.map((r) => r.head) },
-      { name: '分行提交量', type: 'bar', stack: 'submit', barMaxWidth: 26, itemStyle: { color: C.lightBlue, borderColor: '#fff', borderWidth: 1, borderRadius: barEnd }, data: rows.map((r) => r.branch) },
-      rateLine(rows.map((r) => r.rate))
+      { name: '总行提交量', type: 'bar', stack: 'submit', barMaxWidth: 26, itemStyle: { color: HEAD, borderColor: '#fff', borderWidth: 1 }, data: rows.map((r) => r.head) },
+      { name: '分行提交量', type: 'bar', stack: 'submit', barMaxWidth: 26, itemStyle: { color: BRANCH, borderColor: '#fff', borderWidth: 1, borderRadius: barEnd }, data: rows.map((r) => r.branch) }
     ]
-  }
+  }, rows.map((r) => r.month), rows.map((r) => r.rate))
 })
 
 // 图例百分比取整：最大余数法，保证合计为 100%
@@ -289,7 +309,7 @@ function donut(list, colors, { legendAt = 'right', cols = 1, nameWidth = 80 } = 
   const legendItem = {
     icon: 'circle', itemWidth: 8, itemHeight: 8, itemGap: 9,
     formatter: (n) => `{n|${n}}{p|${pctOf[n] ?? 0}%}`,
-    textStyle: { rich: { n: { ...(nameWidth ? { width: nameWidth } : {}), color: '#555', fontSize: 12 }, p: { color: '#333', fontSize: 12, fontWeight: 600, padding: [0, 0, 0, 6] } } }
+    textStyle: { rich: { n: { ...(nameWidth ? { width: nameWidth } : {}), color: INK_2, fontSize: 12 }, p: { color: INK, fontSize: 12, fontWeight: 600, padding: [0, 0, 0, 6] } } }
   }
   let legend, center, radius
   if (legendAt === 'bottom') {
@@ -339,15 +359,15 @@ const top5Opt = computed(() => {
     yAxis: valueAxis(),
     series: [{
       name: '采集量', type: 'bar', barMaxWidth: 24, data: top.map((x) => x.value),
-      itemStyle: { color: grad(C.red, '#f6b7ba'), borderRadius: barEnd },
-      label: { show: true, position: 'top', color: '#333', fontSize: 12 }
+      itemStyle: { color: BLUE, borderRadius: barEnd },
+      label: { show: true, position: 'top', color: INK_2, fontSize: 12 }
     }]
   }
 })
 const collectCards = computed(() => [
   {
     key: 'source', title: '优化建议来源分布(提交机构维度)', detail: 'org', height: 260,
-    option: donut(sources.value, [C.blue, C.amber], { legendAt: 'bottom', nameWidth: 0 }),
+    option: donut(sources.value, [BRANCH, HEAD], { legendAt: 'bottom', nameWidth: 0 }),
     table: { cols: shareCols('提交机构类型'), rows: withPct(sources.value) }
   },
   {
@@ -357,7 +377,7 @@ const collectCards = computed(() => [
   },
   {
     key: 'category', title: '优化建议分类情况', height: 260,
-    option: donut(cats.value, [C.red, C.blue, C.amber, C.teal, C.purple, C.orange, C.lightBlue, C.pink], { legendAt: 'bottom', cols: 2, nameWidth: 56 }),
+    option: donut(cats.value, SERIES, { legendAt: 'bottom', cols: 2, nameWidth: 56 }),
     table: { cols: shareCols('优化建议分类'), rows: withPct(cats.value) }
   }
 ])
@@ -395,31 +415,28 @@ const adoptOpt = computed(() => {
   const a = rows.reduce((n, r) => n + r.adopted, 0)
   const b = rows.reduce((n, r) => n + r.rejected, 0)
   const names = { 采纳数: `采纳数${a}条`, 未采纳数: `未采纳数${b}条`, 采纳率: `采纳率${rc.value.adoptRate}%` }
-  return {
+  return withRatePanel({
     tooltip: axisTip(),
     legend: { ...legendBase, data: ['采纳数', '未采纳数', '采纳率'], formatter: (n) => names[n] },
-    grid: { left: 48, right: 52, top: 48, bottom: gridBottom(rows) },
-    xAxis: monthAxis(rows.map((r) => r.month)),
-    yAxis: [valueAxis({ name: '数量（条）' }), rateAxis],
+    yAxis: valueAxis({ name: '数量（条）' }),
     series: [
-      { name: '采纳数', type: 'bar', barMaxWidth: 16, barGap: '30%', itemStyle: { color: C.teal, borderRadius: barEnd }, data: rows.map((r) => r.adopted) },
-      { name: '未采纳数', type: 'bar', barMaxWidth: 16, itemStyle: { color: C.blue, borderRadius: barEnd }, data: rows.map((r) => r.rejected) },
-      rateLine(rows.map((r) => r.rate))
+      { name: '采纳数', type: 'bar', barMaxWidth: 16, barGap: '30%', itemStyle: { color: SERIES[0], borderRadius: barEnd }, data: rows.map((r) => r.adopted) },
+      { name: '未采纳数', type: 'bar', barMaxWidth: 16, itemStyle: { color: SERIES[1], borderRadius: barEnd }, data: rows.map((r) => r.rejected) }
     ]
-  }
+  }, rows.map((r) => r.month), rows.map((r) => r.rate))
 })
 const rejects = computed(() => rejectSplit(rangeData.value))
 const analysisCards = computed(() => [
   {
-    key: 'adoptTrend', title: '各月采纳变化趋势图', height: 300, option: adoptOpt.value,
+    key: 'adoptTrend', title: '各月采纳变化趋势图', height: 360, option: adoptOpt.value,
     table: {
       cols: [{ prop: 'month', label: '月份' }, { prop: 'adopted', label: '采纳数（条）', align: 'center' }, { prop: 'rejected', label: '未采纳数（条）', align: 'center' }, { prop: 'rateText', label: '采纳率', align: 'center' }],
       rows: adoptRows.value.map((r) => ({ ...r, rateText: r.rate == null ? '-' : `${r.rate}%` }))
     }
   },
   {
-    key: 'reject', title: '未采纳原因分布情况', height: 300,
-    option: donut(rejects.value, [C.red, C.amber, C.blue, C.teal, C.purple, C.orange, C.lightBlue], { nameWidth: 148 }),
+    key: 'reject', title: '未采纳原因分布情况', height: 360,
+    option: donut(rejects.value, SERIES, { nameWidth: 148 }),
     table: { cols: shareCols('未采纳原因'), rows: withPct(rejects.value) }
   }
 ])
@@ -434,13 +451,13 @@ const solvedOpt = computed(() => {
     grid: { left: 48, right: 20, top: 36, bottom: gridBottom(rows) },
     xAxis: monthAxis(rows.map((r) => r.month)),
     yAxis: valueAxis({ name: '解决数（条）' }),
-    series: [{ name: '解决数', type: 'bar', barMaxWidth: 22, itemStyle: { color: grad(C.purple, '#b3aafe'), borderRadius: barEnd }, label: { show: rows.length <= 13, position: 'top', color: '#666', fontSize: 11 }, data: rows.map((r) => r.solved) }]
+    series: [{ name: '解决数', type: 'bar', barMaxWidth: 22, itemStyle: { color: BLUE, borderRadius: barEnd }, label: { show: rows.length <= 13, position: 'top', color: INK_2, fontSize: 11 }, data: rows.map((r) => r.solved) }]
   }
 })
 const solveCards = computed(() => [
   {
     key: 'solution', title: '解决方式分布', height: 300,
-    option: donut(solutionsData.value, [C.blue, C.amber, C.teal, C.purple, C.orange], { nameWidth: 172 }),
+    option: donut(solutionsData.value, SERIES, { nameWidth: 172 }),
     table: { cols: shareCols('解决方式'), rows: withPct(solutionsData.value) }
   },
   {
@@ -520,7 +537,7 @@ const download = (t) => exportCsv(t.name, exportColumns, t.rows)
 .deco { display: none; }
 
 .trend-card { padding: 16px 20px 8px; margin-bottom: 24px; }
-.trend { height: 300px; }
+.trend { height: 360px; }
 
 /* 提交时间筛选 */
 .filter { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 14px 20px; margin-bottom: 20px; }

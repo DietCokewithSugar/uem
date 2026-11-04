@@ -1,6 +1,6 @@
-<!-- 声音异动（智能分析查看岗）：按岗位上的产品领域显示；「全领域」即全量声音看板 -->
+<!-- 声音异动（智能分析查看岗）：按岗位上的产品领域显示；产品领域为「全领域」时可进入全量声音看板 -->
 <template>
-  <HomeCard title="声音异动" :subtitle="`产品领域：${domain}${full ? '（全量）' : ''} · ${month}`" more="/journeyVoiceAnalyze" more-text="声音看板">
+  <HomeCard title="声音异动" :subtitle="`产品领域：${domain}${full ? '（全量）' : ''} · ${month}`" :more="full ? '/journeyVoiceAnalyze' : null" more-text="声音看板">
     <div class="kpis">
       <div>
         <div class="hc-tile-label">有效声音</div>

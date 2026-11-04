@@ -114,7 +114,7 @@ async function save() {
 </script>
 
 <style scoped>
-.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: #555; }
+.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: var(--uem-ink-2); }
 .filter .el-button + .el-button { margin-left: 0; }
 .gap { flex: 1; }
 .thumb { width: 96px; height: 32px; border-radius: 2px; overflow: hidden; cursor: zoom-in; }
@@ -122,10 +122,10 @@ async function save() {
 .scaled { width: 960px; height: 320px; font-size: 13px; transform-origin: 0 0; }
 .preview { width: 720px; height: 240px; border-radius: 4px; overflow: hidden; }
 .upload-row { display: flex; align-items: center; gap: 10px; }
-.hint { color: #999; font-size: 12px; }
+.hint { color: var(--uem-ink-3); font-size: 12px; }
 .themes { margin-top: 6px; }
 .mini { width: 300px; height: 100px; margin-top: 8px; border-radius: 4px; overflow: hidden; border: 1px solid #eee; }
 .on { color: #3c9a5f; }
-.off { color: #999; }
+.off { color: var(--uem-ink-3); }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

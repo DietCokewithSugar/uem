@@ -143,12 +143,12 @@ async function save() {
 </script>
 
 <style scoped>
-.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: #555; }
+.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: var(--uem-ink-2); }
 .filter .label { margin-left: 20px; }
 .filter .el-button + .el-button { margin-left: 0; }
 .gap { flex: 1; }
 .on { color: #3c9a5f; }
-.off { color: #999; }
-.hint { margin-left: 12px; font-size: 12px; color: #999; }
+.off { color: var(--uem-ink-3); }
+.hint { margin-left: 12px; font-size: 12px; color: var(--uem-ink-3); }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

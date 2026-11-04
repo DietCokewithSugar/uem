@@ -136,7 +136,7 @@ function exportAll() {
 .actions .el-button + .el-button { margin-left: 0; }
 .toggle { color: var(--uem-red); cursor: pointer; font-size: 13px; line-height: 32px; display: inline-flex; align-items: center; gap: 2px; }
 .uem-toolbar { align-items: center; }
-.hint { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; color: #999; font-size: 12px; }
+.hint { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; color: var(--uem-ink-3); font-size: 12px; }
 .hint .uem-link { margin-left: 4px; }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

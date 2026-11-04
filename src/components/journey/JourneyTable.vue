@@ -31,7 +31,7 @@ const statusClass = (s) => ({ 已发布旅程结构: 'ok', 待审核: 'wait', �
 </script>
 
 <style scoped>
-.code { font-size: 12px; color: #666; word-break: break-all; }
+.code { font-size: 12px; color: var(--uem-ink-2); word-break: break-all; }
 .ops { display: flex; flex-direction: column; align-items: flex-start; }
 .ops :deep(.el-button) { margin-left: 0; height: 22px; }
 .ok { color: #3c9a5f; }

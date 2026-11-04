@@ -46,7 +46,7 @@ const distOpt = {
   color: ['#2a78d6', '#eb6834', '#1baf7a'],
   tooltip: { formatter: '{b}：{c}%' },
   legend: { orient: 'vertical', right: 0, bottom: 10, itemWidth: 8, itemHeight: 8, textStyle: { fontSize: 11 } },
-  title: { text: '客户声音', subtext: `${d.total} 万条`, left: '34%', top: '38%', textAlign: 'center', textStyle: { fontSize: 13, color: '#333', fontWeight: 400 }, subtextStyle: { fontSize: 18, color: '#c7000b', fontWeight: 600 } },
+  title: { text: '客户声音', subtext: `${d.total} 万条`, left: '34%', top: '38%', textAlign: 'center', textStyle: { fontSize: 13, color: '#464c57', fontWeight: 400 }, subtextStyle: { fontSize: 18, color: '#1f2329', fontWeight: 600 } },
   series: [{ type: 'pie', radius: ['55%', '75%'], center: ['35%', '50%'], label: { show: false }, data: d.dist.map(([name, value]) => ({ name, value })) }]
 }
 const trendOpt = {
@@ -67,7 +67,7 @@ const gaugeOpt = {
     data: [{ value: d.emotionScore, name: '兴农通问卷调研' }]
   }]
 }
-const cloudColors = ['#2a78d6', '#eb6834', '#1baf7a', '#b37800', '#6250d6', '#4e5561']
+const cloudColors = ['#2a78d6', '#eb6834', '#1baf7a', '#b37800', '#6250d6', '#464c57']
 const cloudOpt = {
   tooltip: {},
   series: [{
@@ -81,8 +81,8 @@ const cloudOpt = {
 <style scoped>
 .dash { display: grid; grid-template-columns: 1fr 1.2fr 1.2fr; gap: 12px; margin-bottom: 16px; }
 .h220 { height: 220px; }
-:deep(.range-tag) { font-size: 11px; color: #999; border: 1px solid #eee; border-radius: 3px; padding: 2px 8px; }
-.talk { display: flex; gap: 8px; font-size: 13px; color: #333; padding: 7px 0; line-height: 1.5; }
+:deep(.range-tag) { font-size: 11px; color: var(--uem-ink-3); border: 1px solid #eee; border-radius: 3px; padding: 2px 8px; }
+.talk { display: flex; gap: 8px; font-size: 13px; color: var(--uem-ink); padding: 7px 0; line-height: 1.5; }
 .badge { width: 18px; height: 18px; line-height: 18px; text-align: center; font-size: 11px; font-weight: 600; color: var(--uem-ink-2); background: var(--uem-line-2); border-radius: var(--uem-radius-sm); flex-shrink: 0; margin-top: 2px; font-variant-numeric: tabular-nums; }
 @media (max-width: 1400px) { .dash { grid-template-columns: 1fr 1fr; } }
 </style>

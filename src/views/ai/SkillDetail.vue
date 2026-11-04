@@ -122,8 +122,9 @@ function reset() {
 .rule { margin: 0; display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: var(--uem-radius); background: var(--uem-info-soft); color: var(--uem-ink-2); font-size: var(--uem-fs-sm); line-height: 1.6; }
 .rule .el-icon { margin-top: 3px; color: var(--uem-info); flex-shrink: 0; }
 
-.stages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.stage { padding: 16px; border: 1px solid var(--uem-line); border-radius: var(--uem-radius); display: flex; flex-direction: column; gap: 8px; }
+.stages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 32px; }
+.stage { display: flex; flex-direction: column; gap: 8px; }
+.stage + .stage { padding-left: 32px; border-left: 1px solid var(--uem-line-2); }
 .stage-head { display: flex; align-items: baseline; gap: 8px; }
 .stage-no { font-size: var(--uem-fs-xs); color: var(--uem-ink-3); }
 .stage p { margin: 0; font-size: var(--uem-fs-sm); color: var(--uem-ink-2); line-height: 1.7; }
@@ -156,9 +157,9 @@ function reset() {
 .who { display: flex; align-items: center; gap: 8px; font-size: var(--uem-fs-sm); }
 .node { font-size: var(--uem-fs-xs); color: var(--uem-ai); background: var(--uem-ai-soft); padding: 0 6px; border-radius: var(--uem-radius-sm); line-height: 20px; }
 .opts { display: flex; gap: 8px; }
-.doc { border: 1px solid var(--uem-line); border-radius: var(--uem-radius); padding: 12px 14px; max-width: 520px; }
+.doc { background: var(--uem-surface-2); border-radius: var(--uem-radius); padding: 12px 14px; max-width: 520px; }
 .doc-head { display: flex; align-items: center; gap: 8px; font-size: var(--uem-fs-sm); }
 .doc-head .el-icon { color: var(--uem-info); font-size: 18px; }
 .doc ul { margin: 8px 0 0; padding-left: 26px; font-size: var(--uem-fs-sm); color: var(--uem-ink-2); line-height: 1.8; }
-@media (max-width: 1100px) { .stages, .two { grid-template-columns: minmax(0, 1fr); } .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .stages, .two { grid-template-columns: minmax(0, 1fr); } .stage + .stage { padding: 16px 0 0; border-left: 0; border-top: 1px solid var(--uem-line-2); } .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>

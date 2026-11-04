@@ -76,13 +76,13 @@ const maintain = () => router.push({ path: '/myjourneyAdd', query: { id: journey
 
 <style scoped>
 .toolbar { display: flex; align-items: center; gap: 10px; }
-.zoom-tip { font-size: 12px; color: #888; white-space: nowrap; }
+.zoom-tip { font-size: 12px; color: var(--uem-ink-3); white-space: nowrap; }
 .zoom { width: 120px; margin-right: 12px; }
 .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
-.kpi { background: var(--uem-surface); border: 1px solid var(--uem-line); border-radius: var(--uem-radius-lg); padding: 28px 16px; font-size: 14px; color: #555; }
-.kpi b { color: #333; }
-.basic { display: flex; gap: 48px; font-size: 13px; color: #555; margin-bottom: 16px; flex-wrap: wrap; }
-.basic em { font-style: normal; color: #333; }
+.kpi { background: var(--uem-surface); border: 1px solid var(--uem-line); border-radius: var(--uem-radius-lg); padding: 28px 16px; font-size: 14px; color: var(--uem-ink-2); }
+.kpi b { color: var(--uem-ink); }
+.basic { display: flex; gap: 48px; font-size: 13px; color: var(--uem-ink-2); margin-bottom: 16px; flex-wrap: wrap; }
+.basic em { font-style: normal; color: var(--uem-ink); }
 .empty-structure { height: 160px; display: flex; align-items: center; justify-content: center; }
 .export { margin-left: 40px; }
 </style>

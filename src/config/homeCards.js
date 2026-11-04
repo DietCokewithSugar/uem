@@ -12,7 +12,7 @@ export const homeCards = [
   { key: 'mySubmit', title: '我的提交进度', desc: '本人提交的优化建议当前在哪个环节、由谁处理', span: 8 },
   { key: 'suggestStats', title: '优化建议概览', desc: '本年建议数、采纳率、解决率与平均处理用时', span: 8, feature: ['suggest.stat', 'suggest.board'] },
   { key: 'deptProgress', title: '部门处理进展', desc: '本部门各环节在办数量与逾期情况（管理报表口径）', span: 4, feature: 'suggest.report' },
-  { key: 'voiceAlert', title: '声音异动', desc: '按岗位的产品领域显示有效声音、压力等级与典型问题；全领域即全量看板', span: 4, feature: 'voice.board' },
+  { key: 'voiceAlert', title: '声音异动', desc: '按岗位的产品领域显示有效声音、压力等级与典型问题；产品领域为全领域的人可进入全量声音看板', span: 4, feature: 'voice.alert' },
   { key: 'nps', title: '品牌 NPS', desc: '工行整体净推荐值与四个维度满意度', span: 4, feature: 'monitor.view' },
   { key: 'journeys', title: '灵犀旅程', desc: '旅程维护人员看待办，其他人看已发布的旅程看板', span: 4 },
   { key: 'activities', title: '体验活动', desc: '进行中的体验活动与公告', span: 4 },

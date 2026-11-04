@@ -11,9 +11,10 @@
 
   /* 中性色：文字、线条、底色 */
   --uem-ink: #1f2329;
-  --uem-ink-2: #4e5561;
-  --uem-ink-3: #868d98;
-  --uem-ink-4: #b6bbc4;
+  --uem-ink-2: #464c57;
+  --uem-ink-3: #6b7280; /* 辅助文字：白底对比度 4.8:1 */
+  --uem-ink-4: #b6bbc4; /* 只用于禁用态与分隔符号 */
+  --uem-placeholder: #71777f; /* 占位文字：白底对比度 4.6:1 */
   --uem-line: #e3e6ea;
   --uem-line-2: #eef0f3;
   --uem-bg: #f4f5f7;
@@ -24,7 +25,7 @@
   /* 状态色 */
   --uem-success: #1f7a4d;
   --uem-success-soft: #e9f2ed;
-  --uem-warning: #b76e00;
+  --uem-warning: #94590a;
   --uem-warning-soft: #f8f0e6;
   --uem-danger: #c7000b;
   --uem-danger-soft: #fdf0f0;
@@ -69,7 +70,7 @@
   /* Element Plus 主题 */
   --el-color-primary: #c7000b; --el-color-primary-light-3: #d84c54; --el-color-primary-light-5: #e38085; --el-color-primary-light-7: #eeb2b6; --el-color-primary-light-8: #f4ccce; --el-color-primary-light-9: #f9e6e7; --el-color-primary-dark-2: #9f0009;
   --el-color-success: #1f7a4d; --el-color-success-light-3: #62a282; --el-color-success-light-5: #8fbca6; --el-color-success-light-7: #bcd7ca; --el-color-success-light-8: #d2e4db; --el-color-success-light-9: #e9f2ed; --el-color-success-dark-2: #19623e;
-  --el-color-warning: #b76e00; --el-color-warning-light-3: #cd9a4c; --el-color-warning-light-5: #dbb680; --el-color-warning-light-7: #e9d4b2; --el-color-warning-light-8: #f1e2cc; --el-color-warning-light-9: #f8f0e6; --el-color-warning-dark-2: #925800;
+  --el-color-warning: #94590a; --el-color-warning-light-3: #cd9a4c; --el-color-warning-light-5: #dbb680; --el-color-warning-light-7: #e9d4b2; --el-color-warning-light-8: #f1e2cc; --el-color-warning-light-9: #f8f0e6; --el-color-warning-dark-2: #925800;
   --el-color-danger: #c7000b; --el-color-danger-light-3: #d84c54; --el-color-danger-light-5: #e38085; --el-color-danger-light-7: #eeb2b6; --el-color-danger-light-8: #f4ccce; --el-color-danger-light-9: #f9e6e7; --el-color-danger-dark-2: #9f0009;
   --el-color-error: #c7000b; --el-color-error-light-3: #d84c54; --el-color-error-light-5: #e38085; --el-color-error-light-7: #eeb2b6; --el-color-error-light-8: #f4ccce; --el-color-error-light-9: #f9e6e7; --el-color-error-dark-2: #9f0009;
   --el-color-info: #6b7280; --el-color-info-light-3: #979ca6; --el-color-info-light-5: #b5b8c0; --el-color-info-light-7: #d3d5d9; --el-color-info-light-8: #e1e3e6; --el-color-info-light-9: #f0f1f2; --el-color-info-dark-2: #565b66;
@@ -78,7 +79,7 @@
   --el-text-color-primary: var(--uem-ink);
   --el-text-color-regular: var(--uem-ink-2);
   --el-text-color-secondary: var(--uem-ink-3);
-  --el-text-color-placeholder: var(--uem-ink-4);
+  --el-text-color-placeholder: var(--uem-placeholder);
   --el-border-color: #d9dde3;
   --el-border-color-light: var(--uem-line);
   --el-border-color-lighter: var(--uem-line-2);
@@ -147,7 +148,6 @@ h1, h2, h3, h4 { text-wrap: balance; }
   white-space: nowrap;
 }
 .uem-ai-panel {
-  border: 1px solid var(--uem-line);
   border-radius: var(--uem-radius-lg);
   background: var(--uem-surface-2);
   padding: var(--uem-s3) var(--uem-s4);

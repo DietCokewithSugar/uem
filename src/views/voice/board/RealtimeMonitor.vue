@@ -49,6 +49,7 @@ import Panel from '@/components/Panel.vue'
 import AsyncExport from '@/components/AsyncExport.vue'
 import KpiRow from './KpiRow.vue'
 import { realtime as r, realtimeProblems, pressureLevels } from '@/mock/voice'
+import { BLUE, STATUS } from '@/config/charts'
 
 const kpis = [
   { label: '用户声音压力指数等级', value: r.pressure, text: true, cmp: `较上一期：${r.pressureCmp}`, tip: '基于用户声音压力指数（UVSI）所在区间判定' },
@@ -62,6 +63,7 @@ const times = r.uvsi.map((_, i) => {
   d.setHours(d.getHours() + i * 3 + 3)
   return `${d.getMonth() + 1}-${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:00`
 })
+const THRESHOLD_COLORS = [STATUS.critical, STATUS.serious, STATUS.warning, STATUS.good]
 const uvsiOpt = {
   grid: { left: 40, right: 20, top: 20, bottom: 70 },
   tooltip: { trigger: 'axis' },
@@ -69,20 +71,23 @@ const uvsiOpt = {
   xAxis: { type: 'category', data: times, axisLabel: { fontSize: 10, interval: 7 } },
   yAxis: { type: 'value', min: -3, max: 2 },
   series: [
-    { name: '整体用户声音压力指数（UVSI）值', type: 'line', symbol: 'circle', symbolSize: 4, lineStyle: { color: '#4a7fe0' }, itemStyle: { color: '#4a7fe0' }, data: r.uvsi },
-    ...r.thresholds.map(([name, v, color]) => ({ name, type: 'line', symbol: 'none', lineStyle: { color, width: 1.5 }, itemStyle: { color }, data: r.uvsi.map(() => v) }))
+    { name: '整体用户声音压力指数（UVSI）值', type: 'line', symbol: 'circle', symbolSize: 4, lineStyle: { color: BLUE, width: 2 }, itemStyle: { color: BLUE }, data: r.uvsi },
+    // 各压力等级的下限是参考线：用状态色细虚线，由高到低依次为严重、较重、关注、正常
+    ...r.thresholds.map(([name, v], i) => {
+      const color = THRESHOLD_COLORS[i]
+      return { name, type: 'line', symbol: 'none', lineStyle: { color, width: 1, type: 'dashed' }, itemStyle: { color }, data: r.uvsi.map(() => v) }
+    })
   ]
 }
-const faces = ['🙂', '🙂', '😟', '😣', '😣']
 const productOpt = {
   grid: { left: 80, right: 20, top: 20, bottom: 80 },
   tooltip: { formatter: (p) => `${p.value[0]}：${pressureLevels[p.value[1]]}` },
   xAxis: { type: 'category', data: r.byProduct.map((x) => x[0]), axisLabel: { interval: 0, fontSize: 10, rotate: 35 } },
   yAxis: { type: 'value', min: 0, max: 4, interval: 1, axisLabel: { formatter: (v) => pressureLevels[v] } },
   series: [{
-    type: 'scatter', symbolSize: 18,
-    itemStyle: { color: (p) => (p.value[1] >= 3 ? '#e8545c' : p.value[1] === 2 ? '#f08a8f' : '#f2c43a') },
-    label: { show: true, formatter: (p) => faces[p.value[1]], fontSize: 14 },
+    type: 'scatter', symbolSize: 10,
+    // 中高度及以上压力用警示色，其余为常规色；纵轴标明等级
+    itemStyle: { color: (p) => (p.value[1] >= 3 ? STATUS.critical : BLUE), borderColor: '#fff', borderWidth: 2 },
     data: r.byProduct
   }]
 }
@@ -102,17 +107,18 @@ const cols = [
 </script>
 
 <style scoped>
-.update { font-size: 12px; color: #666; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.update { font-size: var(--uem-fs-xs); color: var(--uem-ink-2); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--uem-red); }
 .charts { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; margin-top: 16px; }
 .h300 { height: 300px; }
 .rt-problems { margin-top: 12px; border-radius: var(--uem-radius-lg); padding: 14px 18px; background: var(--uem-surface); border: 1px solid var(--uem-line); }
-.p-title { display: flex; align-items: center; gap: 6px; color: #2f5fbf; font-weight: 600; font-size: 15px; margin-bottom: 10px; }
+.p-title { display: flex; align-items: center; gap: 6px; color: var(--uem-ink); font-weight: 600; font-size: var(--uem-fs); margin-bottom: 10px; }
+.p-title .el-icon { color: var(--uem-ink-3); }
 .p-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.p-card { background: rgba(255, 255, 255, 0.85); border-radius: 6px; padding: 12px 16px; font-size: 13px; color: #3a5ea8; min-height: 72px; display: flex; flex-direction: column; justify-content: space-between; }
-.p-meta { text-align: right; font-size: 11px; color: #999; }
+.p-card { background: var(--uem-surface-2); border-radius: var(--uem-radius); padding: 12px 16px; font-size: var(--uem-fs-sm); color: var(--uem-ink); line-height: 1.6; min-height: 72px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
+.p-meta { text-align: right; font-size: var(--uem-fs-xs); color: var(--uem-ink-3); }
 .block { margin-top: 16px; }
-.filters { display: grid; grid-template-columns: auto 1fr auto 1.4fr auto auto; gap: 12px; align-items: center; font-size: 13px; color: #555; margin-bottom: 16px; }
+.filters { display: grid; grid-template-columns: auto 1fr auto 1.4fr auto auto; gap: 12px; align-items: center; font-size: var(--uem-fs-sm); color: var(--uem-ink-2); margin-bottom: 16px; }
 .filters .el-button + .el-button { margin-left: 0; }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

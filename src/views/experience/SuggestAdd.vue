@@ -471,12 +471,12 @@ function doSubmit() {
 .channels { display: block; width: 100%; line-height: normal; }
 .ch-group { display: flex; align-items: flex-start; }
 .ch-group + .ch-group { margin-top: 2px; }
-.ch-label { flex: 0 0 72px; color: #999; font-size: 12px; line-height: 32px; }
+.ch-label { flex: 0 0 72px; color: var(--uem-ink-3); font-size: 12px; line-height: 32px; }
 .ch-items { display: grid; grid-template-columns: repeat(3, 190px); }
 .ch-items .el-checkbox { margin-right: 0; }
 
 .cat-label { display: inline-flex; align-items: center; gap: 3px; }
-.info-icon { color: #999; font-size: 14px; cursor: help; }
+.info-icon { color: var(--uem-ink-3); font-size: 14px; cursor: help; }
 .cat-tip { max-width: 420px; line-height: 1.8; }
 
 .pics { display: flex; flex-wrap: wrap; gap: 10px; padding: 4px; margin: -4px; border: 1px dashed transparent; border-radius: 6px; transition: border-color 0.2s, background 0.2s; }
@@ -492,11 +492,11 @@ function doSubmit() {
 .pic-del:hover { background: var(--uem-red); }
 .pic-add {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-  border: 1px dashed #d0d3d9; background: #fafafa; color: #888; font-size: 12px; line-height: 1; cursor: pointer;
+  border: 1px dashed #d0d3d9; background: #fafafa; color: var(--uem-ink-3); font-size: 12px; line-height: 1; cursor: pointer;
 }
 .pic-add .el-icon { font-size: 22px; }
 .pic-add:hover { border-color: var(--uem-red); color: var(--uem-red); }
-.pic-tip { width: 100%; color: #999; font-size: 12px; line-height: 1.6; margin-top: 6px; }
+.pic-tip { width: 100%; color: var(--uem-ink-3); font-size: 12px; line-height: 1.6; margin-top: 6px; }
 .submit { width: 100px; }
 
 .similar-tip { margin-bottom: 12px; }
