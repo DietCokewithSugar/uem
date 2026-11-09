@@ -1,278 +1,138 @@
-<!-- 首页 #/mainIndex -->
+<!-- 首页 #/mainIndex：按岗位组合的卡片。能看到哪些卡片由岗位决定，看到哪些数据由岗位的数据范围决定；
+     默认卡片在「系统管理 · 首页卡片配置」中按岗位设置，个人可隐藏或调整顺序 -->
 <template>
   <div class="home">
-    <!-- 横幅 -->
-    <!-- 横幅：展示「系统管理 · 轮播图维护」中状态为「展示中」的轮播图 -->
-    <div class="banner">
-      <el-carousel v-if="slides.length" height="100%" :autoplay="slides.length > 1" :interval="5000" :indicator-position="slides.length > 1 ? '' : 'none'" arrow="hover" class="carousel">
-        <el-carousel-item v-for="c in slides" :key="c.id"><CarouselSlide :item="c" /></el-carousel-item>
-      </el-carousel>
+    <header class="home-head">
+      <div>
+        <h1 class="greet">{{ greeting }}，{{ currentUser.name }}</h1>
+        <p class="who">{{ personaTitle }} · {{ currentUser.dept }} · {{ dateText }}</p>
+      </div>
+      <el-button @click="customizing = true"><el-icon><Operation /></el-icon>调整卡片</el-button>
+    </header>
+
+    <div class="grid">
+      <div v-for="c in placed" :key="c.key" class="cell" :style="{ gridColumn: `span ${c.span}` }">
+        <component :is="CARDS[c.key]" />
+      </div>
+    </div>
+    <div v-if="!placed.length" class="none">
+      <p>首页没有展示中的卡片。</p>
+      <el-button type="primary" @click="customizing = true">选择卡片</el-button>
     </div>
 
-    <!-- 体验动态 -->
-    <div class="news uem-card">
-      <div class="block-title"><span class="red-title">体验动态</span></div>
-      <el-tag effect="dark" class="news-tab">总行动态</el-tag>
-      <ul class="news-list">
-        <li v-for="n in news" :key="n.id" @click="openNews(n)">
-          <span class="news-title">【体验公告】{{ n.name }}</span>
-          <span class="news-date">{{ n.submitTime }}</span>
+    <el-drawer v-model="customizing" title="调整首页卡片" size="420px" append-to-body>
+      <p class="drawer-tip">只列出你有权限查看的卡片。默认展示的卡片由管理员按岗位设置，你可以隐藏或调整顺序，设置保存在本浏览器。</p>
+      <ul class="cfg-list">
+        <li v-for="(k, i) in draft.order" :key="k" class="cfg-item">
+          <el-switch :model-value="!draft.hidden.includes(k)" :aria-label="`显示「${cardOf(k).title}」`" @change="(v) => toggle(k, v)" />
+          <div class="cfg-text">
+            <b>{{ cardOf(k).title }}</b>
+            <span>{{ cardOf(k).desc }}</span>
+          </div>
+          <div class="cfg-move">
+            <el-button link :disabled="i === 0" aria-label="上移" @click="move(i, -1)"><el-icon><ArrowUp /></el-icon></el-button>
+            <el-button link :disabled="i === draft.order.length - 1" aria-label="下移" @click="move(i, 1)"><el-icon><ArrowDown /></el-icon></el-button>
+          </div>
         </li>
       </ul>
-      <router-link to="/headOfficeAllNotice" class="more">更多 <el-icon><CirclePlusFilled /></el-icon></router-link>
-    </div>
-
-    <!-- 右侧：待办工作 + 体验支撑 -->
-    <div class="side-col">
-      <div class="uem-card">
-        <div class="block-title">待办工作</div>
-        <div class="todo">
-          <router-link :to="todoTarget" class="todo-item">
-            <span>优化建议</span><b>{{ suggestionTodo }}</b>
-            <el-icon class="todo-bg"><Search /></el-icon>
-          </router-link>
-          <router-link to="/activityPending" class="todo-item">
-            <span>体验活动</span><b>{{ todoCounts.activity }}</b>
-            <el-icon class="todo-bg"><Files /></el-icon>
-          </router-link>
-        </div>
-      </div>
-      <div class="uem-card support">
-        <div class="block-title">体验支撑</div>
-        <div class="support-grid">
-          <div v-for="(s, i) in homeData.supports" :key="s.name" class="support-item" :class="`bg${i}`" @click="openSupport(s)">
-            <el-icon><component :is="s.icon" /></el-icon>{{ s.name }}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 体验问题（研发阶段） -->
-    <div class="uem-card stat-card area-p">
-      <div class="card-head head-red">体验问题（研发阶段）</div>
-      <div class="problem">
-        <div class="p-label">体验问题总数</div>
-        <div class="p-total">{{ ps.total }}</div>
-        <div class="p-rates"><span>{{ solvedRate }}%</span><span>{{ (100 - solvedRate).toFixed(2) }}%</span></div>
-        <div class="p-bar"><div class="p-bar-solved" :style="{ width: solvedRate + '%' }" /></div>
-        <div class="p-split">
-          <div><div class="p-label">已解决问题数</div><div class="p-num solved">{{ ps.solved }}</div></div>
-          <div><div class="p-label">待解决问题数</div><div class="p-num pending">{{ ps.pending }}</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 优化建议（运营阶段） -->
-    <div class="uem-card stat-card area-s">
-      <router-link to="/suggestionDataBoard" class="card-head head-green">优化建议（运营阶段）</router-link>
-      <EChart class="bubble" :option="bubbleOption" />
-    </div>
-
-    <!-- 体验监测 -->
-    <div class="uem-card stat-card monitor area-m">
-      <router-link to="/experEvaluationIndex" class="card-head head-blue">体验监测</router-link>
-      <div class="monitor-body">
-        <div class="nps">
-          <EChart class="gauge" :option="gaugeOption" />
-          <div class="dims">
-            <div v-for="(d, i) in homeData.nps.dims" :key="d.name" class="dim" :class="`dim${i}`">
-              <div class="dim-name">{{ d.name }}</div>
-              <div class="dim-val">{{ d.value.toFixed(2) }}</div>
-            </div>
-          </div>
-        </div>
-        <div class="age">
-          <div class="age-title">各年龄段用户净推荐值</div>
-          <div v-for="a in homeData.nps.byAge" :key="a.name" class="age-row">
-            <span class="age-name">{{ a.name }}</span>
-            <div class="age-bar-wrap">
-              <div class="age-bar"><div :style="{ width: a.value + '%' }" /></div>
-              <span class="age-val">{{ a.value.toFixed(2) }}%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <el-dialog :model-value="!!currentNews" :title="currentNews?.name" width="640px" @close="currentNews = null">
-      <p v-if="currentNews" class="news-body">{{ currentNews.content }}</p>
       <template #footer>
-        <span class="news-date">{{ currentNews?.submitTime }} · {{ currentNews?.org }}</span>
-        <el-button type="primary" @click="currentNews = null">关闭</el-button>
+        <el-button @click="restore">恢复默认</el-button>
+        <el-button type="primary" @click="apply">保存</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import EChart from '@/components/EChart.vue'
-import { homeData, todoCounts } from '@/mock'
-import { homeNotices } from '@/mock/notices'
-import { carousels } from '@/mock/system'
-import { sideMenus } from '@/config/menus'
-import CarouselSlide from '@/components/CarouselSlide.vue'
+import { currentUser } from '@/config/user'
+import { currentPersona } from '@/config/session'
+import { cardOf, permittedCards, loadPrefs, savePrefs, activeKeys, layout } from '@/config/homeCards'
+import './home.css'
+import TodoCard from './cards/TodoCard.vue'
+import QuickSubmitCard from './cards/QuickSubmitCard.vue'
+import MySubmitCard from './cards/MySubmitCard.vue'
+import SuggestStatsCard from './cards/SuggestStatsCard.vue'
+import DeptProgressCard from './cards/DeptProgressCard.vue'
+import VoiceAlertCard from './cards/VoiceAlertCard.vue'
+import NpsCard from './cards/NpsCard.vue'
+import JourneysCard from './cards/JourneysCard.vue'
+import ActivitiesCard from './cards/ActivitiesCard.vue'
+import QcCard from './cards/QcCard.vue'
+import VoiceToolCard from './cards/VoiceToolCard.vue'
+import SkillsCard from './cards/SkillsCard.vue'
+import NewsCard from './cards/NewsCard.vue'
+import TrainingCard from './cards/TrainingCard.vue'
+import SystemCard from './cards/SystemCard.vue'
+import BannerCard from './cards/BannerCard.vue'
 
-const slides = computed(() => carousels.filter((c) => c.status === '展示中').sort((a, b) => (a.sort || 99) - (b.sort || 99)))
-const ps = homeData.problemStats
-const solvedRate = Number(((ps.solved / ps.total) * 100).toFixed(2))
-// 优化建议待办：与「体验问题 · 待办工作」左侧菜单一致（按岗位显示的菜单项不可见时不计入）
-const todoMenus = computed(() => (sideMenus.experience.find((g) => g.title === '待办工作')?.children || []).filter((c) => c.countKey && (!c.visible || c.visible())))
-const suggestionTodo = computed(() => todoMenus.value.reduce((n, c) => n + (todoCounts[c.countKey] || 0), 0))
-// 点击进入第一个有待办的菜单（推测），均为 0 时进入待处理
-const todoTarget = computed(() => {
-  const m = todoMenus.value.find((c) => todoCounts[c.countKey] > 0)
-  return m ? { path: m.path, query: m.query } : { path: '/optimPending', query: { type: '', suggestStatus: '2' } }
-})
-
-const news = computed(() => homeNotices().slice(0, 10))
-const currentNews = ref(null)
-const openNews = (n) => { currentNews.value = n }
-const openSupport = (s) => ElMessage.info(`「${s.name}」为外部体验支撑系统，演示环境暂不跳转`)
-
-const bubbleColors = ['#4fb3c8', '#f39c12', '#7f6fd1', '#5aa8e0', '#e74c3c', '#f08a5d', '#4fb3c8', '#f39c12', '#e74c3c', '#e74c3c']
-const bubbleOption = {
-  tooltip: { formatter: '{b}：{c} 条' },
-  series: [
-    {
-      type: 'graph',
-      layout: 'force',
-      force: { repulsion: 120, gravity: 0.22, edgeLength: 10, friction: 0.2 },
-      roam: false,
-      label: { show: true, color: '#fff', fontSize: 11 },
-      data: homeData.suggestionBubbles.map((b, i) => ({
-        name: b.name,
-        value: b.value,
-        symbolSize: 40 + b.value * 0.6,
-        itemStyle: { color: bubbleColors[i % bubbleColors.length], opacity: 0.88 }
-      }))
-    }
-  ]
+const CARDS = {
+  todo: TodoCard, quickSubmit: QuickSubmitCard, mySubmit: MySubmitCard, suggestStats: SuggestStatsCard, deptProgress: DeptProgressCard,
+  voiceAlert: VoiceAlertCard, nps: NpsCard, journeys: JourneysCard, activities: ActivitiesCard, qc: QcCard, voiceTool: VoiceToolCard,
+  skills: SkillsCard, news: NewsCard, training: TrainingCard, system: SystemCard, banner: BannerCard
 }
 
-const gaugeOption = {
-  series: [
-    {
-      type: 'gauge',
-      min: -100,
-      max: 100,
-      startAngle: 200,
-      endAngle: -20,
-      radius: '95%',
-      center: ['50%', '62%'],
-      progress: { show: true, width: 10, itemStyle: { color: '#3a8ee6' } },
-      axisLine: { lineStyle: { width: 10, color: [[1, '#d6d9de']] } },
-      axisTick: { show: false },
-      splitLine: { show: false },
-      axisLabel: { show: false },
-      pointer: { show: false },
-      title: { offsetCenter: [0, '-18%'], fontSize: 13, color: '#555' },
-      detail: { offsetCenter: [0, '16%'], fontSize: 28, fontWeight: 600, color: '#333', formatter: '{value}%' },
-      data: [{ value: homeData.nps.total, name: '总体NPS' }]
-    }
-  ]
+const prefs = ref(loadPrefs())
+const keys = computed(() => activeKeys(prefs.value))
+const placed = computed(() => layout(keys.value))
+
+const now = new Date()
+const hour = now.getHours()
+const greeting = hour < 11 ? '上午好' : hour < 13 ? '中午好' : hour < 18 ? '下午好' : '晚上好'
+const dateText = `${now.getMonth() + 1} 月 ${now.getDate()} 日 星期${'日一二三四五六'[now.getDay()]}`
+const personaTitle = computed(() => currentPersona.value?.title || '平台用户')
+
+// ===== 调整卡片 =====
+const customizing = ref(false)
+const draft = reactive({ order: [], hidden: [] })
+function fillDraft(p) {
+  const shown = activeKeys(p)
+  const rest = permittedCards.value.map((c) => c.key).filter((k) => !shown.includes(k))
+  draft.order = [...shown, ...rest]
+  draft.hidden = rest
+}
+watch(customizing, (open) => open && fillDraft(prefs.value))
+const toggle = (k, on) => (draft.hidden = on ? draft.hidden.filter((x) => x !== k) : [...draft.hidden, k])
+function move(i, d) {
+  const o = [...draft.order]
+  ;[o[i], o[i + d]] = [o[i + d], o[i]]
+  draft.order = o
+}
+function apply() {
+  prefs.value = { order: [...draft.order], hidden: [...draft.hidden] }
+  savePrefs(prefs.value)
+  customizing.value = false
+  ElMessage.success('首页卡片已更新')
+}
+function restore() {
+  savePrefs(null)
+  prefs.value = null
+  customizing.value = false
+  ElMessage.success('已恢复为岗位默认卡片')
 }
 </script>
 
 <style scoped>
-.news-body { margin: 0; line-height: 1.7; color: #333; white-space: pre-wrap; }
-.news-date { float: left; color: #888; font-size: 13px; line-height: 32px; }
-.home {
-  display: grid;
-  grid-template-areas:
-    'banner banner news side'
-    'p s m side';
-  grid-template-columns: 1fr 1.4fr 1.6fr 0.95fr;
-  gap: 16px;
-  padding: 16px 20px 30px;
-  max-width: 1680px;
-  margin: 0 auto;
-}
+.home { padding: 20px 24px 40px; max-width: 1680px; }
+.home-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.greet { margin: 0; font-size: var(--uem-fs-xl); font-weight: 600; line-height: 1.4; }
+.who { margin: 2px 0 0; font-size: var(--uem-fs-sm); color: var(--uem-ink-3); }
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.cell { min-width: 0; }
+.none { padding: 48px 0; text-align: center; color: var(--uem-ink-3); }
 
-/* 横幅 */
-.banner { grid-area: banner; min-height: 400px; border-radius: 4px; overflow: hidden; background: #fbe3e4; font-size: 16px; }
-.carousel, .carousel :deep(.el-carousel__container) { height: 100%; }
+.drawer-tip { margin: 0 0 12px; font-size: var(--uem-fs-sm); color: var(--uem-ink-3); line-height: 1.6; }
+.cfg-list { list-style: none; margin: 0; padding: 0; }
+.cfg-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-top: 1px solid var(--uem-line-2); }
+.cfg-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cfg-text b { font-size: var(--uem-fs); font-weight: 600; }
+.cfg-text span { font-size: var(--uem-fs-xs); color: var(--uem-ink-3); line-height: 1.5; }
+.cfg-move { display: flex; gap: 2px; }
+.cfg-move .el-button + .el-button { margin-left: 0; }
 
-/* 体验动态 */
-.news { grid-area: news; position: relative; }
-.block-title { font-size: 16px; font-weight: 600; margin-bottom: 14px; color: #333; }
-.red-title { color: var(--uem-red); border-bottom: 2px solid var(--uem-red); padding-bottom: 8px; }
-.news-tab { margin: 6px 0 10px; }
-.news-list { list-style: none; padding: 0; margin: 0; }
-.news-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 13px; cursor: pointer; }
-.news-list li:hover .news-title { color: var(--uem-red); }
-.news-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.news-date { color: #999; flex-shrink: 0; }
-.more { color: #3a6fd8; font-size: 12px; display: inline-flex; align-items: center; gap: 2px; margin-top: 6px; }
-
-/* 右侧 */
-.side-col { grid-area: side; display: flex; flex-direction: column; gap: 16px; }
-.todo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.todo-item { position: relative; text-align: center; padding: 10px 0; color: #666; font-size: 13px; }
-.todo-item b { display: block; color: var(--uem-red); font-size: 20px; margin-top: 4px; position: relative; z-index: 1; }
-.todo-bg { position: absolute; right: 8px; bottom: 6px; font-size: 32px; color: #e8e8e8; }
-.support-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.support-item {
-  height: 76px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px;
-  font-size: 14px; color: #444; cursor: pointer; transition: transform 0.2s;
-}
-.support-item:hover { transform: translateY(-2px); }
-.support-item .el-icon { color: var(--uem-red); font-size: 18px; }
-.bg0 { background: linear-gradient(135deg, #e7eef6, #c9d8e8); }
-.bg1 { background: linear-gradient(135deg, #f1f6f8, #dfeaf0); }
-.bg2 { background: linear-gradient(135deg, #fbeceb, #f6d6d2); }
-.bg3 { background: linear-gradient(135deg, #f7f7f7, #ececec); }
-.bg4 { background: linear-gradient(135deg, #fbf0ea, #f4dccd); }
-.bg5 { background: linear-gradient(135deg, #f8f1f3, #efdde2); }
-
-/* 底部统计卡片 */
-.stat-card { padding: 0 0 16px; overflow: hidden; display: flex; flex-direction: column; }
-.area-p { grid-area: p; }
-.area-s { grid-area: s; }
-.area-m { grid-area: m; }
-.card-head { display: block; padding: 18px 24px; font-size: 16px; font-weight: 600; color: #333; }
-.head-red { background: linear-gradient(90deg, #fdf0ef, #fbe3e1); }
-.head-green { background: linear-gradient(90deg, #eef7f3, #e2f1ea); }
-.head-blue { background: linear-gradient(90deg, #eef3fa, #e2ebf7); }
-
-.problem { padding: 16px 24px 0; text-align: center; }
-.p-label { color: #666; font-size: 13px; }
-.p-total { font-size: 34px; font-weight: 600; margin: 8px 0 16px; font-family: Georgia, serif; }
-.p-rates { display: flex; justify-content: space-between; font-size: 13px; color: #666; margin-bottom: 6px; }
-.p-bar { height: 22px; background: #e8545c; display: flex; }
-.p-bar-solved { background: #6cc0c4; }
-.p-split { display: flex; justify-content: space-between; margin-top: 18px; }
-.p-num { font-size: 24px; margin-top: 8px; font-family: Georgia, serif; }
-.p-num.solved { color: #4a9ea3; }
-.p-num.pending { color: var(--uem-red); }
-
-.bubble { height: 300px; }
-
-.monitor-body { display: flex; padding: 8px 16px 0; gap: 8px; }
-.nps { flex: 1; }
-.gauge { height: 170px; }
-.dims { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0 10px; }
-.dim { text-align: center; font-size: 12px; border: 1px solid #eee; }
-.dim-name { color: #fff; padding: 3px 0; }
-.dim-val { padding: 3px 0; color: #666; }
-.dim0 .dim-name { background: #e8545c; }
-.dim1 .dim-name { background: #6b9ee3; }
-.dim2 .dim-name { background: #6cc0c4; }
-.dim3 .dim-name { background: #f39c12; }
-.age { flex: 1.1; }
-.age-title { text-align: center; font-size: 13px; color: #555; margin-bottom: 12px; }
-.age-row { display: flex; align-items: flex-start; gap: 8px; font-size: 11px; color: #6b8fd6; margin-bottom: 8px; }
-.age-name { width: 66px; text-align: right; flex-shrink: 0; }
-.age-bar-wrap { flex: 1; text-align: center; }
-.age-bar { height: 6px; background: #edf0f5; border-radius: 3px; overflow: hidden; }
-.age-bar > div { height: 100%; background: linear-gradient(90deg, #6aa5ff, #2f6ee0); }
-.age-val { color: #777; font-size: 11px; }
-
-@media (max-width: 1280px) {
-  .home {
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas: 'banner banner' 'news side' 'p s' 'm m';
-  }
+@media (max-width: 1200px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cell { grid-column: span 1 !important; }
 }
 </style>

@@ -73,5 +73,5 @@ function onFile(file) {
 .pager { margin-top: 16px; justify-content: flex-end; }
 .ok { color: #3c9a5f; }
 .wait { color: #e6a23c; }
-.hint { color: #999; font-size: 12px; margin-top: 12px; }
+.hint { color: var(--uem-ink-3); font-size: 12px; margin-top: 12px; }
 </style>

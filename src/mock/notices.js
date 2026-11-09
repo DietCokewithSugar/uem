@@ -1,12 +1,12 @@
 // 体验公告：我的体验公告 12 条与截图一致；总行动态供首页「体验动态」使用
 // 人员与机构均为虚构。同业观察为演示文案，不引用真实客户数据
 import { reactive } from 'vue'
-import { currentUser } from '@/config/user'
+import { SEED_USER } from '@/config/user'
 
 export const noticeStatuses = ['进行中', '已完成', '待审批']
 
-const mine = currentUser.name
-const org = currentUser.dept
+const mine = SEED_USER.name
+const org = SEED_USER.dept
 const other = '林知夏'
 
 const row = (data) => ({

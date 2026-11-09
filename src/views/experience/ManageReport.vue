@@ -258,21 +258,21 @@ function download() {
 .tabs :deep(.el-tabs__nav-wrap::after) { display: none; }
 .tabs :deep(.el-tabs__item) { padding: 0 12px; }
 .tab-actions { position: absolute; top: 0; right: 0; height: 40px; display: flex; align-items: center; gap: 14px; }
-.tab-actions :deep(.el-checkbox__label) { font-size: 13px; color: #666; }
+.tab-actions :deep(.el-checkbox__label) { font-size: 13px; color: var(--uem-ink-2); }
 /* ⓘ：叹号图标旋转 180° */
-.info { margin-left: 3px; color: #999; font-size: 13px; transform: rotate(180deg); vertical-align: -2px; }
+.info { margin-left: 3px; color: var(--uem-ink-3); font-size: 13px; transform: rotate(180deg); vertical-align: -2px; }
 .rule-tip { max-width: 360px; line-height: 20px; }
-.note { margin: 0 0 10px; font-size: 12px; color: #999; }
+.note { margin: 0 0 10px; font-size: 12px; color: var(--uem-ink-3); }
 
-.report { font-size: 12px; color: #666; }
+.report { font-size: 12px; color: var(--uem-ink-2); }
 .report :deep(th.el-table__cell) { font-size: 12px; }
 .report :deep(.cell) { line-height: 18px; padding: 0 8px; }
 .report :deep(.num) { color: #3a6fd8; cursor: pointer; }
 .report :deep(.num:hover) { text-decoration: underline; }
-.report :deep(.total-row) { font-weight: 600; color: #333; }
+.report :deep(.total-row) { font-weight: 600; color: var(--uem-ink); }
 .report :deep(.line-row > td.el-table__cell) { background: #fcfcfd; }
 .clamp2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
 .late { color: var(--uem-red); }
-.muted { color: #999; }
+.muted { color: var(--uem-ink-3); }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

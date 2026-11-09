@@ -93,13 +93,13 @@ function view(file) {
 </script>
 
 <style scoped>
-.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: #555; }
+.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: var(--uem-ink-2); }
 .filter .el-button + .el-button { margin-left: 0; }
 .gap { flex: 1; }
 .on { color: #3c9a5f; }
 .foot { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
-.deny { font-size: 12px; color: #999; }
+.deny { font-size: 12px; color: var(--uem-ink-3); }
 .pager { margin-left: auto; justify-content: flex-end; }
-.meta { margin-bottom: 8px; font-size: 12px; color: #888; }
-.log { margin: 0; max-height: 60vh; overflow: auto; padding: 12px 14px; background: #f7f8fa; color: #333; border: 1px solid var(--uem-border); border-radius: 4px; font: 12px/1.6 Menlo, Consolas, 'Courier New', monospace; white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 4; }
+.meta { margin-bottom: 8px; font-size: 12px; color: var(--uem-ink-3); }
+.log { margin: 0; max-height: 60vh; overflow: auto; padding: 12px 14px; background: #f7f8fa; color: var(--uem-ink); border: 1px solid var(--uem-border); border-radius: 4px; font: 12px/1.6 Menlo, Consolas, 'Courier New', monospace; white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 4; }
 </style>

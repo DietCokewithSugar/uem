@@ -99,10 +99,10 @@ async function remove(r) {
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .card { border: 1px solid #eee; border-radius: 4px; padding: 12px; background: #fff; }
 .thumb { height: 130px; border-radius: 4px; overflow: hidden; cursor: pointer; background: #f5f6f8; }
-.title { margin-top: 12px; font-size: 14px; color: #333; }
+.title { margin-top: 12px; font-size: 14px; color: var(--uem-ink); }
 .ab-tag { margin-right: 6px; border-color: var(--uem-red); color: var(--uem-red); vertical-align: text-bottom; }
-.time { margin-top: 4px; font-size: 12px; color: #999; }
-.votes { margin-top: 2px; font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.time { margin-top: 4px; font-size: 12px; color: var(--uem-ink-3); }
+.votes { margin-top: 2px; font-size: 12px; color: var(--uem-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ops { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
 .links a { color: #3a6fd8; cursor: pointer; font-size: 12px; margin-left: 8px; }
 .links a:hover { text-decoration: underline; }

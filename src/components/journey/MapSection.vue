@@ -22,7 +22,7 @@ defineEmits(['update:open'])
 
 <style scoped>
 .map-section { margin-bottom: 14px; }
-.head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 13px; color: #555; }
+.head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 13px; color: var(--uem-ink-2); }
 .toggle { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-weight: 600; }
 .tip { color: #b7bcc4; font-size: 12px; cursor: help; }
 .body { padding-left: 12px; }

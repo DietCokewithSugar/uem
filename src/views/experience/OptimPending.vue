@@ -1,5 +1,5 @@
-<!-- 待办工作：待修改 / 待处理 / 待分拣 / 待答复 / 待审核 / 待业务部门答复 / 待跟进（由 suggestStatus 区分）
-     列表为当前用户作为当前处理人的优化建议；办理在详情页进行，待处理、待分拣支持批量操作 -->
+<!-- 我的待办：待修改 / 待审批 / 待分拣 / 待答复 / 待审核 / 待业务部门答复 / 待跟进（由 suggestStatus 区分）
+     列表为当前用户作为当前处理人的优化建议；办理在详情页进行，待审批、待分拣支持批量操作 -->
 <template>
   <div>
     <SearchForm :model="form" :fields="fields" @search="search" @reset="reset" />
@@ -35,14 +35,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import SearchForm from '@/components/SearchForm.vue'
 import { useTableQuery, match } from '@/components/useTableQuery'
-import { suggestions, sources, stayDays, detailRoute, transferToSort, abortSuggestion, removeSuggestion, returnToSubmitter } from '@/mock/suggest'
+import { suggestions, sources, stayDays, detailRoute, approveBranch, abortSuggestion, removeSuggestion, returnToSubmitter } from '@/mock/suggest'
 import { productList, branchOrgs } from '@/mock/system'
 import { pendingStatus } from '@/config/menus'
 import { currentUser } from '@/config/user'
 
 const route = useRoute()
 const router = useRouter()
-const statusName = computed(() => pendingStatus[route.query.suggestStatus] || '待处理')
+const statusName = computed(() => pendingStatus[route.query.suggestStatus] || '待审批')
 
 // 提出机构：分行 + 数据中出现的业务研发中心等机构
 const orgOptions = computed(() => [...new Set([...branchOrgs, ...suggestions.map((s) => s.proposerOrg).filter(Boolean).sort()])])
@@ -78,15 +78,15 @@ const { form, page, pageSize, filtered, rows, search, reset } = useTableQuery(
 
 const openDetail = (row) => router.push(detailRoute(row, statusName.value, filtered.value))
 
-// 批量操作：待处理为截图中的四个按钮；待分拣的批量退回、批量中止为推测；其余状态在详情页逐条办理
+// 批量操作：待审批沿用原「待处理」的四个按钮（转处理改为审批通过）；待分拣的批量退回、批量中止为推测；其余状态在详情页逐条办理
 const ACTIONS = {
-  transfer: { key: 'transfer', label: '批量转处理', name: '转处理', run: (s) => transferToSort(s) },
+  transfer: { key: 'transfer', label: '批量审批通过', name: '审批通过', run: (s) => approveBranch(s) },
   abort: { key: 'abort', label: '批量中止', name: '中止', reason: '中止原因', run: (s, r) => abortSuggestion(s, r) },
   remove: { key: 'remove', label: '批量删除', name: '删除', run: (s) => removeSuggestion(s) },
   back: { key: 'back', label: '批量退回提交人', name: '退回提交人', reason: '退回原因', run: (s, r) => returnToSubmitter(s, r) }
 }
 const batchActions = computed(() => {
-  if (statusName.value === '待处理') return [ACTIONS.transfer, ACTIONS.abort, ACTIONS.remove, ACTIONS.back]
+  if (statusName.value === '待审批') return [ACTIONS.transfer, ACTIONS.abort, ACTIONS.remove, ACTIONS.back]
   if (statusName.value === '待分拣') return [ACTIONS.back, ACTIONS.abort]
   return []
 })
@@ -117,7 +117,7 @@ async function runBatch(a) {
   tableRef.value?.clearSelection()
   selected.value = []
   if (page.value > 1 && (page.value - 1) * pageSize.value >= filtered.value.length) page.value = Math.max(1, Math.ceil(filtered.value.length / pageSize.value))
-  const tip = { transfer: '已转至产品线分拣岗「待分拣」', back: '已退回提交人「待修改」', abort: '状态已变更为「已中止」', remove: '' }[a.key]
+  const tip = { transfer: '已按产品分类自动分配至对应分拣岗', back: '已退回提交人「待修改」', abort: '状态已变更为「已中止」', remove: '' }[a.key]
   ElMessage.success(`${a.name}成功，共 ${list.length} 条${tip ? `，${tip}` : ''}`)
 }
 </script>

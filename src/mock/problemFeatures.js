@@ -1,6 +1,6 @@
 // 体验问题维护：体验问题模块功能开关及应用范围；「相似度」供优化建议新增时检测相似建议
 import { reactive, computed } from 'vue'
-import { currentUser } from '@/config/user'
+import { currentUser, SEED_USER } from '@/config/user'
 import { persons } from './system'
 import { orgs } from './index'
 
@@ -12,7 +12,7 @@ export const problemFeatures = reactive([
   F('相似度', true, '提交优化建议时自动检索相似建议并提示提交人，减少重复提交', 'org-role-person', {
     orgs: [],
     roles: [],
-    persons: [currentUser.id, '001700106', '001700107']
+    persons: [SEED_USER.id, '001700106', '001700107']
   }),
   F('溯源分析', true, '对应用范围内产品的优化建议进行问题溯源分析', 'product', {
     products: ['个人手机银行基础业务', '工银e生活', '企业网上银行']

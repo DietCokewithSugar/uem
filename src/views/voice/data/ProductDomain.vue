@@ -77,9 +77,9 @@ async function remove(row) {
 </script>
 
 <style scoped>
-.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: #555; }
+.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: var(--uem-ink-2); }
 .filter .el-button + .el-button { margin-left: 0; }
 .gap { flex: 1; }
-.products { font-size: 12px; color: #555; line-height: 1.7; }
+.products { font-size: 12px; color: var(--uem-ink-2); line-height: 1.7; }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

@@ -121,11 +121,11 @@ async function save() {
 </script>
 
 <style scoped>
-.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: #555; }
+.filter { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; font-size: 14px; color: var(--uem-ink-2); }
 .filter .el-button + .el-button { margin-left: 0; }
 .gap { flex: 1; }
 .date-row { display: flex; align-items: center; gap: 10px; width: 100%; }
-.week { flex: none; width: 42px; color: #999; font-size: 13px; }
+.week { flex: none; width: 42px; color: var(--uem-ink-3); font-size: 13px; }
 :deep(.el-table__row.fresh > td.el-table__cell) { background: var(--uem-red-light); }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

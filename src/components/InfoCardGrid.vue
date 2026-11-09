@@ -83,11 +83,11 @@ const download = () => {
 .card:hover { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); transform: translateY(-2px); }
 .cover { height: 160px; }
 .body { padding: 12px 14px 14px; }
-.title { font-size: 14px; color: #333; line-height: 1.5; min-height: 42px; }
+.title { font-size: 14px; color: var(--uem-ink); line-height: 1.5; min-height: 42px; }
 .tag { color: var(--uem-red); font-size: 11px; margin-left: 6px; }
-.meta { display: flex; justify-content: space-between; color: #888; font-size: 12px; margin-top: 8px; }
+.meta { display: flex; justify-content: space-between; color: var(--uem-ink-3); font-size: 12px; margin-top: 8px; }
 .meta span { display: inline-flex; align-items: center; gap: 3px; }
-.empty { text-align: center; color: #aaa; font-size: 13px; padding: 40px 0; }
+.empty { text-align: center; color: var(--uem-ink-3); font-size: 13px; padding: 40px 0; }
 .pager { margin-top: 16px; justify-content: flex-end; }
 .drawer-cover { height: 200px; margin-bottom: 16px; border-radius: 4px; overflow: hidden; }
 .drawer-actions { margin-top: 20px; }

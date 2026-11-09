@@ -60,7 +60,7 @@ function download() {
 
 <style scoped>
 .bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-.label { color: #555; font-size: 14px; }
+.label { color: var(--uem-ink-2); font-size: 14px; }
 .range { max-width: 520px; }
 .bar .el-button + .el-button { margin-left: 0; }
 .preview-title { font-weight: 600; margin-bottom: 12px; }

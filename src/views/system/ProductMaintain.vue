@@ -135,7 +135,7 @@ async function save() {
 <style scoped>
 .uem-toolbar :deep(.el-upload) { display: inline-flex; }
 .key { margin-left: 6px; }
-.frozen { color: #999; }
-.hint { color: #888; font-size: 12px; margin: 0 0 10px; }
+.frozen { color: var(--uem-ink-3); }
+.hint { color: var(--uem-ink-3); font-size: 12px; margin: 0 0 10px; }
 .pager { margin-top: 16px; justify-content: flex-end; }
 </style>

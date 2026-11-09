@@ -1,6 +1,6 @@
 // 灵犀旅程（用户旅程地图）演示数据：人员均为虚构
 import { reactive } from 'vue'
-import { currentUser } from '@/config/user'
+import { SEED_USER } from '@/config/user'
 
 // 状态流转：待编辑旅程结构 →(提交) 待审核 →(通过) 已发布旅程结构 / (退回) 待修改 →(再提交) 待审核
 export const journeyStatuses = ['待编辑旅程结构', '待审核', '待修改', '已发布旅程结构']
@@ -10,7 +10,7 @@ export const journeyScenes = ['其他', '销售贵金属产品', '问卷数据�
 
 // 人员目录（用于旅程管理员 / 维护员搜索）
 export const staff = [
-  { id: currentUser.id, name: currentUser.name, dept: currentUser.dept },
+  { id: SEED_USER.id, name: SEED_USER.name, dept: SEED_USER.dept },
   { id: '001700101', name: '林思远', dept: '业务研发中心业务研发四部' },
   { id: '001700102', name: '周可欣', dept: '业务研发中心业务研发四部' },
   { id: '001700103', name: '陈嘉怡', dept: '业务研发中心业务研发六部' },

@@ -80,5 +80,5 @@ function upload(row, file) {
 <style scoped>
 .pager { margin-top: 16px; justify-content: flex-end; }
 .inline { display: inline-block; margin: 0 12px; }
-.tip { color: #bbb; margin-left: 4px; vertical-align: middle; }
+.tip { color: var(--uem-ink-4); margin-left: 4px; vertical-align: middle; }
 </style>

@@ -346,31 +346,31 @@ ${isAb.value ? abExportBody() : standardExportBody()}
 <style scoped>
 .head { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .title-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.title { font-size: 16px; color: #333; }
+.title { font-size: 16px; color: var(--uem-ink); }
 .ab-tag { border-color: var(--uem-red); color: var(--uem-red); }
-.time { color: #999; font-size: 12px; }
+.time { color: var(--uem-ink-3); font-size: 12px; }
 .sub { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin: 16px 0; }
 .tabs { display: flex; gap: 10px; flex-wrap: wrap; }
-.tab { display: inline-flex; align-items: center; gap: 6px; padding: 4px 16px; border: 1px solid #ddd; border-radius: 14px; font-size: 12px; color: #555; cursor: pointer; background: #fff; }
+.tab { display: inline-flex; align-items: center; gap: 6px; padding: 4px 16px; border: 1px solid #ddd; border-radius: 14px; font-size: 12px; color: var(--uem-ink-2); cursor: pointer; background: #fff; }
 .tab.active { border-color: var(--uem-red); color: var(--uem-red); }
 .tab-plan { width: 16px; height: 16px; border-radius: 50%; font-size: 11px; line-height: 16px; text-align: center; color: #fff; }
 .tab-plan.a { background: #2f6fde; }
 .tab-plan.b { background: #d46b08; }
-.ai-note { flex: none; font-size: 12px; color: #888; line-height: 28px; }
-.box { border: 1px solid #eee; border-radius: 4px; padding: 16px 20px; margin-bottom: 16px; font-size: 13px; color: #555; line-height: 1.8; }
-.box > b, .box-head > b { color: #333; font-size: 14px; display: block; margin-bottom: 8px; }
+.ai-note { flex: none; font-size: 12px; color: var(--uem-ink-3); line-height: 28px; }
+.box { border: 1px solid #eee; border-radius: 4px; padding: 16px 20px; margin-bottom: 16px; font-size: 13px; color: var(--uem-ink-2); line-height: 1.8; }
+.box > b, .box-head > b { color: var(--uem-ink); font-size: 14px; display: block; margin-bottom: 8px; }
 .box p { margin: 0 0 8px; }
 .box > b.with-tag { display: flex; align-items: center; gap: 8px; }
-.from, .note { color: #999; font-size: 12px; }
+.from, .note { color: var(--uem-ink-3); font-size: 12px; }
 .biz { display: grid; grid-template-columns: 88px 1fr; gap: 8px 12px; margin-top: 8px; }
-.biz span { color: #888; }
+.biz span { color: var(--uem-ink-3); }
 .biz p { margin: 0; }
 .box-head { display: flex; justify-content: space-between; align-items: center; }
 .box-head > b { margin-bottom: 0; }
 .box-head + .note { margin-top: 4px; }
 .with-icon { display: inline-flex; align-items: center; gap: 4px; }
 .q { color: #c0c4cc; cursor: pointer; font-size: 14px; }
-.count { color: #999; font-size: 12px; font-weight: normal; }
+.count { color: var(--uem-ink-3); font-size: 12px; font-weight: normal; }
 .fold { color: #3a6fd8; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; gap: 2px; }
 .materials { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; padding: 12px 0 4px; }
 .frame { width: 280px; height: 168px; border: 1px solid #eee; border-radius: 4px; overflow: hidden; background: #f7f8fa; }
@@ -380,13 +380,13 @@ ${isAb.value ? abExportBody() : standardExportBody()}
 .dims { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .dim { border: 1px solid #f0f0f0; border-radius: 4px; padding: 12px 14px; background: #fff; }
 .dim-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.dim-head b { color: #333; font-size: 14px; }
+.dim-head b { color: var(--uem-ink); font-size: 14px; }
 .dim p { margin: 0; }
 .sev { font-weight: 600; }
 .sev-1 { color: #c7000b; }
 .sev-2 { color: #e6a23c; }
-.sev-3 { color: #909399; }
-.sev-tip { width: 320px; font-size: 12px; line-height: 1.6; color: #555; }
+.sev-3 { color: var(--uem-ink-3); }
+.sev-tip { width: 320px; font-size: 12px; line-height: 1.6; color: var(--uem-ink-2); }
 .sev-tip p { margin: 0 0 6px; }
 .issue-table { margin-top: 12px; }
 .issue-table :deep(.cell) { white-space: normal; line-height: 1.6; }
@@ -396,7 +396,7 @@ ${isAb.value ? abExportBody() : standardExportBody()}
 .plan { display: inline-block; flex: none; padding: 0 8px; border-radius: 10px; font-size: 12px; line-height: 20px; font-weight: 500; white-space: nowrap; }
 .plan.a { color: #2f6fde; background: #eef3fd; }
 .plan.b { color: #d46b08; background: #fff4e6; }
-.plan.zero { color: #aaa; background: #f4f4f5; }
+.plan.zero { color: var(--uem-ink-3); background: #f4f4f5; }
 .plan-materials { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding-top: 8px; }
 .plan-col { border: 1px solid #f0f0f0; border-radius: 4px; padding: 10px 12px; }
 .plan-col-head { display: flex; align-items: center; justify-content: space-between; }
@@ -407,17 +407,17 @@ ${isAb.value ? abExportBody() : standardExportBody()}
 .seg.b { background: #d46b08; }
 .vote-names { margin-top: 10px; }
 .vote-names p { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; }
-.loc { color: #333; }
+.loc { color: var(--uem-ink); }
 .lean { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.ets-note { font-size: 12px; font-weight: normal; color: #999; }
-.lead { color: #333; }
+.ets-note { font-size: 12px; font-weight: normal; color: var(--uem-ink-3); }
+.lead { color: var(--uem-ink); }
 .dim-diff { border: 1px solid #f0f0f0; border-radius: 4px; padding: 12px 14px; margin-top: 12px; }
 .dim-diff-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.dim-diff-head b { color: #333; font-size: 14px; }
+.dim-diff-head b { color: var(--uem-ink); font-size: 14px; }
 .crit { margin-top: 10px; padding: 8px 12px; background: #fafafa; border-radius: 4px; }
 .crit-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.crit-head b { color: #333; }
-.crit-desc { color: #999; font-size: 12px; margin: 2px 0 6px !important; }
+.crit-head b { color: var(--uem-ink); }
+.crit-desc { color: var(--uem-ink-3); font-size: 12px; margin: 2px 0 6px !important; }
 .crit-side { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 4px !important; }
 @media (max-width: 1100px) {
   .two, .dims, .plan-materials { grid-template-columns: 1fr; }

@@ -35,5 +35,5 @@ const set = (i, v) => emit('update:modelValue', [...props.modelValue.slice(0, i)
 <style scoped>
 .chain { display: flex; align-items: center; gap: 6px; width: 100%; }
 .chain .el-select { flex: 1; }
-.sep { color: #999; }
+.sep { color: var(--uem-ink-3); }
 </style>

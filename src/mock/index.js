@@ -81,7 +81,7 @@ export const problems = Array.from({ length: 96 }, (_, i) => {
 // 待办数量随演示操作实时变化；优化建议待办为当前用户作为当前处理人的数量
 export const todoCounts = reactive({
   get toModify() { return suggestionTodo.toModify },
-  get toHandle() { return suggestionTodo.toHandle },
+  get toApprove() { return suggestionTodo.toApprove },
   get toSort() { return suggestionTodo.toSort },
   get toReply() { return suggestionTodo.toReply },
   get toAudit() { return suggestionTodo.toAudit },
@@ -143,7 +143,7 @@ export const expMethods = ['问卷调查', '用户访谈', '可用性评估', '�
 export const activityStatuses = ['草稿', '待审核', '进行中', '已完成', '已中止']
 export const applyDepts = ['业务研发中心用户体验部', '业务研发中心业务研发一部', '业务研发中心业务研发二部', '业务研发中心业务研发三部']
 // 所属板块：截图中为下拉框，选项为推测
-export const taskBoards = ['体验问题', '体验活动', '体验监测', '用户声音', '体验资讯', '体验员']
+export const taskBoards = ['优化建议', '体验活动', '体验监测', '用户声音', '灵犀旅程', '知识中心', '体验官']
 export const taskStatuses = ['未开始', '进行中', '已完成', '已关闭']
 
 const activityNames = [

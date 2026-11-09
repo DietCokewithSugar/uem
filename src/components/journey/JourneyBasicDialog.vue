@@ -86,6 +86,6 @@ async function submit() {
 .form { padding-right: 20px; }
 .form :deep(.el-form-item) { margin-bottom: 32px; }
 .form :deep(.el-form-item__content) { position: relative; }
-.hint { position: absolute; left: calc(100% + 16px); top: 0; width: 200px; font-size: 12px; color: #888; line-height: 1.6; }
+.hint { position: absolute; left: calc(100% + 16px); top: 0; width: 200px; font-size: 12px; color: var(--uem-ink-3); line-height: 1.6; }
 .form { margin-right: 220px; }
 </style>

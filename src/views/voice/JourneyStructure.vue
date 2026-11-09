@@ -53,5 +53,5 @@ function toggle(row) {
 
 <style scoped>
 .pager { margin-top: 16px; justify-content: flex-end; }
-.frozen { color: #999; }
+.frozen { color: var(--uem-ink-3); }
 </style>

@@ -145,7 +145,7 @@ const addProblem = (bid) => (props.map.problems[bid] ||= []).push({ id: uid('p')
 }
 .readonly .cell { background: #fafbfc; }
 .cell input, .role input {
-  width: 100%; border: none; outline: none; background: transparent; font-size: 13px; color: #333;
+  width: 100%; border: none; outline: none; background: transparent; font-size: 13px; color: var(--uem-ink);
 }
 .cell input::placeholder, .role input::placeholder { color: #c0c4cc; }
 
@@ -170,21 +170,21 @@ const addProblem = (bid) => (props.map.problems[bid] ||= []).push({ id: uid('p')
 .metric b { color: var(--uem-red); margin: 0 2px; }
 
 .problems { flex-direction: column; align-items: stretch; }
-.problem { display: flex; flex-direction: column; border-left: 3px solid var(--uem-red); padding: 2px 6px; margin-bottom: 4px; position: relative; }
+.problem { display: flex; flex-direction: column; background: var(--uem-surface-2); border-radius: var(--uem-radius-sm); padding: 4px 8px; margin-bottom: 4px; position: relative; }
 .problem.done { border-left-color: #6cc0c4; }
 .problem.editing { flex-direction: row; align-items: center; gap: 4px; }
-.problem em { font-style: normal; color: #999; font-size: 11px; }
+.problem em { font-style: normal; color: var(--uem-ink-3); font-size: 11px; }
 .link { color: #3a6fd8; cursor: pointer; font-size: 12px; }
 
 .add-col, .add-row {
-  display: flex; align-items: center; justify-content: center; cursor: pointer; color: #bbb;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--uem-ink-4);
   border: 1px dashed #e0e0e0; border-radius: 2px;
 }
 .add-col { width: 44px; }
 .add-row { height: 30px; width: 130px; margin: 0 0 10px 0; background: #fdf3e6; color: #e3a54a; border-color: #f3d3a5; }
-.add-row.small { width: 40px; background: transparent; color: #bbb; border-color: #e0e0e0; }
+.add-row.small { width: 40px; background: transparent; color: var(--uem-ink-4); border-color: #e0e0e0; }
 .add-col:hover, .add-row:hover { color: var(--uem-red); border-color: var(--uem-red); }
-.del { position: absolute; top: 2px; right: 4px; font-size: 11px; color: #bbb; cursor: pointer; z-index: 1; }
+.del { position: absolute; top: 2px; right: 4px; font-size: 11px; color: var(--uem-ink-4); cursor: pointer; z-index: 1; }
 .del.inline { position: static; flex-shrink: 0; }
 .behavior.chevron .del { right: 18px; }
 .del:hover { color: var(--uem-red); }

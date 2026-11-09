@@ -37,11 +37,11 @@ defineProps({
 .cell { width: 200px; flex-shrink: 0; border: 1px solid #e6e8eb; background: #fff; padding: 6px 8px; font-size: 13px; display: flex; align-items: center; }
 .cell input { width: 100%; border: none; outline: none; background: transparent; font-size: 13px; }
 .cell input::placeholder { color: #c0c4cc; }
-.del { align-self: center; color: #bbb; cursor: pointer; font-size: 12px; }
+.del { align-self: center; color: var(--uem-ink-4); cursor: pointer; font-size: 12px; }
 .del:hover { color: var(--uem-red); }
 .add {
   width: 50px; height: 30px; margin-left: 40px; display: flex; align-items: center; justify-content: center;
   border: 1px dashed #f3d3a5; background: #fdf3e6; color: #e3a54a; cursor: pointer;
 }
-.none { color: #aaa; font-size: 12px; padding: 4px 0 8px; }
+.none { color: var(--uem-ink-3); font-size: 12px; padding: 4px 0 8px; }
 </style>

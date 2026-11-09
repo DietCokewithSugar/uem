@@ -184,6 +184,7 @@ import { ref, reactive, computed, markRaw } from 'vue'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
 import EChart from '@/components/EChart.vue'
+import { SERIES, BLUE, INK, INK_2, INK_3, LINE, LINE_2 } from '@/config/charts'
 import { exportCsv } from '@/components/exportCsv'
 import { exportTasks } from '@/mock/experiencer'
 import { nowText } from '@/mock/qc'
@@ -193,8 +194,9 @@ import {
   monthlyAdopt, rejectSplit, solutionSplit, monthlySolved, exportColumns, exportRows
 } from '@/mock/suggestBoard'
 
-// 截图配色
-const C = { red: '#e5575e', teal: '#3fb1a3', blue: '#5b8ff9', lightBlue: '#9cc3f5', amber: '#f6bd16', purple: '#7262fd', orange: '#f08a5d', pink: '#f3a3a6' }
+// 配色见 config/charts.js：总行（业务研发中心）固定第 1 色、分行固定第 2 色，与首页卡片一致
+const HEAD = SERIES[0]
+const BRANCH = SERIES[1]
 
 // ===== 年度（概览）=====
 const years = computed(() => boardYears())
@@ -229,10 +231,9 @@ const rc = computed(() => counts(rangeData.value))
 const rangeMonths = computed(() => monthsBetween(applied.value[0], applied.value[1]))
 
 // ===== 图表通用 =====
-const axisColor = { axisLine: { lineStyle: { color: '#dcdfe6' } }, axisTick: { show: false }, axisLabel: { color: '#666', fontSize: 11 } }
-const valueAxis = (extra = {}) => ({ type: 'value', minInterval: 1, axisLabel: { color: '#999', fontSize: 11 }, splitLine: { lineStyle: { color: '#f0f2f5' } }, nameTextStyle: { color: '#999', fontSize: 11 }, ...extra })
-const rateAxis = { type: 'value', min: 0, max: 100, interval: 20, axisLabel: { color: '#999', fontSize: 11, formatter: '{value}%' }, splitLine: { show: false }, name: '采纳率', nameTextStyle: { color: '#999', fontSize: 11 } }
-const legendBase = { top: 0, left: 'center', itemWidth: 12, itemHeight: 8, itemGap: 18, textStyle: { color: '#555', fontSize: 12 } }
+const axisColor = { axisLine: { lineStyle: { color: LINE } }, axisTick: { show: false }, axisLabel: { color: INK_3, fontSize: 11 } }
+const valueAxis = (extra = {}) => ({ type: 'value', minInterval: 1, axisLabel: { color: INK_3, fontSize: 11 }, splitLine: { lineStyle: { color: LINE_2 } }, nameTextStyle: { color: INK_3, fontSize: 11 }, ...extra })
+const legendBase = { top: 0, left: 'center', itemWidth: 12, itemHeight: 8, itemGap: 18, textStyle: { color: INK_2, fontSize: 12 } }
 const fmtVal = (p) => (p.value == null ? '-' : p.seriesName.includes('率') ? `${p.value}%` : `${p.value} 条`)
 const axisTip = (extra) => ({
   trigger: 'axis',
@@ -243,8 +244,30 @@ const axisTip = (extra) => ({
 const monthAxis = (months) => ({ type: 'category', data: months, ...axisColor, axisLabel: { ...axisColor.axisLabel, interval: 0, rotate: months.length > 12 ? 30 : 0 } })
 const gridBottom = (months) => (months.length > 12 ? 44 : 28)
 const barEnd = [4, 4, 0, 0]
-const grad = (top, bottom) => ({ type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: top }, { offset: 1, color: bottom }] })
-const rateLine = (data) => ({ name: '采纳率', type: 'line', yAxisIndex: 1, data, symbol: 'circle', symbolSize: 7, connectNulls: false, itemStyle: { color: C.red, borderColor: '#fff', borderWidth: 1.5 }, lineStyle: { width: 2, color: C.red } })
+// 数量和采纳率不共用左右两个纵轴：上方柱图看数量，下方小图看采纳率，两图共用月份轴，提示框一起显示
+function withRatePanel(opt, months, rates) {
+  const bottom = gridBottom(months)
+  return {
+    ...opt,
+    axisPointer: { link: [{ xAxisIndex: 'all' }] },
+    grid: [
+      { left: 52, right: 24, top: 48, bottom: bottom + 96 },
+      { left: 52, right: 24, height: 56, bottom }
+    ],
+    xAxis: [
+      { ...monthAxis(months), gridIndex: 0, axisLabel: { show: false } },
+      { ...monthAxis(months), gridIndex: 1 }
+    ],
+    yAxis: [
+      { ...opt.yAxis, gridIndex: 0 },
+      { type: 'value', gridIndex: 1, min: 0, max: 100, interval: 50, name: '采纳率', nameGap: 10, nameTextStyle: { color: INK_3, fontSize: 11 }, axisLabel: { color: INK_3, fontSize: 11, formatter: '{value}%' }, splitLine: { lineStyle: { color: LINE_2 } } }
+    ],
+    series: [
+      ...opt.series,
+      { name: '采纳率', type: 'line', xAxisIndex: 1, yAxisIndex: 1, data: rates, symbol: 'circle', symbolSize: 6, connectNulls: false, itemStyle: { color: INK_2 }, lineStyle: { width: 2, color: INK_2 } }
+    ]
+  }
+}
 
 // 概览：各月提交量（总行 / 分行堆叠）+ 采纳率
 const submitOpt = computed(() => {
@@ -252,7 +275,7 @@ const submitOpt = computed(() => {
   const head = rows.reduce((n, r) => n + r.head, 0)
   const branch = rows.reduce((n, r) => n + r.branch, 0)
   const totals = { 提交总量: head + branch, 总行提交量: head, 分行提交量: branch }
-  return {
+  return withRatePanel({
     tooltip: axisTip((i) => `提交总量：${rows[i].total} 条（采纳 ${rows[i].adopted} / 已分析 ${rows[i].analyzed}）`),
     legend: {
       ...legendBase,
@@ -261,16 +284,13 @@ const submitOpt = computed(() => {
       selectedMode: true,
       formatter: (n) => (n === '采纳率' ? `采纳率${ov.value.adoptRate}%` : `${n}${totals[n]}条`)
     },
-    grid: { left: 52, right: 56, top: 48, bottom: gridBottom(rows) },
-    xAxis: monthAxis(rows.map((r) => r.month)),
-    yAxis: [valueAxis({ name: '提交量（条）' }), rateAxis],
+    yAxis: valueAxis({ name: '提交量（条）' }),
     series: [
       { name: '提交总量', type: 'bar', data: [], tooltip: { show: false } },
-      { name: '总行提交量', type: 'bar', stack: 'submit', barMaxWidth: 26, itemStyle: { color: C.amber, borderColor: '#fff', borderWidth: 1 }, data: rows.map((r) => r.head) },
-      { name: '分行提交量', type: 'bar', stack: 'submit', barMaxWidth: 26, itemStyle: { color: C.lightBlue, borderColor: '#fff', borderWidth: 1, borderRadius: barEnd }, data: rows.map((r) => r.branch) },
-      rateLine(rows.map((r) => r.rate))
+      { name: '总行提交量', type: 'bar', stack: 'submit', barMaxWidth: 26, itemStyle: { color: HEAD, borderColor: '#fff', borderWidth: 1 }, data: rows.map((r) => r.head) },
+      { name: '分行提交量', type: 'bar', stack: 'submit', barMaxWidth: 26, itemStyle: { color: BRANCH, borderColor: '#fff', borderWidth: 1, borderRadius: barEnd }, data: rows.map((r) => r.branch) }
     ]
-  }
+  }, rows.map((r) => r.month), rows.map((r) => r.rate))
 })
 
 // 图例百分比取整：最大余数法，保证合计为 100%
@@ -289,7 +309,7 @@ function donut(list, colors, { legendAt = 'right', cols = 1, nameWidth = 80 } = 
   const legendItem = {
     icon: 'circle', itemWidth: 8, itemHeight: 8, itemGap: 9,
     formatter: (n) => `{n|${n}}{p|${pctOf[n] ?? 0}%}`,
-    textStyle: { rich: { n: { ...(nameWidth ? { width: nameWidth } : {}), color: '#555', fontSize: 12 }, p: { color: '#333', fontSize: 12, fontWeight: 600, padding: [0, 0, 0, 6] } } }
+    textStyle: { rich: { n: { ...(nameWidth ? { width: nameWidth } : {}), color: INK_2, fontSize: 12 }, p: { color: INK, fontSize: 12, fontWeight: 600, padding: [0, 0, 0, 6] } } }
   }
   let legend, center, radius
   if (legendAt === 'bottom') {
@@ -339,15 +359,15 @@ const top5Opt = computed(() => {
     yAxis: valueAxis(),
     series: [{
       name: '采集量', type: 'bar', barMaxWidth: 24, data: top.map((x) => x.value),
-      itemStyle: { color: grad(C.red, '#f6b7ba'), borderRadius: barEnd },
-      label: { show: true, position: 'top', color: '#333', fontSize: 12 }
+      itemStyle: { color: BLUE, borderRadius: barEnd },
+      label: { show: true, position: 'top', color: INK_2, fontSize: 12 }
     }]
   }
 })
 const collectCards = computed(() => [
   {
     key: 'source', title: '优化建议来源分布(提交机构维度)', detail: 'org', height: 260,
-    option: donut(sources.value, [C.blue, C.amber], { legendAt: 'bottom', nameWidth: 0 }),
+    option: donut(sources.value, [BRANCH, HEAD], { legendAt: 'bottom', nameWidth: 0 }),
     table: { cols: shareCols('提交机构类型'), rows: withPct(sources.value) }
   },
   {
@@ -357,7 +377,7 @@ const collectCards = computed(() => [
   },
   {
     key: 'category', title: '优化建议分类情况', height: 260,
-    option: donut(cats.value, [C.red, C.blue, C.amber, C.teal, C.purple, C.orange, C.lightBlue, C.pink], { legendAt: 'bottom', cols: 2, nameWidth: 56 }),
+    option: donut(cats.value, SERIES, { legendAt: 'bottom', cols: 2, nameWidth: 56 }),
     table: { cols: shareCols('优化建议分类'), rows: withPct(cats.value) }
   }
 ])
@@ -395,31 +415,28 @@ const adoptOpt = computed(() => {
   const a = rows.reduce((n, r) => n + r.adopted, 0)
   const b = rows.reduce((n, r) => n + r.rejected, 0)
   const names = { 采纳数: `采纳数${a}条`, 未采纳数: `未采纳数${b}条`, 采纳率: `采纳率${rc.value.adoptRate}%` }
-  return {
+  return withRatePanel({
     tooltip: axisTip(),
     legend: { ...legendBase, data: ['采纳数', '未采纳数', '采纳率'], formatter: (n) => names[n] },
-    grid: { left: 48, right: 52, top: 48, bottom: gridBottom(rows) },
-    xAxis: monthAxis(rows.map((r) => r.month)),
-    yAxis: [valueAxis({ name: '数量（条）' }), rateAxis],
+    yAxis: valueAxis({ name: '数量（条）' }),
     series: [
-      { name: '采纳数', type: 'bar', barMaxWidth: 16, barGap: '30%', itemStyle: { color: C.teal, borderRadius: barEnd }, data: rows.map((r) => r.adopted) },
-      { name: '未采纳数', type: 'bar', barMaxWidth: 16, itemStyle: { color: C.blue, borderRadius: barEnd }, data: rows.map((r) => r.rejected) },
-      rateLine(rows.map((r) => r.rate))
+      { name: '采纳数', type: 'bar', barMaxWidth: 16, barGap: '30%', itemStyle: { color: SERIES[0], borderRadius: barEnd }, data: rows.map((r) => r.adopted) },
+      { name: '未采纳数', type: 'bar', barMaxWidth: 16, itemStyle: { color: SERIES[1], borderRadius: barEnd }, data: rows.map((r) => r.rejected) }
     ]
-  }
+  }, rows.map((r) => r.month), rows.map((r) => r.rate))
 })
 const rejects = computed(() => rejectSplit(rangeData.value))
 const analysisCards = computed(() => [
   {
-    key: 'adoptTrend', title: '各月采纳变化趋势图', height: 300, option: adoptOpt.value,
+    key: 'adoptTrend', title: '各月采纳变化趋势图', height: 360, option: adoptOpt.value,
     table: {
       cols: [{ prop: 'month', label: '月份' }, { prop: 'adopted', label: '采纳数（条）', align: 'center' }, { prop: 'rejected', label: '未采纳数（条）', align: 'center' }, { prop: 'rateText', label: '采纳率', align: 'center' }],
       rows: adoptRows.value.map((r) => ({ ...r, rateText: r.rate == null ? '-' : `${r.rate}%` }))
     }
   },
   {
-    key: 'reject', title: '未采纳原因分布情况', height: 300,
-    option: donut(rejects.value, [C.red, C.amber, C.blue, C.teal, C.purple, C.orange, C.lightBlue], { nameWidth: 148 }),
+    key: 'reject', title: '未采纳原因分布情况', height: 360,
+    option: donut(rejects.value, SERIES, { nameWidth: 148 }),
     table: { cols: shareCols('未采纳原因'), rows: withPct(rejects.value) }
   }
 ])
@@ -434,13 +451,13 @@ const solvedOpt = computed(() => {
     grid: { left: 48, right: 20, top: 36, bottom: gridBottom(rows) },
     xAxis: monthAxis(rows.map((r) => r.month)),
     yAxis: valueAxis({ name: '解决数（条）' }),
-    series: [{ name: '解决数', type: 'bar', barMaxWidth: 22, itemStyle: { color: grad(C.purple, '#b3aafe'), borderRadius: barEnd }, label: { show: rows.length <= 13, position: 'top', color: '#666', fontSize: 11 }, data: rows.map((r) => r.solved) }]
+    series: [{ name: '解决数', type: 'bar', barMaxWidth: 22, itemStyle: { color: BLUE, borderRadius: barEnd }, label: { show: rows.length <= 13, position: 'top', color: INK_2, fontSize: 11 }, data: rows.map((r) => r.solved) }]
   }
 })
 const solveCards = computed(() => [
   {
     key: 'solution', title: '解决方式分布', height: 300,
-    option: donut(solutionsData.value, [C.blue, C.amber, C.teal, C.purple, C.orange], { nameWidth: 172 }),
+    option: donut(solutionsData.value, SERIES, { nameWidth: 172 }),
     table: { cols: shareCols('解决方式'), rows: withPct(solutionsData.value) }
   },
   {
@@ -499,74 +516,65 @@ const download = (t) => exportCsv(t.name, exportColumns, t.rows)
 .board { min-width: 0; }
 .head { display: flex; justify-content: space-between; align-items: center; margin: 0 0 12px; }
 .head + .kpis { margin-top: 0; }
-.head-title { font-size: 16px; font-weight: 600; color: #333; padding-left: 10px; border-left: 4px solid #e5575e; line-height: 16px; }
+.head-title { font-size: var(--uem-fs-md); font-weight: 600; color: var(--uem-ink); }
 
-/* 年度：红色胶囊下拉 */
-.year-pill { width: 92px; }
-.year-pill :deep(.el-select__wrapper) { background: linear-gradient(90deg, #e5575e, #f08a8f); box-shadow: none; border-radius: 14px; min-height: 26px; padding: 2px 12px; }
-.year-pill :deep(.el-select__placeholder),
-.year-pill :deep(.el-select__selected-item),
-.year-pill :deep(.el-select__caret) { color: #fff; }
+/* 年度下拉 */
+.year-pill { width: 96px; }
 
-/* 概览指标卡：浅色渐变 + 右侧装饰图形 */
+/* 概览指标卡 */
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
-.kpi { position: relative; overflow: hidden; border-radius: 6px; padding: 16px 20px 14px; min-height: 124px; background: linear-gradient(120deg, #fff 30%, var(--tint)); }
-.kpi::before,
-.kpi::after { content: ''; position: absolute; border-radius: 50%; background: var(--accent); pointer-events: none; }
-.kpi::before { width: 116px; height: 116px; right: -34px; top: -38px; opacity: 0.08; }
-.kpi::after { width: 64px; height: 64px; right: 52px; bottom: -36px; opacity: 0.06; }
+.kpi { position: relative; overflow: hidden; border-radius: var(--uem-radius-lg); padding: 16px 20px 14px; min-height: 124px; background: var(--uem-surface); border: 1px solid var(--uem-line); }
 .k-red { --tint: #fde1df; --accent: #e5575e; }
 .k-green { --tint: #d9f3ea; --accent: #3fb1a3; }
 .k-blue { --tint: #dbe7fc; --accent: #5b8ff9; }
 .k-orange { --tint: #fbe8cf; --accent: #f08a5d; }
-.k-lbl { font-size: 14px; color: #333; font-weight: 600; position: relative; z-index: 1; padding-right: 36px; }
+.k-lbl { font-size: var(--uem-fs-sm); color: var(--uem-ink-2); font-weight: 500; position: relative; z-index: 1; padding-right: 36px; }
 .k-more { position: absolute; top: 16px; right: 18px; font-size: 13px; z-index: 2; }
-.k-val { font-size: 30px; font-weight: 700; color: #222; margin: 10px 0 6px; font-family: 'DIN Alternate', 'Helvetica Neue', Arial, sans-serif; position: relative; z-index: 1; line-height: 1.1; }
-.k-val small { font-size: 13px; font-weight: 400; color: #555; margin-left: 4px; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
-.k-sub { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12px; color: #777; position: relative; z-index: 1; }
+.k-val { font-size: var(--uem-fs-3xl); font-weight: 600; color: var(--uem-ink); margin: 10px 0 6px; position: relative; z-index: 1; line-height: 1.15; }
+.k-val small { font-size: var(--uem-fs-sm); font-weight: 500; color: var(--uem-ink-3); margin-left: 3px; }
+.k-sub { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: var(--uem-fs-xs); color: var(--uem-ink-3); position: relative; z-index: 1; }
 .k-sub span { white-space: nowrap; }
-.deco { position: absolute; right: 14px; bottom: 10px; font-size: 64px; color: var(--accent); opacity: 0.16; transform: rotate(-8deg); }
+.deco { display: none; }
 
 .trend-card { padding: 16px 20px 8px; margin-bottom: 24px; }
-.trend { height: 300px; }
+.trend { height: 360px; }
 
 /* 提交时间筛选 */
 .filter { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 14px 20px; margin-bottom: 20px; }
 .filter .el-button + .el-button { margin-left: 0; }
-.f-lbl { color: #555; font-size: 14px; }
+.f-lbl { color: var(--uem-ink-2); font-size: var(--uem-fs-sm); }
 .range { width: 260px; flex: none; }
 .quick { padding: 8px 12px; }
-.reset { color: #666; }
+.reset { color: var(--uem-ink-2); }
 .reset .el-icon { margin-right: 2px; }
 .gap { flex: 1; }
 
 /* 分组标题 */
 .sec-head { display: flex; align-items: baseline; gap: 12px; margin: 4px 0 12px; }
-.sec-title { font-size: 15px; font-weight: 600; color: #333; }
-.sec-sub { font-size: 13px; color: #888; }
-.sec-sub b { color: #e5575e; font-size: 16px; margin: 0 2px; font-family: 'DIN Alternate', 'Helvetica Neue', Arial, sans-serif; }
+.sec-title { font-size: var(--uem-fs-md); font-weight: 600; color: var(--uem-ink); }
+.sec-sub { font-size: var(--uem-fs-sm); color: var(--uem-ink-3); }
+.sec-sub b { color: var(--uem-ink); font-size: var(--uem-fs-md); margin: 0 2px; }
 
 .cards { display: grid; gap: 16px; margin-bottom: 20px; }
 .c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .c-wide-left { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
 .c-half { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.chart-card { background: #fff; border-radius: 4px; padding: 14px 16px 10px; min-width: 0; }
+.chart-card { background: var(--uem-surface); border: 1px solid var(--uem-line); border-radius: var(--uem-radius-lg); padding: 14px 16px 10px; min-width: 0; }
 .cc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
-.cc-title { font-size: 14px; font-weight: 600; color: #333; line-height: 20px; min-width: 0; }
+.cc-title { font-size: var(--uem-fs); font-weight: 600; color: var(--uem-ink); line-height: 20px; min-width: 0; }
 .cc-detail { font-size: 13px; font-weight: 400; margin-left: 8px; }
 .cc-tools { display: flex; gap: 4px; flex: none; }
-.icon-btn { border: 0; background: transparent; padding: 3px; border-radius: 3px; cursor: pointer; color: #999; display: inline-flex; font-size: 14px; }
-.icon-btn:hover { color: #e5575e; background: #fdf1f0; }
-.icon-btn:focus-visible { outline: 2px solid #e5575e; outline-offset: 1px; }
+.icon-btn { border: 0; background: transparent; padding: 3px; border-radius: var(--uem-radius-sm); cursor: pointer; color: var(--uem-ink-3); display: inline-flex; font-size: 14px; }
+.icon-btn:hover { color: var(--uem-ink); background: var(--uem-hover); }
 .cc-body { position: relative; }
-.cc-table { position: absolute; inset: 0; background: #fff; z-index: 2; }
+.cc-table { position: absolute; inset: 0; background: var(--uem-surface); z-index: 2; }
 
-.dlg-note { color: #888; font-size: 12px; margin: -6px 0 12px; line-height: 1.6; }
-.ok { color: #3c9a5f; }
-.wait { color: #e6a23c; }
+.dlg-note { color: var(--uem-ink-3); font-size: var(--uem-fs-xs); margin: -6px 0 12px; line-height: 1.6; }
+.ok { color: var(--uem-success); }
+.wait { color: var(--uem-warning); }
 </style>
 
 <style>
 /* 弹窗表格行由 el-table 内部渲染，合计行样式不使用 scoped */
-.el-table .board-sum-row td.el-table__cell { background: #fdf6f6; font-weight: 600; }
+.el-table .board-sum-row td.el-table__cell { background: var(--uem-surface-2); font-weight: 600; }
 </style>

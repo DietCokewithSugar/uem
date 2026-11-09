@@ -33,11 +33,11 @@
         </div>
       </template>
 
-      <!-- 待处理（分行科技审核岗） -->
-      <template v-else-if="mode === '待处理'">
-        <div class="tip">分行员工提交的优化建议，审核后转产品线分拣岗{{ sorterName ? `（${sorterName}）` : '' }}分拣；与本行业务无关的可中止。</div>
+      <!-- 待审批（本行分行科技审核岗） -->
+      <template v-else-if="mode === '待审批'">
+        <div class="tip">本行员工提交的优化建议，{{ routeTip }}；与本行业务无关的可中止。</div>
         <div class="btns">
-          <el-button type="primary" @click="doTransferSort">转处理</el-button>
+          <el-button type="primary" @click="doApprove">审批通过</el-button>
           <el-button @click="doReturn">退回提交人</el-button>
           <el-button @click="doAbort">中止</el-button>
         </div>
@@ -50,6 +50,13 @@
             <el-option v-for="p in repliers" :key="p.id" :label="`${p.name}（${p.id}）`" :value="p.id" />
           </el-select>
         </el-form-item>
+        <el-form-item v-if="rec" label="">
+          <div class="ai-line">
+            <span class="uem-ai-tag"><el-icon><MagicStick /></el-icon>AI 推荐</span>
+            <span>{{ rec.person.name }}：{{ rec.reason }}</span>
+            <el-button link type="primary" @click="useRec">采用推荐</el-button>
+          </div>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="doAssign">指派答复人</el-button>
           <el-button @click="doEkey">转e键通（研发一体化问题）</el-button>
@@ -59,6 +66,23 @@
 
       <!-- 待答复（产品线处理岗）：明确是否采纳及解决方式 -->
       <el-form v-else-if="mode === '待答复'" ref="replyRef" :model="reply" :rules="replyRules" :validate-on-rule-change="false" label-width="120px" class="pform">
+        <div v-if="draft" class="uem-ai-panel ai-draft">
+          <div class="ai-draft-head">
+            <span class="uem-ai-tag"><el-icon><MagicStick /></el-icon>AI 答复草稿</span>
+            <span class="uem-ai-basis">参考 {{ draft.basis.length }} 条同类建议的答复，请核对后再提交</span>
+            <el-button size="small" class="ai-use" @click="useDraft">采纳草稿</el-button>
+          </div>
+          <div class="ai-draft-kv">
+            <span>采纳结果 <b>{{ draft.adoptResult }}</b></span>
+            <span v-if="draft.solution">解决方式 <b>{{ draft.solution }}</b></span>
+            <span v-if="draft.priority">优先级 <b>{{ draft.priority.slice(0, 2) }}</b></span>
+            <span v-if="draft.rejectReason">未采纳原因 <b>{{ draft.rejectReason }}</b></span>
+          </div>
+          <p class="ai-draft-text">{{ draft.replyOpinion }}</p>
+          <div class="uem-ai-basis">
+            依据：<template v-for="(b, i) in draft.basis" :key="b.id"><span v-if="i">、</span><router-link :to="{ path: '/optimSuggestDetail', query: { problemId: b.seq, currentMenuName: '全部优化建议' } }" class="uem-link">{{ b.id }}</router-link>（{{ b.text }}）</template>
+          </div>
+        </div>
         <el-form-item label="采纳结果" prop="adoptResult">
           <el-radio-group v-model="reply.adoptResult">
             <el-radio v-for="o in adoptResults" :key="o" :value="o">{{ o }}</el-radio>
@@ -231,10 +255,11 @@ import { persons, headDepts } from '@/mock/system'
 import { currentUser } from '@/config/user'
 import { featureActive } from '@/mock/problemFeatures'
 import { fmtDate } from '@/mock/holidays'
+import { recommendReplier, replyDraft } from '@/mock/aiAssist'
 import {
   adoptResults, solutions, solutionOf, priorities, rejectReasons, satisfactions, isOverdue,
   handlersOf, sorterOf, businessHandlerOf,
-  transferToSort, returnToSubmitter, abortSuggestion, assignReplier, transferToEkey, replySuggestion, transferToBusiness,
+  approveBranch, dispatchText, returnToSubmitter, abortSuggestion, assignReplier, transferToEkey, replySuggestion, transferToBusiness,
   auditSuggestion, followUp, businessReply, ekeyComplete, ekeyReturn, evaluate, resubmit
 } from '@/mock/suggest'
 
@@ -243,7 +268,7 @@ const props = defineProps({ suggestion: { type: Object, required: true } })
 const s = computed(() => props.suggestion)
 const router = useRouter()
 
-const actionable = ['待修改', '待处理', '待分拣', '待答复', '待审核', '待跟进', '待业务部门答复']
+const actionable = ['待修改', '待审批', '待分拣', '待答复', '待审核', '待跟进', '待业务部门答复']
 const me = persons.find((p) => p.id === currentUser.id) || { name: currentUser.name, id: currentUser.id, org: currentUser.dept }
 // 当前处理人（提交人等不在人员维护中的，按记录信息构造）
 const handlerPerson = computed(() => {
@@ -306,11 +331,18 @@ function doResubmit() {
   done('已重新提交')
 }
 
-// ===== 待处理 / 待分拣：退回、中止 =====
+// ===== 待审批 / 待分拣：退回、中止 =====
 const sorterName = computed(() => sorterOf(s.value.productLine)?.name || '')
-function doTransferSort() {
-  transferToSort(s.value, actor.value)
-  done('已转处理')
+// 审批通过后的去向：按产品分类自动分配
+const routeTip = computed(() => {
+  const x = s.value
+  if (x.integrated) return '审批通过后作为研发一体化问题转 e键通'
+  const who = sorterName.value ? `（${sorterName.value}）` : ''
+  return x.unclassified ? `「${x.product}」暂无产品分类，审批通过后分配至用户体验部分拣岗${who}` : `审批通过后按产品分类分配至${x.bizDept}「${x.productLine}」产品线分拣岗${who}`
+})
+function doApprove() {
+  approveBranch(s.value, actor.value)
+  ElMessage.success(`审批通过，${dispatchText(s.value)}`)
 }
 async function doReturn() {
   const reason = await ask('退回提交人', '退回原因')
@@ -330,10 +362,17 @@ const assignRef = ref()
 const assign = reactive({ replierId: '' })
 const assignRules = { replierId: [required('请选择答复人')] }
 const repliers = computed(() => handlersOf(s.value.productLine))
+// AI 推荐答复人：同产品、同功能栏目的答复量与当前待答复量（演示为规则计算）
+const rec = computed(() => (mode.value === '待分拣' ? recommendReplier(s.value) : null))
+const recUsed = ref(false)
+function useRec() {
+  assign.replierId = rec.value.person.id
+  recUsed.value = true
+}
 async function doAssign() {
   if (!(await assignRef.value.validate().catch(() => false))) return
   const p = repliers.value.find((x) => x.id === assign.replierId)
-  assignReplier(s.value, p, actor.value)
+  assignReplier(s.value, p, actor.value, recUsed.value && rec.value?.person.id === p.id)
   done(`已指派答复人 ${p.name}`)
 }
 async function doEkey() {
@@ -381,9 +420,19 @@ async function doReply() {
     reqNo: adopt ? String(reply.reqNo ?? '').trim() : '',
     planTime: adopt ? reply.planTime || '' : '',
     rejectReason: adopt ? '' : reply.rejectReason,
-    replyOpinion: reply.replyOpinion.trim()
+    replyOpinion: reply.replyOpinion.trim(),
+    ai: draftUsed.value
   }, actor.value)
   done('答复成功')
+}
+// AI 答复草稿：参考历史相似建议的答复（演示为规则计算），采纳后仍需答复人核对并提交
+const draft = computed(() => (mode.value === '待答复' ? replyDraft(s.value) : null))
+const draftUsed = ref(false)
+function useDraft() {
+  const d = draft.value
+  Object.assign(reply, { adoptResult: d.adoptResult, solution: d.solution || '', priority: d.priority || '', rejectReason: d.rejectReason || '', replyOpinion: d.replyOpinion })
+  draftUsed.value = true
+  ElMessage.success('已填入草稿，请核对后提交')
 }
 
 // ===== 待答复：转总行业务部门 =====
@@ -484,29 +533,36 @@ async function doEvaluate() {
 </script>
 
 <style scoped>
+.ai-line { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: var(--uem-fs-sm); color: var(--uem-ink-2); line-height: 1.6; }
+.ai-draft { margin: 0 0 16px 120px; display: flex; flex-direction: column; gap: 8px; }
+.ai-draft-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ai-use { margin-left: auto; }
+.ai-draft-kv { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: var(--uem-fs-sm); color: var(--uem-ink-3); }
+.ai-draft-kv b { color: var(--uem-ink); font-weight: 600; margin-left: 4px; }
+.ai-draft-text { margin: 0; font-size: var(--uem-fs-sm); color: var(--uem-ink); line-height: 1.7; }
 .demo-line {
   display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px;
-  margin-bottom: 16px; padding: 9px 14px; background: #f7f8fa; border-radius: 4px; color: #888; font-size: 13px;
+  margin-bottom: 16px; padding: 9px 14px; background: #f7f8fa; border-radius: 4px; color: var(--uem-ink-3); font-size: 13px;
 }
 .demo-line .el-icon { color: #b0b3b8; }
-.muted { color: #aaa; font-size: 12px; }
-.proc { margin-bottom: 16px; border: 1px solid #f1e2e3; border-radius: 4px; }
+.muted { color: var(--uem-ink-3); font-size: 12px; }
+.proc { margin-bottom: 16px; border: 1px solid var(--uem-line); border-radius: var(--uem-radius-lg); }
 .proc-head {
   display: flex; align-items: center; flex-wrap: wrap; gap: 4px 14px;
-  padding: 10px 16px; background: linear-gradient(90deg, #fdf1f0, #fff 70%); border-radius: 4px 4px 0 0;
+  padding: 12px 16px; background: var(--uem-surface-2); border-bottom: 1px solid var(--uem-line); border-radius: var(--uem-radius-lg) var(--uem-radius-lg) 0 0;
 }
-.title { font-size: 15px; font-weight: 600; color: #333; }
-.step { font-size: 13px; color: #888; }
+.title { font-size: 15px; font-weight: 600; color: var(--uem-ink); }
+.step { font-size: 13px; color: var(--uem-ink-3); }
 .acting { margin-left: auto; font-size: 12px; color: #b26a00; background: #fdf6ec; padding: 2px 10px; border-radius: 10px; }
 .proc-body { padding: 16px 16px 2px; }
 .pform { max-width: 960px; }
-.tip { margin-bottom: 14px; padding: 8px 12px; background: #f7f8fa; border-radius: 4px; font-size: 13px; color: #666; line-height: 1.6; }
+.tip { margin-bottom: 14px; padding: 8px 12px; background: #f7f8fa; border-radius: 4px; font-size: 13px; color: var(--uem-ink-2); line-height: 1.6; }
 .warn { color: var(--uem-red); }
 .btns { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 14px; }
 .btns .el-button + .el-button { margin-left: 0; }
-.opt-desc { margin-left: 12px; color: #999; font-size: 12px; }
+.opt-desc { margin-left: 12px; color: var(--uem-ink-3); font-size: 12px; }
 .summary { margin-bottom: 14px; }
-.summary :deep(.el-descriptions__label) { width: 110px; background: #f5f7fa; color: #666; font-weight: normal; }
+.summary :deep(.el-descriptions__label) { width: 110px; background: #f5f7fa; color: var(--uem-ink-2); font-weight: normal; }
 .pre { white-space: pre-wrap; }
-.dlg-tip { font-size: 12px; color: #888; padding-left: 90px; }
+.dlg-tip { font-size: 12px; color: var(--uem-ink-3); padding-left: 90px; }
 </style>

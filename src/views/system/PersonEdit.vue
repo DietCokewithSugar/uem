@@ -104,7 +104,7 @@ async function submit() {
 .form :deep(.el-input) { max-width: 460px; }
 .modules { width: 100%; }
 .module { display: flex; padding: 10px 0; border-bottom: 1px solid #f2f2f2; }
-.m-name { width: 80px; flex-shrink: 0; color: #555; font-size: 13px; line-height: 32px; }
+.m-name { width: 80px; flex-shrink: 0; color: var(--uem-ink-2); font-size: 13px; line-height: 32px; }
 .m-roles { flex: 1; }
 .role { display: flex; align-items: center; gap: 10px; min-height: 32px; }
 .role :deep(.el-checkbox) { width: 180px; }
